@@ -70,6 +70,54 @@ const CATEGORIES = [
   { id:"efterratt", label:"Efterrätt", emoji:"🍓", color:"#cc7a7a", desc:"Sötsug utan dålig samvete" },
 ];
 
+const PROTEIN_TYPES = [
+  { id:"all",      label:"Alla",           emoji:"🎲", color:"#e8c97a" },
+  { id:"kyckling", label:"Kyckling",       emoji:"🍗", color:"#e8c97a" },
+  { id:"kott",     label:"Kött",           emoji:"🥩", color:"#cc7a7a" },
+  { id:"fisk",     label:"Fisk & Skaldjur",emoji:"🐟", color:"#7aa0cc" },
+  { id:"agg",      label:"Ägg",            emoji:"🥚", color:"#e8a87a" },
+  { id:"veg",      label:"Vegetariskt",    emoji:"🌱", color:"#6dcc6d" },
+];
+
+const DESSERT_TYPES = [
+  { id:"all",      label:"Alla",       emoji:"🎲", color:"#e8c97a" },
+  { id:"choklad",  label:"Choklad",    emoji:"🍫", color:"#cc7a7a" },
+  { id:"bar",      label:"Bär & Frukt",emoji:"🍓", color:"#cc7aa0" },
+  { id:"protein",  label:"Proteinrikt",emoji:"💪", color:"#6dcc6d" },
+  { id:"raw",      label:"Raw & Vegan",emoji:"🌱", color:"#6dcc6d" },
+  { id:"kallt",    label:"Kallt/Glass",emoji:"🍦", color:"#7aa0cc" },
+];
+
+// Auto-tagga recept baserat på namn + ingredienser
+function classifyRecipe(recipe, catId) {
+  const text = (recipe.name + " " + JSON.stringify(recipe.ingredients) + " " + (recipe.tag||"")).toLowerCase();
+  
+  // Efterrätt har egna kategorier
+  if (catId === "efterratt") {
+    if (/choklad|kakao|mörk choklad/.test(text)) return ["choklad"];
+    if (/proteinpulver|kvarg|skyr|protein/.test(text)) return ["protein"];
+    if (/raw|rå chok|dadl|vegan/.test(text)) return ["raw"];
+    if (/glass|sorbet|fryst|nicecream|pops|freeze|kallt/.test(text)) return ["kallt"];
+    if (/bär|jordgubb|blåbär|hallon|mango|kiwi|äpple|päron|ananas|apelsin|granatäppl|persika|passionsfr|vattenmelon/.test(text)) return ["bar"];
+    return ["protein"]; // default för efterrätt
+  }
+  
+  // Protein-typ för andra kategorier
+  const types = [];
+  if (/kyckling|kalkon/.test(text)) types.push("kyckling");
+  if (/nötfärs|oxfilé|biff|köttfärs|nötbog|nötkött|wagyu|chateaubriand|tournedos|ankbröst|anka|lamm|fläsk|hjort|kingkrabba är inte kött|\bkött\b/.test(text)) types.push("kott");
+  if (/\blax\b|tonfisk|räkor|torsk|forell|makrill|sardiner|hälleflundra|musslor|ostron|krabba|hummer|pilgrimsmussl|langustin|bläckfisk|sashimi|ceviche|havskräft|stör|gravlax|laxfilé|skaldjur|fisk/.test(text)) types.push("fisk");
+  if (/\bägg\b|äggvitor|frittata|omelett|pocherat|speglägg/.test(text)) types.push("agg");
+  if (/tofu|tempeh|bönor|kikärt|linser|edamame|halloumi|fetaost|svamp|champinjon|vegan|vegetarisk|grönsak/.test(text)) types.push("veg");
+  
+  // Om inget matchar, kolla om det är skinka/prosciutto etc
+  if (types.length === 0) {
+    if (/skinka|prosciutto|parmaskinka|kalkonkorv|kycklingkorv/.test(text)) types.push("kott");
+  }
+  
+  return types.length > 0 ? types : ["veg"];
+}
+
 const ALL_RECIPES = {
   traning:[
     { id:"t1", name:"Kyckling & Sötpotatis", emoji:"🍗", time:30, kcal:520, protein:52, carbs:44, fat:10, servings:"2 portioner", tag:"Hög protein · Deffa", why:"Magert protein bevarar muskelmassa. Sötpotatis ger långsam energi.",
@@ -755,6 +803,11 @@ function App() {
   const [swipeDir, setSwipeDir] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
+  
+  // Protein filter state
+  const [showProteinFilter, setShowProteinFilter] = useState(false);
+  const [selectedCatId, setSelectedCatId] = useState(null);
+  const [proteinFilter, setProteinFilter] = useState("all");
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -869,19 +922,36 @@ function App() {
     setEditMode(false);
   };
 
-  // ── Recipe handler — öppnar Tinder-läge ─────────────────────────────────
+  // ── Recipe handler — öppnar protein-filter först ────────────────────────
   const handleSpin = async (catId) => {
     if (locked) { setPricingOpen(true); return; }
-    setTinderCatId(catId);
+    setSelectedCatId(catId);
+    setProteinFilter("all");
+    setShowProteinFilter(true);
+  };
+
+  // ── Starta Tinder-läge med protein-filter ──
+  const startTinder = (filter) => {
+    setProteinFilter(filter);
+    setShowProteinFilter(false);
+    setTinderCatId(selectedCatId);
     setTinderIndex(0);
     setTinderHistory([]);
     setTinderMode(true);
   };
 
+  // ── Hjälpfunktion: hämta filtrerade recept ──
+  const getFilteredRecipes = (catId, filter) => {
+    const all = ALL_RECIPES[catId] || [];
+    if (filter === "all") return all;
+    return all.filter(r => classifyRecipe(r, catId).includes(filter));
+  };
+
   // ── Tinder: swipa höger (JA) ──
   const handleTinderYes = async () => {
-    const recipes = ALL_RECIPES[tinderCatId];
+    const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
     const recipe = recipes[tinderIndex];
+    if (!recipe) return;
     setSwipeDir("right");
     
     // Lägg till i favoriter om inte redan där
@@ -910,7 +980,7 @@ function App() {
 
   // ── Tinder: swipa vänster (NEJ) ──
   const handleTinderNo = () => {
-    const recipes = ALL_RECIPES[tinderCatId];
+    const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
     if (tinderIndex >= recipes.length - 1) return;
     setSwipeDir("left");
     setTinderHistory([...tinderHistory, tinderIndex]);
@@ -1286,11 +1356,82 @@ function App() {
         {navBtn("profile","👤","Profil")}
       </div>
 
+      {/* PROTEIN FILTER SELECTION */}
+      {showProteinFilter && selectedCatId && (() => {
+        const cat = CATEGORIES.find(c => c.id === selectedCatId);
+        const isDesserts = selectedCatId === "efterratt";
+        const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
+        
+        return (
+          <div style={{position:"fixed",inset:0,zIndex:290,background:"#0e0e0c",overflowY:"auto"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
+              {/* Top bar */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+                <button onClick={()=>setShowProteinFilter(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <div style={{fontSize:18,fontWeight:700,color:cat.color}}>{cat.emoji} {cat.label}</div>
+                <div style={{width:36}}></div>
+              </div>
+
+              <div style={{textAlign:"center",marginBottom:28}}>
+                <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6}}>Steg 2 av 2</div>
+                <h2 style={{fontSize:24,fontWeight:700,color:"#e8e8e0",marginBottom:6,fontFamily:'"Fraunces", serif'}}>
+                  {isDesserts ? "Vad är du sugen på?" : "Vad vill du äta?"}
+                </h2>
+                <p style={{fontSize:12,color:"#555"}}>
+                  {isDesserts ? "Välj typ av efterrätt" : "Välj proteintyp eller se alla"}
+                </p>
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                {typeList.map(t => {
+                  const count = getFilteredRecipes(selectedCatId, t.id).length;
+                  return (
+                    <button key={t.id} onClick={()=>startTinder(t.id)} disabled={count===0}
+                      style={{
+                        background:"#141410",
+                        border:`1px solid ${t.color}33`,
+                        borderRadius:16,
+                        padding:"22px 14px",
+                        cursor:count===0?"not-allowed":"pointer",
+                        fontFamily:"inherit",
+                        textAlign:"center",
+                        opacity:count===0?0.4:1,
+                        transition:"all 0.2s",
+                        boxShadow:`0 2px 12px ${t.color}11`
+                      }}>
+                      <div style={{fontSize:40,marginBottom:8}}>{t.emoji}</div>
+                      <div style={{fontSize:14,fontWeight:700,color:t.color,marginBottom:4}}>{t.label}</div>
+                      <div style={{fontSize:10,color:"#555"}}>{count} recept</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* TINDER SWIPE MODE */}
       {tinderMode && tinderCatId && (() => {
-        const recipes = ALL_RECIPES[tinderCatId];
+        const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
         const recipe = recipes[tinderIndex];
         const cat = CATEGORIES.find(c => c.id === tinderCatId);
+        const isDesserts = tinderCatId === "efterratt";
+        const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
+        const filterType = typeList.find(t => t.id === proteinFilter) || typeList[0];
+        
+        // Inga recept i kategorin
+        if (recipes.length === 0) {
+          return (
+            <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px"}}>
+              <div style={{fontSize:64,marginBottom:20}}>🤷</div>
+              <div style={{fontSize:18,color:"#e8e8e0",marginBottom:8,textAlign:"center"}}>Inga recept i denna kategori</div>
+              <div style={{fontSize:13,color:"#666",marginBottom:28,textAlign:"center"}}>Prova en annan filter-typ</div>
+              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:cat.color,color:"#080808",border:"none",borderRadius:99,padding:"14px 28px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>← Välj annan</button>
+            </div>
+          );
+        }
+        
         if (!recipe) return null;
         
         const rotate = swipeDir === "right" ? 15 : swipeDir === "left" ? -15 : 0;
@@ -1302,9 +1443,9 @@ function App() {
           <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column"}}>
             {/* Top bar */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"44px 18px 14px"}}>
-              <button onClick={()=>setTinderMode(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label}</div>
+                <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterType.emoji} {filterType.label}</div>
                 <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{tinderIndex + 1} av {recipes.length}</div>
               </div>
               <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:"#1a1a18",border:"none",color:tinderHistory.length===0?"#333":"#888",width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
