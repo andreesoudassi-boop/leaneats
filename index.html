@@ -1165,9 +1165,9 @@ function App() {
   const navBtn = (id, emoji, label) => (
     <button key={id} onClick={()=>setScreen(id)} style={{
       flex:1,padding:"10px 0",background:"transparent",border:"none",
-      color:screen===id?"#e8c97a":"#444",cursor:"pointer",fontFamily:"inherit",
+      color:screen===id?T.accent:T.textFaint,cursor:"pointer",fontFamily:"inherit",
       fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
-      borderTop:`2px solid ${screen===id?"#e8c97a":"transparent"}`,
+      borderTop:`2px solid ${screen===id?T.accent:"transparent"}`,
       transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:4
     }}>
       <span style={{fontSize:18}}>{emoji}</span>{label}
@@ -1224,23 +1224,23 @@ function App() {
 
   // ── Main app ─────────────────────────────────────────────────────────────
   return (
-    <div style={{minHeight:"100vh",background:"#080808",fontFamily:"Georgia,serif",color:"#e8e8e0",paddingBottom:72}}>
-      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at 50% 0%,#1a1a08 0%,transparent 55%)"}}/>
+    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"Georgia,serif",color:T.text,paddingBottom:72}}>
+      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:`radial-gradient(ellipse at 50% 0%,${T.gradStart} 0%,transparent 55%)`}}/>
 
       {/* TOP NAV */}
       <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"13px 18px",borderBottom:"1px solid #1a1a14",background:"rgba(8,8,8,0.97)",backdropFilter:"blur(16px)"}}>
+        padding:"13px 18px",borderBottom:`1px solid ${T.border}`,background:T.navBg,backdropFilter:"blur(16px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
           <span style={{fontSize:18}}>🔥</span>
-          <span style={{fontSize:17,fontWeight:700,letterSpacing:"0.06em",color:"#e8c97a"}}>FitFuel</span>
+          <span style={{fontSize:17,fontWeight:700,letterSpacing:"0.06em",color:T.accent}}>FitFuel</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {!isPremium && <span style={{fontSize:11,color:"#444"}}>{freeLeft} kvar</span>}
+          {!isPremium && <span style={{fontSize:11,color:T.textFaint}}>{freeLeft} kvar</span>}
           {isPremium
-            ? <span style={{fontSize:11,color:"#e8c97a",background:"#1a1a08",border:"1px solid #3a3010",borderRadius:99,padding:"3px 10px"}}>✨ Premium</span>
+            ? <span style={{fontSize:11,color:T.accent,background:isDark?"#1a1a08":"#f8f0d8",border:`1px solid ${isDark?"#3a3010":"#e0d0a0"}`,borderRadius:99,padding:"3px 10px"}}>✨ Premium</span>
             : <button onClick={()=>setPricingOpen(true)} style={{fontSize:11,color:"#0d0d0d",background:"linear-gradient(135deg,#e8c97a,#c4a852)",border:"none",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>100 kr/mån</button>
           }
-          <button onClick={()=>setShowSettings(true)} style={{background:"#1a1a14",border:"1px solid #2a2a20",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14,color:"#888",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>⚙</button>
+          <button onClick={()=>setShowSettings(true)} style={{background:T.border,border:`1px solid ${T.border2}`,width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14,color:T.textDim,display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>⚙</button>
         </div>
       </nav>
 
@@ -1493,7 +1493,7 @@ function App() {
       </div>
 
       {/* BOTTOM NAV */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:"rgba(8,8,8,0.97)",borderTop:"1px solid #1a1a14",backdropFilter:"blur(16px)"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)"}}>
         {navBtn("home","🏠","Hem")}
         {navBtn("profile","👤","Profil")}
       </div>
