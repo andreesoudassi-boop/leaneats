@@ -35,8 +35,6 @@
     signInWithEmailAndPassword: (auth, email, pass) => auth.signInWithEmailAndPassword(email, pass),
     signOut: (auth) => auth.signOut(),
     onAuthStateChanged: (auth, cb) => auth.onAuthStateChanged(cb),
-    sendEmailVerification: (user) => user.sendEmailVerification(),
-    reloadUser: (user) => user.reload(),
     doc: (db, col, id) => db.collection(col).doc(id),
     setDoc: (ref, data, opts) => opts && opts.merge ? ref.set(data, {merge:true}) : ref.set(data),
     getDoc: async (ref) => { const snap = await ref.get(); return { exists: () => snap.exists, data: () => snap.data() }; }
@@ -757,63 +755,7 @@ function GoalSetup({ onSave, initialGoal="deffa", initialKcal=2000 }) {
   );
 }
 
-// ─── BMR / TDEE / MAKRON ──────────────────────────────────────────────────
-const ACTIVITY_LEVELS = [
-  { id:"sedentary",   label:"Stillasittande",    emoji:"🪑", desc:"Kontorsjobb, inget gym",        mult:1.2  },
-  { id:"light",       label:"Lätt aktiv",         emoji:"🚶", desc:"Promenader, 1-2 pass/vecka",    mult:1.375 },
-  { id:"moderate",    label:"Aktiv",              emoji:"🏃", desc:"3-5 pass/vecka",                mult:1.55  },
-  { id:"active",      label:"Mycket aktiv",       emoji:"💪", desc:"6-7 pass/vecka",                mult:1.725 },
-  { id:"very_active", label:"Extremt aktiv",      emoji:"🔥", desc:"Tungt jobb + 2x träning/dag",   mult:1.9   },
-];
-
-const GOAL_OPTIONS = [
-  { id:"deffa",      label:"Deffa",      emoji:"🔥", desc:"Bränn fett",       kcalDelta:-500 },
-  { id:"underhall",  label:"Underhåll",  emoji:"⚖️", desc:"Behåll vikten",    kcalDelta:0    },
-  { id:"bulka",      label:"Bulka",      emoji:"💪", desc:"Bygg muskler",     kcalDelta:300  },
-];
-
-// Mifflin-St Jeor formel
-function calculateBMR(gender, weightKg, heightCm, ageYears) {
-  const w = Number(weightKg), h = Number(heightCm), a = Number(ageYears);
-  if (!w || !h || !a) return 0;
-  const base = 10 * w + 6.25 * h - 5 * a;
-  return Math.round(gender === "kvinna" ? base - 161 : base + 5);
-}
-
-function calculateTDEE(bmr, activityId) {
-  const lvl = ACTIVITY_LEVELS.find(a => a.id === activityId) || ACTIVITY_LEVELS[2];
-  return Math.round(bmr * lvl.mult);
-}
-
-function calculateTargetKcal(tdee, goalId) {
-  const goal = GOAL_OPTIONS.find(g => g.id === goalId) || GOAL_OPTIONS[0];
-  return Math.max(1200, Math.min(4000, tdee + goal.kcalDelta));
-}
-
-// ─── TEMA ─────────────────────────────────────────────────────────────────
-function getThemeColors(isDark) {
-  if (isDark) {
-    return {
-      bg: "#080808", bg2: "#0e0e0c", bg3: "#141410",
-      border: "#1a1a14", border2: "#2a2a20",
-      text: "#e8e8e0", textDim: "#888", textFaint: "#555", textVeryFaint: "#333",
-      accent: "#e8c97a",
-      green: "#6dcc6d", blue: "#7aa0cc", yellow: "#c4a852", red: "#cc7a7a",
-      cardBg: "#141410", overlayBg: "rgba(0,0,0,0.92)"
-    };
-  } else {
-    return {
-      bg: "#ffffff", bg2: "#fafaf7", bg3: "#f4f4ef",
-      border: "#e8e8e0", border2: "#d8d8d0",
-      text: "#1a1a14", textDim: "#666", textFaint: "#888", textVeryFaint: "#bbb",
-      accent: "#b8942a",
-      green: "#4aaa4a", blue: "#5a80a0", yellow: "#a48038", red: "#b06060",
-      cardBg: "#f4f4ef", overlayBg: "rgba(255,255,255,0.92)"
-    };
-  }
-}
-
-
+// ─── MAIN APP ──────────────────────────────────────────────────────────────
 function App() {
   const FREE_LIMIT = 30;
   const fb = window._firebase;
@@ -830,26 +772,6 @@ function App() {
   const [authPass, setAuthPass] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  
-  // Email verification
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
-  const [daysUnverified, setDaysUnverified] = useState(0);
-  
-  // Settings & Theme
-  const [showSettings, setShowSettings] = useState(false);
-  const [theme, setTheme] = useState("auto"); // auto | light | dark
-  const [systemDark, setSystemDark] = useState(true);
-  
-  // Onboarding wizard (first-time)
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardStep, setOnboardStep] = useState(0);
-  const [onbGender, setOnbGender] = useState("man");
-  const [onbAge, setOnbAge] = useState("");
-  const [onbHeight, setOnbHeight] = useState("");
-  const [onbWeight, setOnbWeight] = useState("");
-  const [onbActivity, setOnbActivity] = useState("moderate");
-  const [onbGoal, setOnbGoal] = useState("deffa");
 
   // Profile
   const defaultProfile = {name:"",phone:"",age:"",weight:"",height:"",goal:"deffa",avatar:null};
@@ -899,15 +821,6 @@ function App() {
   const freeLeft = Math.max(0, FREE_LIMIT - freeUsed);
   const locked = !isPremium && freeUsed >= FREE_LIMIT;
 
-  // ── System dark-mode detector ─────────────────────────────────────────
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemDark(mq.matches);
-    const listener = e => setSystemDark(e.matches);
-    mq.addEventListener("change", listener);
-    return () => mq.removeEventListener("change", listener);
-  }, []);
-
   // ── Firebase auth listener ───────────────────────────────────────────────
   useEffect(() => {
     if (!fb) return;
@@ -915,7 +828,6 @@ function App() {
       setAuthReady(true);
       if (firebaseUser) {
         setUser(firebaseUser);
-        setEmailVerified(firebaseUser.emailVerified);
         setScreen("home");
         // Load user data from Firestore
         try {
@@ -927,32 +839,11 @@ function App() {
             setIsPremium(data.isPremium || false);
             setFitnessGoal(data.fitnessGoal || "deffa");
             setDailyKcal(data.dailyKcal || 2000);
+            if (!data.fitnessGoal) setShowGoalSetup(true);
             setFreeUsed(data.freeUsed || 0);
             setSavedCard(data.savedCard || null);
             setPaymentMethod(data.paymentMethod || null);
             setFavorites(data.favorites || []);
-            if (data.theme) setTheme(data.theme);
-            
-            // Onboarding status — visa wizard om ej gjort
-            if (!data.onboardingComplete) {
-              setShowOnboarding(true);
-              setOnboardStep(0);
-            }
-            
-            // Räkna dagar sedan registrering för verifiering
-            if (!firebaseUser.emailVerified && data.createdAt) {
-              const created = new Date(data.createdAt);
-              const days = Math.floor((Date.now() - created.getTime()) / (1000*60*60*24));
-              setDaysUnverified(days);
-            }
-          } else {
-            // Helt ny användare — skapa dokument och visa onboarding
-            await fb.setDoc(fb.doc(fb.db, "users", firebaseUser.uid), {
-              createdAt: new Date().toISOString(),
-              onboardingComplete: false
-            });
-            setShowOnboarding(true);
-            setOnboardStep(0);
           }
         } catch(e) { console.log("Load error:", e); }
       } else {
@@ -962,10 +853,6 @@ function App() {
     });
     return unsub;
   }, []);
-  
-  // ── Beräknade värden ──
-  const isDark = theme === "auto" ? systemDark : theme === "dark";
-  const T = getThemeColors(isDark);
 
   // ── Save to Firestore ────────────────────────────────────────────────────
   const saveToCloud = async (updates) => {
@@ -995,39 +882,14 @@ function App() {
       const cred = await fb.createUserWithEmailAndPassword(fb.auth, authEmail, authPass);
       const newProfile = {...defaultProfile, name: authName};
       await fb.setDoc(fb.doc(fb.db, "users", cred.user.uid), {
-        profile: newProfile, isPremium: false, freeUsed: 0, savedCard: null, paymentMethod: null,
-        createdAt: new Date().toISOString(), onboardingComplete: false
+        profile: newProfile, isPremium: false, freeUsed: 0, savedCard: null, paymentMethod: null
       });
       setProfile(newProfile);
       setEditProfile(newProfile);
-      // Skicka verifieringsmail direkt vid signup
-      try {
-        await fb.sendEmailVerification(cred.user);
-        setVerificationSent(true);
-      } catch(e) { console.log("Verification send error:", e); }
     } catch(e) {
       setAuthError(e.code === "auth/email-already-in-use" ? "E-posten används redan." : "Något gick fel, försök igen.");
     }
     setAuthLoading(false);
-  };
-  
-  // ── Skicka verifieringsmail igen ──
-  const resendVerification = async () => {
-    if (!user) return;
-    try {
-      await fb.sendEmailVerification(user);
-      setVerificationSent(true);
-      setTimeout(() => setVerificationSent(false), 5000);
-    } catch(e) { console.log("Resend error:", e); }
-  };
-  
-  // ── Kolla om email verifierats (ladda om user) ──
-  const checkVerification = async () => {
-    if (!user) return;
-    try {
-      await fb.reloadUser(user);
-      if (user.emailVerified) setEmailVerified(true);
-    } catch(e) { console.log("Check error:", e); }
   };
 
   const handleLogout = async () => {
@@ -1081,33 +943,23 @@ function App() {
   // ── Hjälpfunktion: hämta filtrerade recept ──
   const getFilteredRecipes = (catId, filter) => {
     const all = ALL_RECIPES[catId] || [];
-    // Ta bort redan liked recept (favoriter)
-    const favIds = new Set(favorites.map(f => f.id));
-    const notLiked = all.filter(r => !favIds.has(r.id));
-    if (filter === "all") return notLiked;
-    return notLiked.filter(r => classifyRecipe(r, catId).includes(filter));
+    if (filter === "all") return all;
+    return all.filter(r => classifyRecipe(r, catId).includes(filter));
   };
 
-  // ── Hjälpfunktion: räkna alla matchande (även liked) — används bara för filter-count ──
-  const getTotalFiltered = (catId, filter) => {
-    const all = ALL_RECIPES[catId] || [];
-    const favIds = new Set(favorites.map(f => f.id));
-    const notLiked = all.filter(r => !favIds.has(r.id));
-    if (filter === "all") return notLiked.length;
-    return notLiked.filter(r => classifyRecipe(r, catId).includes(filter)).length;
-  };
-
-  // ── Tinder: swipa höger (JA) = lägg till favorit + försvinner från högen ──
+  // ── Tinder: swipa höger (JA) ──
   const handleTinderYes = async () => {
     const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
     const recipe = recipes[tinderIndex];
     if (!recipe) return;
     setSwipeDir("right");
     
-    // Lägg till i favoriter
-    const newFavs = [...favorites, recipe];
-    setFavorites(newFavs);
-    await saveToCloud({ favorites: newFavs });
+    // Lägg till i favoriter om inte redan där
+    if (!favorites.find(f => f.id === recipe.id)) {
+      const newFavs = [...favorites, recipe];
+      setFavorites(newFavs);
+      await saveToCloud({ favorites: newFavs });
+    }
     
     // Räkna som använt recept (om inte premium)
     const newUsed = !isPremium && freeUsed < FREE_LIMIT ? freeUsed + 1 : freeUsed;
@@ -1116,25 +968,24 @@ function App() {
       await saveToCloud({ freeUsed: newUsed });
     }
     
-    // Efter like försvinner receptet från listan (via getFilteredRecipes)
-    // Index behöver inte flyttas - nästa recept glider in automatiskt
-    // Historik rensas eftersom tidigare index inte är aktuella längre
+    // Öppna receptet
     setTimeout(() => {
+      setCurrentRecipe(recipe);
+      setRecipeStep(0);
+      setTinderMode(false);
       setSwipeDir(null);
-      setTinderHistory([]);
-      // Om detta var sista receptet, ligger tinderIndex utanför - ingen panik, vyn visar "klar"-meddelande
-    }, 350);
+      setModalOpen(true);
+    }, 300);
   };
 
   // ── Tinder: swipa vänster (NEJ) ──
   const handleTinderNo = () => {
     const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
-    const safeIdx = Math.min(tinderIndex, recipes.length - 1);
-    if (safeIdx >= recipes.length - 1) return;
+    if (tinderIndex >= recipes.length - 1) return;
     setSwipeDir("left");
-    setTinderHistory([...tinderHistory, safeIdx]);
+    setTinderHistory([...tinderHistory, tinderIndex]);
     setTimeout(() => {
-      setTinderIndex(safeIdx + 1);
+      setTinderIndex(tinderIndex + 1);
       setSwipeDir(null);
     }, 300);
   };
@@ -1185,9 +1036,9 @@ function App() {
   const navBtn = (id, emoji, label) => (
     <button key={id} onClick={()=>setScreen(id)} style={{
       flex:1,padding:"10px 0",background:"transparent",border:"none",
-      color:screen===id?T.accent:T.textFaint,cursor:"pointer",fontFamily:"inherit",
+      color:screen===id?"#e8c97a":"#444",cursor:"pointer",fontFamily:"inherit",
       fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
-      borderTop:`2px solid ${screen===id?T.accent:"transparent"}`,
+      borderTop:`2px solid ${screen===id?"#e8c97a":"transparent"}`,
       transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:4
     }}>
       <span style={{fontSize:18}}>{emoji}</span>{label}
@@ -1196,28 +1047,28 @@ function App() {
 
   // ── Loading screen ───────────────────────────────────────────────────────
   if (!authReady) return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
+    <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
       <div style={{fontSize:48,filter:"drop-shadow(0 0 24px rgba(232,201,122,0.5))"}}>🔥</div>
-      <div style={{fontSize:14,color:T.textFaint}}>Laddar FitFuel...</div>
+      <div style={{fontSize:14,color:"#444"}}>Laddar FitFuel...</div>
     </div>
   );
 
   // ── Login/Signup screen ──────────────────────────────────────────────────
   if (!user) return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+    <div style={{minHeight:"100vh",background:"#080808",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
       <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse at 50% 0%,#1a1a08 0%,transparent 60%)",pointerEvents:"none"}}/>
       <div style={{width:"100%",maxWidth:400,position:"relative",zIndex:1}}>
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:52,marginBottom:10,filter:"drop-shadow(0 0 24px rgba(232,201,122,0.5))"}}>🔥</div>
-          <h1 style={{fontSize:26,fontWeight:700,color:T.accent,marginBottom:6}}>FitFuel</h1>
-          <p style={{fontSize:13,color:T.textFaint}}>Kalorisnål mat för träning & vardag</p>
+          <h1 style={{fontSize:26,fontWeight:700,color:"#e8c97a",marginBottom:6}}>FitFuel</h1>
+          <p style={{fontSize:13,color:"#444"}}>Kalorisnål mat för träning & vardag</p>
         </div>
-        <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:18,padding:"22px"}}>
-          <div style={{display:"flex",marginBottom:18,background:isDark?"#0a0a08":"#f0f0e8",borderRadius:10,padding:3}}>
+        <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:18,padding:"22px"}}>
+          <div style={{display:"flex",marginBottom:18,background:"#0a0a08",borderRadius:10,padding:3}}>
             {[["login","Logga in"],["signup","Skapa konto"]].map(([s,l])=>(
               <button key={s} onClick={()=>{setAuthMode(s);setAuthError("");}} style={{
-                flex:1,padding:"8px",background:authMode===s?T.border:"transparent",
-                border:"none",borderRadius:8,color:authMode===s?T.accent:T.textFaint,
+                flex:1,padding:"8px",background:authMode===s?"#1a1a14":"transparent",
+                border:"none",borderRadius:8,color:authMode===s?"#e8c97a":"#444",
                 fontFamily:"inherit",fontSize:13,cursor:"pointer",transition:"all 0.2s"
               }}>{l}</button>
             ))}
@@ -1225,16 +1076,16 @@ function App() {
           {authMode==="signup" && <Field label="Namn" value={authName} onChange={setAuthName} placeholder="Ditt namn"/>}
           <Field label="E-post" value={authEmail} onChange={setAuthEmail} type="email" placeholder="din@epost.se"/>
           <Field label="Lösenord" value={authPass} onChange={v=>{setAuthPass(v);setAuthError("");}} type="password" placeholder="Minst 6 tecken"/>
-          {authError && <div style={{fontSize:12,color:T.red,marginBottom:12,textAlign:"center",background:"#1a0a0a",padding:"8px",borderRadius:8}}>{authError}</div>}
+          {authError && <div style={{fontSize:12,color:"#cc7a7a",marginBottom:12,textAlign:"center",background:"#1a0a0a",padding:"8px",borderRadius:8}}>{authError}</div>}
           <button onClick={authMode==="login"?handleLogin:handleSignup} disabled={authLoading} style={{
             width:"100%",padding:"13px",borderRadius:10,marginTop:4,
             background:authLoading?"#1a1a10":"linear-gradient(135deg,#e8c97a,#c4a852)",
             color:authLoading?"#555":"#0d0d0d",border:"none",fontFamily:"inherit",fontSize:15,fontWeight:700,cursor:authLoading?"wait":"pointer"
           }}>{authLoading?"Vänta...":(authMode==="login"?"Logga in →":"Skapa konto →")}</button>
-          <div style={{textAlign:"center",marginTop:12,fontSize:12,color:T.textVeryFaint}}>
+          <div style={{textAlign:"center",marginTop:12,fontSize:12,color:"#333"}}>
             {authMode==="login"
-              ?<span>Inget konto? <span style={{color:T.accent,cursor:"pointer"}} onClick={()=>{setAuthMode("signup");setAuthError("");}}>Skapa ett</span></span>
-              :<span>Har konto? <span style={{color:T.accent,cursor:"pointer"}} onClick={()=>{setAuthMode("login");setAuthError("");}}>Logga in</span></span>
+              ?<span>Inget konto? <span style={{color:"#e8c97a",cursor:"pointer"}} onClick={()=>{setAuthMode("signup");setAuthError("");}}>Skapa ett</span></span>
+              :<span>Har konto? <span style={{color:"#e8c97a",cursor:"pointer"}} onClick={()=>{setAuthMode("login");setAuthError("");}}>Logga in</span></span>
             }
           </div>
         </div>
@@ -1243,41 +1094,25 @@ function App() {
   );
 
   // ── Main app ─────────────────────────────────────────────────────────────
-  const locked7days = !emailVerified && daysUnverified >= 7;
-  const locked3days = !emailVerified && daysUnverified >= 3;
-  
   return (
-    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"Georgia,serif",color:T.text,paddingBottom:72}}>
-      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:isDark?"radial-gradient(ellipse at 50% 0%,#1a1a08 0%,transparent 55%)":"radial-gradient(ellipse at 50% 0%,#f0e8c8 0%,transparent 55%)"}}/>
+    <div style={{minHeight:"100vh",background:"#080808",fontFamily:"Georgia,serif",color:"#e8e8e0",paddingBottom:72}}>
+      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at 50% 0%,#1a1a08 0%,transparent 55%)"}}/>
 
       {/* TOP NAV */}
       <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"13px 18px",borderBottom:`1px solid ${T.border}`,background:isDark?"rgba(8,8,8,0.97)":"rgba(255,255,255,0.97)",backdropFilter:"blur(16px)"}}>
+        padding:"13px 18px",borderBottom:"1px solid #1a1a14",background:"rgba(8,8,8,0.97)",backdropFilter:"blur(16px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
           <span style={{fontSize:18}}>🔥</span>
-          <span style={{fontSize:17,fontWeight:700,letterSpacing:"0.06em",color:T.accent}}>FitFuel</span>
+          <span style={{fontSize:17,fontWeight:700,letterSpacing:"0.06em",color:"#e8c97a"}}>FitFuel</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {!isPremium && <span style={{fontSize:11,color:T.textFaint}}>{freeLeft} kvar</span>}
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          {!isPremium && <span style={{fontSize:11,color:"#444"}}>{freeLeft} gratis kvar</span>}
           {isPremium
-            ? <span style={{fontSize:11,color:T.accent,background:isDark?"#1a1a08":"#f8f0d8",border:`1px solid ${isDark?"#3a3010":"#e0d0a0"}`,borderRadius:99,padding:"3px 10px"}}>✨ Premium</span>
+            ? <span style={{fontSize:11,color:"#e8c97a",background:"#1a1a08",border:"1px solid #3a3010",borderRadius:99,padding:"3px 10px"}}>✨ Premium</span>
             : <button onClick={()=>setPricingOpen(true)} style={{fontSize:11,color:"#0d0d0d",background:"linear-gradient(135deg,#e8c97a,#c4a852)",border:"none",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>100 kr/mån</button>
           }
-          <button onClick={()=>setShowSettings(true)} style={{background:isDark?"#1a1a14":"#f0f0e8",border:`1px solid ${T.border2}`,width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14,color:T.textDim,display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>⚙</button>
         </div>
       </nav>
-
-      {/* EMAIL VERIFICATION BANNER */}
-      {user && !emailVerified && (
-        <div style={{position:"fixed",top:58,left:0,right:0,zIndex:99,background:locked3days?"#3a1a14":"#3a2a14",borderBottom:`1px solid ${locked3days?"#6a2a20":"#6a4a20"}`,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
-          <div style={{fontSize:12,color:locked3days?"#ffb0a0":"#ffd890",flex:1}}>
-            ✉️ {locked7days ? "Verifiera din email för att fortsätta använda appen" : locked3days ? "Verifiera snart — funktioner börjar låsas" : "Verifiera din email för full tillgång"}
-          </div>
-          <button onClick={verificationSent ? checkVerification : resendVerification} style={{background:locked3days?"#ff6050":"#e8c97a",border:"none",color:"#0d0d0d",borderRadius:99,padding:"5px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>
-            {verificationSent ? "Jag har klickat" : "Skicka mail"}
-          </button>
-        </div>
-      )}
 
       <div style={{position:"relative",zIndex:1,paddingTop:58}}>
 
@@ -1288,27 +1123,27 @@ function App() {
             {showGoalSetup && <GoalSetup onSave={saveGoal}/>}
 
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-              <div style={{width:42,height:42,borderRadius:"50%",overflow:"hidden",background:T.border,border:"1px solid #2a2a1a",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>
+              <div style={{width:42,height:42,borderRadius:"50%",overflow:"hidden",background:"#1a1a14",border:"1px solid #2a2a1a",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>
                 {profile.avatar ? <img src={profile.avatar} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : "👤"}
               </div>
               <div>
-                <div style={{fontSize:12,color:T.textFaint}}>Hej,</div>
-                <div style={{fontSize:16,fontWeight:700,color:T.text}}>{profile.name||user.email} 👋</div>
+                <div style={{fontSize:12,color:"#444"}}>Hej,</div>
+                <div style={{fontSize:16,fontWeight:700,color:"#e8e8e0"}}>{profile.name||user.email} 👋</div>
               </div>
-              <div style={{marginLeft:"auto",fontSize:10,color:T.green,background:"#0a160a",border:"1px solid #1a3a1a",borderRadius:99,padding:"3px 10px"}}>☁️ Synkad</div>
+              <div style={{marginLeft:"auto",fontSize:10,color:"#6dcc6d",background:"#0a160a",border:"1px solid #1a3a1a",borderRadius:99,padding:"3px 10px"}}>☁️ Synkad</div>
             </div>
 
             {/* Goal + Calorie Banner */}
-            <div style={{background:T.bg2,border:`1px solid ${fitnessGoal==="deffa"?"#6dcc6d44":"#e8c97a44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18,cursor:"pointer"}} onClick={()=>setShowGoalSetup(true)}>
+            <div style={{background:"#0e0e0c",border:`1px solid ${fitnessGoal==="deffa"?"#6dcc6d44":"#e8c97a44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18,cursor:"pointer"}} onClick={()=>setShowGoalSetup(true)}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:24}}>{fitnessGoal==="deffa"?"🔥":"💪"}</span>
                   <div>
                     <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
-                    <div style={{fontSize:11,color:T.textFaint}}>{dailyKcal.toLocaleString()} kcal / dag</div>
+                    <div style={{fontSize:11,color:"#444"}}>{dailyKcal.toLocaleString()} kcal / dag</div>
                   </div>
                 </div>
-                <div style={{fontSize:11,color:T.textFaint,border:"1px solid #2a2a1a",borderRadius:99,padding:"4px 10px"}}>Ändra →</div>
+                <div style={{fontSize:11,color:"#555",border:"1px solid #2a2a1a",borderRadius:99,padding:"4px 10px"}}>Ändra →</div>
               </div>
               {/* Macro targets */}
               <div style={{display:"flex",gap:6}}>
@@ -1319,7 +1154,7 @@ function App() {
                 ].map(([l,v,c])=>(
                   <div key={l} style={{flex:1,background:"#0a0a08",borderRadius:8,padding:"6px",textAlign:"center"}}>
                     <div style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
-                    <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>{l}</div>
+                    <div style={{fontSize:9,color:"#444",textTransform:"uppercase"}}>{l}</div>
                   </div>
                 ))}
               </div>
@@ -1329,42 +1164,42 @@ function App() {
               background:"linear-gradient(135deg,#f0f0e0,#e8c97a 55%,#6dcc6d)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
               Välj kategori.<br/>Bläddra & välj.
             </h2>
-            <p style={{fontSize:13,color:T.textFaint,marginBottom:14}}>Swipa höger på det du vill laga. ❤ = sparas som favorit.</p>
+            <p style={{fontSize:13,color:"#444",marginBottom:14}}>Swipa höger på det du vill laga. ❤ = sparas som favorit.</p>
             
             {favorites.length > 0 && (
               <button onClick={()=>setShowFavorites(true)} style={{width:"100%",background:"linear-gradient(135deg,#cc7a7a22,#e8c97a22)",border:"1px solid #cc7a7a44",borderRadius:12,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:20}}>💖</span>
                   <div style={{textAlign:"left"}}>
-                    <div style={{fontSize:13,fontWeight:600,color:T.text}}>Mina favoriter</div>
-                    <div style={{fontSize:10,color:T.textFaint}}>{favorites.length} sparade recept</div>
+                    <div style={{fontSize:13,fontWeight:600,color:"#e8e8e0"}}>Mina favoriter</div>
+                    <div style={{fontSize:10,color:"#666"}}>{favorites.length} sparade recept</div>
                   </div>
                 </div>
-                <span style={{fontSize:14,color:T.textDim}}>→</span>
+                <span style={{fontSize:14,color:"#888"}}>→</span>
               </button>
             )}
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:18}}>
               {CATEGORIES.map(cat=>(
                 <button key={cat.id} className="cat-btn" onClick={()=>handleSpin(cat.id)}
-                  style={{background:T.bg2,border:`1px solid #1a1a14`,
+                  style={{background:"#0e0e0c",border:`1px solid #1a1a14`,
                     borderRadius:16,padding:"18px 12px",cursor:"pointer",textAlign:"center",fontFamily:"inherit",
                     transition:"all 0.25s"}}>
                   <div style={{fontSize:34,marginBottom:7}}>{cat.emoji}</div>
                   <div style={{fontSize:14,fontWeight:700,color:cat.color,marginBottom:3}}>{cat.label}</div>
-                  <div style={{fontSize:10,color:T.textFaint}}>{cat.desc}</div>
+                  <div style={{fontSize:10,color:"#444"}}>{cat.desc}</div>
                   <div style={{marginTop:9,fontSize:10,color:cat.color,opacity:0.6}}>Bläddra →</div>
                 </button>
               ))}
             </div>
 
             {!isPremium && (
-              <div style={{background:T.bg2,border:"1px solid #1a1a10",borderRadius:12,padding:"13px 15px"}}>
+              <div style={{background:"#0e0e0c",border:"1px solid #1a1a10",borderRadius:12,padding:"13px 15px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-                  <span style={{fontSize:12,color:T.textFaint}}>Gratis-plan</span>
+                  <span style={{fontSize:12,color:"#555"}}>Gratis-plan</span>
                   <span style={{fontSize:11,color:freeLeft>0?"#6dcc6d":"#cc7a7a"}}>{freeLeft>0?`${freeLeft} kvar`:"Uppgradera"}</span>
                 </div>
-                <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden"}}>
+                <div style={{background:"#1a1a14",borderRadius:99,height:3,overflow:"hidden"}}>
                   <div style={{height:"100%",borderRadius:99,background:"#6dcc6d",width:`${(freeUsed/FREE_LIMIT)*100}%`,transition:"width 0.4s"}}/>
                 </div>
               </div>
@@ -1376,11 +1211,11 @@ function App() {
         {screen==="profile" && (
           <div style={{maxWidth:540,margin:"0 auto",padding:"22px 16px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
-              <h2 style={{fontSize:20,color:T.accent}}>Min Profil</h2>
+              <h2 style={{fontSize:20,color:"#e8c97a"}}>Min Profil</h2>
               {!editMode
-                ? <button onClick={()=>{setEditProfile({...profile});setAvatarPreview(profile.avatar);setEditMode(true);}} style={{fontSize:12,color:T.accent,background:"transparent",border:"1px solid #e8c97a",borderRadius:99,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit"}}>✏️ Redigera</button>
+                ? <button onClick={()=>{setEditProfile({...profile});setAvatarPreview(profile.avatar);setEditMode(true);}} style={{fontSize:12,color:"#e8c97a",background:"transparent",border:"1px solid #e8c97a",borderRadius:99,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit"}}>✏️ Redigera</button>
                 : <div style={{display:"flex",gap:8}}>
-                    <button onClick={()=>setEditMode(false)} style={{fontSize:12,color:T.textFaint,background:"transparent",border:"1px solid #333",borderRadius:99,padding:"6px 12px",cursor:"pointer",fontFamily:"inherit"}}>Avbryt</button>
+                    <button onClick={()=>setEditMode(false)} style={{fontSize:12,color:"#666",background:"transparent",border:"1px solid #333",borderRadius:99,padding:"6px 12px",cursor:"pointer",fontFamily:"inherit"}}>Avbryt</button>
                     <button onClick={saveProfile} disabled={saving} style={{fontSize:12,color:"#0d0d0d",background:"linear-gradient(135deg,#e8c97a,#c4a852)",border:"none",borderRadius:99,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>{saving?"Sparar...":"Spara ☁️"}</button>
                   </div>
               }
@@ -1389,19 +1224,19 @@ function App() {
             {/* Avatar */}
             <div style={{textAlign:"center",marginBottom:24}}>
               <div style={{position:"relative",display:"inline-block"}}>
-                <div style={{width:90,height:90,borderRadius:"50%",overflow:"hidden",background:T.border,border:"2px solid #2a2a1a",margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40}}>
+                <div style={{width:90,height:90,borderRadius:"50%",overflow:"hidden",background:"#1a1a14",border:"2px solid #2a2a1a",margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40}}>
                   {(editMode?avatarPreview:profile.avatar) ? <img src={editMode?avatarPreview:profile.avatar} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : "👤"}
                 </div>
                 {editMode && <button onClick={()=>avatarRef.current.click()} style={{position:"absolute",bottom:0,right:0,width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#e8c97a,#c4a852)",border:"none",cursor:"pointer",fontSize:14}}>📷</button>}
                 <input ref={avatarRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{display:"none"}}/>
               </div>
-              {!editMode && <div style={{marginTop:8,fontSize:15,fontWeight:700,color:T.text}}>{profile.name||"Ange ditt namn"}</div>}
-              {!editMode && <div style={{fontSize:11,color:T.textFaint,marginTop:2}}>{user.email}</div>}
+              {!editMode && <div style={{marginTop:8,fontSize:15,fontWeight:700,color:"#e8e8e0"}}>{profile.name||"Ange ditt namn"}</div>}
+              {!editMode && <div style={{fontSize:11,color:"#555",marginTop:2}}>{user.email}</div>}
             </div>
 
             {/* Profile fields */}
-            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:10,color:T.textFaint,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Personuppgifter</div>
+            <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:16,padding:"16px",marginBottom:14}}>
+              <div style={{fontSize:10,color:"#555",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Personuppgifter</div>
               {editMode ? <>
                 <Field label="Namn" value={editProfile.name} onChange={v=>setEditProfile(p=>({...p,name:v}))} placeholder="Ditt namn"/>
                 <Field label="Telefon" value={editProfile.phone||""} onChange={v=>setEditProfile(p=>({...p,phone:v}))} type="tel" placeholder="070-000 00 00"/>
@@ -1411,7 +1246,7 @@ function App() {
                   <Field label="Längd cm" value={editProfile.height||""} onChange={v=>setEditProfile(p=>({...p,height:v}))} type="number" placeholder="175"/>
                 </div>
                 <div style={{marginBottom:4}}>
-                  <div style={{fontSize:10,color:T.textFaint,marginBottom:7,textTransform:"uppercase",letterSpacing:"0.1em"}}>Mål</div>
+                  <div style={{fontSize:10,color:"#555",marginBottom:7,textTransform:"uppercase",letterSpacing:"0.1em"}}>Mål</div>
                   <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                     {[["deffa","🔥 Deffa"],["bygga","💪 Bygga"],["hålla","⚖️ Hålla vikt"]].map(([val,lab])=>(
                       <button key={val} onClick={()=>setEditProfile(p=>({...p,goal:val}))} style={{padding:"7px 12px",borderRadius:99,border:"1px solid",fontFamily:"inherit",fontSize:11,cursor:"pointer",borderColor:editProfile.goal===val?"#e8c97a":"#2a2a1a",background:editProfile.goal===val?"#1a1a08":"transparent",color:editProfile.goal===val?"#e8c97a":"#555"}}>{lab}</button>
@@ -1421,45 +1256,45 @@ function App() {
               </> : <>
                 {[["Namn",profile.name],["Telefon",profile.phone],["Ålder",profile.age&&profile.age+" år"],["Vikt",profile.weight&&profile.weight+" kg"],["Längd",profile.height&&profile.height+" cm"],["Mål",profile.goal==="deffa"?"🔥 Deffa":profile.goal==="bygga"?"💪 Bygga muskler":"⚖️ Hålla vikt"]].map(([l,v])=>v&&(
                   <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid #141410"}}>
-                    <span style={{fontSize:13,color:T.textFaint}}>{l}</span>
+                    <span style={{fontSize:13,color:"#555"}}>{l}</span>
                     <span style={{fontSize:13,color:"#d0d0c0"}}>{v}</span>
                   </div>
                 ))}
-                {!profile.name && <div style={{fontSize:13,color:T.textVeryFaint,textAlign:"center",padding:"10px 0"}}>Tryck Redigera för att fylla i din profil</div>}
+                {!profile.name && <div style={{fontSize:13,color:"#333",textAlign:"center",padding:"10px 0"}}>Tryck Redigera för att fylla i din profil</div>}
               </>}
             </div>
 
             {/* Fitness Goal */}
-            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:10,color:T.textFaint,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Tränings mål</div>
+            <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:16,padding:"16px",marginBottom:14}}>
+              <div style={{fontSize:10,color:"#555",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Tränings mål</div>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:24}}>{fitnessGoal==="deffa"?"🔥":"💪"}</span>
                   <div>
                     <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
-                    <div style={{fontSize:12,color:T.textFaint,marginTop:1}}>{dailyKcal.toLocaleString()} kcal / dag</div>
+                    <div style={{fontSize:12,color:"#555",marginTop:1}}>{dailyKcal.toLocaleString()} kcal / dag</div>
                   </div>
                 </div>
-                <button onClick={()=>setShowGoalSetup(true)} style={{fontSize:12,color:T.text,background:T.border,border:"1px solid #2a2a1a",borderRadius:99,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit"}}>Ändra</button>
+                <button onClick={()=>setShowGoalSetup(true)} style={{fontSize:12,color:"#e8e8e0",background:"#1a1a14",border:"1px solid #2a2a1a",borderRadius:99,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit"}}>Ändra</button>
               </div>
             </div>
 
             {/* Subscription */}
-            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:10,color:T.textFaint,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Prenumeration</div>
+            <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:16,padding:"16px",marginBottom:14}}>
+              <div style={{fontSize:10,color:"#555",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Prenumeration</div>
               {isPremium ? (
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div>
-                    <div style={{fontSize:14,color:T.accent,fontWeight:700}}>✨ Premium aktiv</div>
-                    <div style={{fontSize:12,color:T.textFaint,marginTop:2}}>100 kr/mån · Obegränsat</div>
+                    <div style={{fontSize:14,color:"#e8c97a",fontWeight:700}}>✨ Premium aktiv</div>
+                    <div style={{fontSize:12,color:"#555",marginTop:2}}>100 kr/mån · Obegränsat</div>
                   </div>
-                  <button onClick={async()=>{setIsPremium(false);await saveToCloud({isPremium:false});}} style={{fontSize:11,color:T.red,background:"transparent",border:"1px solid #3a1a1a",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontFamily:"inherit"}}>Avsluta</button>
+                  <button onClick={async()=>{setIsPremium(false);await saveToCloud({isPremium:false});}} style={{fontSize:11,color:"#cc7a7a",background:"transparent",border:"1px solid #3a1a1a",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontFamily:"inherit"}}>Avsluta</button>
                 </div>
               ) : (
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div>
-                    <div style={{fontSize:14,color:T.textDim}}>Gratis-plan</div>
-                    <div style={{fontSize:12,color:T.textFaint,marginTop:2}}>{freeLeft} recept kvar</div>
+                    <div style={{fontSize:14,color:"#888"}}>Gratis-plan</div>
+                    <div style={{fontSize:12,color:"#444",marginTop:2}}>{freeLeft} recept kvar</div>
                   </div>
                   <button onClick={()=>setPricingOpen(true)} style={{fontSize:12,color:"#0d0d0d",background:"linear-gradient(135deg,#e8c97a,#c4a852)",border:"none",borderRadius:99,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>Uppgradera</button>
                 </div>
@@ -1467,16 +1302,16 @@ function App() {
             </div>
 
             {/* Payment */}
-            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:10,color:T.textFaint,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Betalningssätt</div>
+            <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:16,padding:"16px",marginBottom:14}}>
+              <div style={{fontSize:10,color:"#555",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em"}}>Betalningssätt</div>
               {savedCard && (
-                <div style={{background:T.bg3,borderRadius:11,padding:"11px 13px",marginBottom:10,border:"1px solid #2a2a1a",display:"flex",alignItems:"center",gap:11}}>
+                <div style={{background:"#141410",borderRadius:11,padding:"11px 13px",marginBottom:10,border:"1px solid #2a2a1a",display:"flex",alignItems:"center",gap:11}}>
                   <span style={{fontSize:22}}>💳</span>
                   <div style={{flex:1}}>
                     <div style={{fontSize:13,color:"#d0d0c0",fontWeight:600}}>{savedCard.num}</div>
-                    <div style={{fontSize:11,color:T.textFaint}}>{savedCard.name} · {savedCard.exp}</div>
+                    <div style={{fontSize:11,color:"#555"}}>{savedCard.name} · {savedCard.exp}</div>
                   </div>
-                  <div style={{fontSize:10,color:T.green}}>Aktiv</div>
+                  <div style={{fontSize:10,color:"#6dcc6d"}}>Aktiv</div>
                 </div>
               )}
               {!addingCard && (
@@ -1485,14 +1320,14 @@ function App() {
                     <button key={id} onClick={async()=>{if(id==="card")setAddingCard(true);else{setPaymentMethod(id);await saveToCloud({paymentMethod:id});}}} style={{display:"flex",alignItems:"center",gap:11,padding:"11px 13px",borderRadius:11,background:paymentMethod===id&&id!=="card"?"#141a10":"#141410",border:`1px solid ${paymentMethod===id&&id!=="card"?"#6dcc6d":"#222"}`,cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
                       <span style={{fontSize:20}}>{emoji}</span>
                       <span style={{fontSize:13,color:paymentMethod===id&&id!=="card"?"#6dcc6d":"#a0a090",fontWeight:600}}>{name}</span>
-                      {((paymentMethod===id&&id!=="card")||(id==="card"&&savedCard))&&<span style={{marginLeft:"auto",fontSize:13,color:T.green}}>✓</span>}
+                      {((paymentMethod===id&&id!=="card")||(id==="card"&&savedCard))&&<span style={{marginLeft:"auto",fontSize:13,color:"#6dcc6d"}}>✓</span>}
                     </button>
                   ))}
                 </div>
               )}
               {addingCard && (
-                <div style={{background:T.bg3,borderRadius:11,padding:"14px",border:"1px solid #2a2a1a"}}>
-                  <div style={{fontSize:12,color:T.accent,marginBottom:12,fontWeight:600}}>Lägg till kort</div>
+                <div style={{background:"#141410",borderRadius:11,padding:"14px",border:"1px solid #2a2a1a"}}>
+                  <div style={{fontSize:12,color:"#e8c97a",marginBottom:12,fontWeight:600}}>Lägg till kort</div>
                   <Field label="Kortinnehavare" value={cardName} onChange={setCardName} placeholder="Förnamn Efternamn"/>
                   <Field label="Kortnummer" value={cardNum} onChange={v=>setCardNum(formatCardNum(v))} placeholder="1234 5678 9012 3456"/>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -1500,14 +1335,14 @@ function App() {
                     <Field label="CVV" value={cardCvv} onChange={v=>setCardCvv(v.replace(/\D/g,"").slice(0,3))} placeholder="123"/>
                   </div>
                   <div style={{display:"flex",gap:8,marginTop:4}}>
-                    <button onClick={()=>setAddingCard(false)} style={{flex:1,padding:"10px",background:"transparent",border:"1px solid #333",color:T.textFaint,borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>Avbryt</button>
+                    <button onClick={()=>setAddingCard(false)} style={{flex:1,padding:"10px",background:"transparent",border:"1px solid #333",color:"#666",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>Avbryt</button>
                     <button onClick={saveCard} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>Spara ☁️</button>
                   </div>
                 </div>
               )}
             </div>
 
-            <button onClick={handleLogout} style={{width:"100%",padding:"12px",background:"transparent",border:"1px solid #2a1a1a",borderRadius:12,color:T.red,cursor:"pointer",fontFamily:"inherit",fontSize:14}}>Logga ut</button>
+            <button onClick={handleLogout} style={{width:"100%",padding:"12px",background:"transparent",border:"1px solid #2a1a1a",borderRadius:12,color:"#cc7a7a",cursor:"pointer",fontFamily:"inherit",fontSize:14}}>Logga ut</button>
           </div>
         )}
 
@@ -1516,7 +1351,7 @@ function App() {
       </div>
 
       {/* BOTTOM NAV */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:isDark?"rgba(8,8,8,0.97)":"rgba(255,255,255,0.97)",borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:"rgba(8,8,8,0.97)",borderTop:"1px solid #1a1a14",backdropFilter:"blur(16px)"}}>
         {navBtn("home","🏠","Hem")}
         {navBtn("profile","👤","Profil")}
       </div>
@@ -1528,21 +1363,21 @@ function App() {
         const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
         
         return (
-          <div style={{position:"fixed",inset:0,zIndex:290,background:T.bg2,overflowY:"auto"}}>
+          <div style={{position:"fixed",inset:0,zIndex:290,background:"#0e0e0c",overflowY:"auto"}}>
             <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
               {/* Top bar */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-                <button onClick={()=>setShowProteinFilter(false)} style={{background:T.cardBg,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <button onClick={()=>setShowProteinFilter(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:18,fontWeight:700,color:cat.color}}>{cat.emoji} {cat.label}</div>
                 <div style={{width:36}}></div>
               </div>
 
               <div style={{textAlign:"center",marginBottom:28}}>
-                <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6}}>Steg 2 av 2</div>
-                <h2 style={{fontSize:24,fontWeight:700,color:T.text,marginBottom:6,fontFamily:'"Fraunces", serif'}}>
+                <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6}}>Steg 2 av 2</div>
+                <h2 style={{fontSize:24,fontWeight:700,color:"#e8e8e0",marginBottom:6,fontFamily:'"Fraunces", serif'}}>
                   {isDesserts ? "Vad är du sugen på?" : "Vad vill du äta?"}
                 </h2>
-                <p style={{fontSize:12,color:T.textFaint}}>
+                <p style={{fontSize:12,color:"#555"}}>
                   {isDesserts ? "Välj typ av efterrätt" : "Välj proteintyp eller se alla"}
                 </p>
               </div>
@@ -1553,7 +1388,7 @@ function App() {
                   return (
                     <button key={t.id} onClick={()=>startTinder(t.id)} disabled={count===0}
                       style={{
-                        background:T.bg3,
+                        background:"#141410",
                         border:`1px solid ${t.color}33`,
                         borderRadius:16,
                         padding:"22px 14px",
@@ -1566,7 +1401,7 @@ function App() {
                       }}>
                       <div style={{fontSize:40,marginBottom:8}}>{t.emoji}</div>
                       <div style={{fontSize:14,fontWeight:700,color:t.color,marginBottom:4}}>{t.label}</div>
-                      <div style={{fontSize:10,color:T.textFaint}}>{count} recept</div>
+                      <div style={{fontSize:10,color:"#555"}}>{count} recept</div>
                     </button>
                   );
                 })}
@@ -1579,59 +1414,47 @@ function App() {
       {/* TINDER SWIPE MODE */}
       {tinderMode && tinderCatId && (() => {
         const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
+        const recipe = recipes[tinderIndex];
         const cat = CATEGORIES.find(c => c.id === tinderCatId);
         const isDesserts = tinderCatId === "efterratt";
         const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
         const filterType = typeList.find(t => t.id === proteinFilter) || typeList[0];
         
-        // Justera index om det hamnat utanför (efter like)
-        const safeIndex = Math.min(tinderIndex, recipes.length - 1);
-        const recipe = recipes[safeIndex];
-        
-        // Inga fler recept
-        if (recipes.length === 0 || !recipe) {
+        // Inga recept i kategorin
+        if (recipes.length === 0) {
           return (
-            <div style={{position:"fixed",inset:0,zIndex:300,background:T.bg2,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px"}}>
-              <div style={{fontSize:72,marginBottom:20}}>🎉</div>
-              <div style={{fontSize:20,color:T.text,marginBottom:8,textAlign:"center",fontWeight:700}}>
-                {favorites.length > 0 ? "Du har sett alla!" : "Inga recept här"}
-              </div>
-              <div style={{fontSize:13,color:T.textFaint,marginBottom:28,textAlign:"center",maxWidth:280,lineHeight:1.5}}>
-                {favorites.length > 0 
-                  ? "Kolla dina favoriter eller prova en annan kategori." 
-                  : "Prova en annan filter-typ eller kategori."}
-              </div>
-              <div style={{display:"flex",gap:10,flexDirection:"column",width:"100%",maxWidth:280}}>
-                {favorites.length > 0 && (
-                  <button onClick={()=>{setTinderMode(false);setShowFavorites(true);}} style={{background:`linear-gradient(135deg,${cat.color},${cat.color}cc)`,color:"#080808",border:"none",borderRadius:99,padding:"14px 24px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>💖 Mina favoriter ({favorites.length})</button>
-                )}
-                <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:T.cardBg,color:T.text,border:`1px solid ${T.border2}`,borderRadius:99,padding:"14px 24px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>← Välj annan typ</button>
-                <button onClick={()=>setTinderMode(false)} style={{background:"transparent",color:T.textFaint,border:"none",padding:"10px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Tillbaka till hem</button>
-              </div>
+            <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px"}}>
+              <div style={{fontSize:64,marginBottom:20}}>🤷</div>
+              <div style={{fontSize:18,color:"#e8e8e0",marginBottom:8,textAlign:"center"}}>Inga recept i denna kategori</div>
+              <div style={{fontSize:13,color:"#666",marginBottom:28,textAlign:"center"}}>Prova en annan filter-typ</div>
+              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:cat.color,color:"#080808",border:"none",borderRadius:99,padding:"14px 28px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>← Välj annan</button>
             </div>
           );
         }
         
+        if (!recipe) return null;
+        
         const rotate = swipeDir === "right" ? 15 : swipeDir === "left" ? -15 : 0;
         const translateX = swipeDir === "right" ? 500 : swipeDir === "left" ? -500 : 0;
         const opacity = swipeDir ? 0 : 1;
+        const isFav = favorites.find(f => f.id === recipe.id);
         
         return (
-          <div style={{position:"fixed",inset:0,zIndex:300,background:T.bg2,display:"flex",flexDirection:"column"}}>
+          <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column"}}>
             {/* Top bar */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"44px 18px 14px"}}>
-              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:T.cardBg,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterType.emoji} {filterType.label}</div>
-                <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{safeIndex + 1} av {recipes.length}</div>
+                <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterType.emoji} {filterType.label}</div>
+                <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{tinderIndex + 1} av {recipes.length}</div>
               </div>
-              <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:T.cardBg,border:"none",color:tinderHistory.length===0?"#333":"#888",width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
+              <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:"#1a1a18",border:"none",color:tinderHistory.length===0?"#333":"#888",width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
             </div>
 
             {/* Progress bar */}
             <div style={{padding:"0 18px",marginBottom:8}}>
-              <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden"}}>
-                <div style={{height:"100%",borderRadius:99,background:cat.color,width:`${((safeIndex+1)/recipes.length)*100}%`,transition:"width 0.3s"}}/>
+              <div style={{background:"#1a1a14",borderRadius:99,height:3,overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:99,background:cat.color,width:`${((tinderIndex+1)/recipes.length)*100}%`,transition:"width 0.3s"}}/>
               </div>
             </div>
 
@@ -1650,9 +1473,13 @@ function App() {
                 transition:"all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
                 position:"relative"
               }}>
+                {isFav && (
+                  <div style={{position:"absolute",top:16,right:16,fontSize:22}}>💖</div>
+                )}
+                
                 <div style={{fontSize:80,textAlign:"center",marginBottom:16}}>{recipe.emoji}</div>
                 
-                <div style={{fontSize:22,fontWeight:700,color:T.text,textAlign:"center",marginBottom:6,lineHeight:1.2}}>{recipe.name}</div>
+                <div style={{fontSize:22,fontWeight:700,color:"#e8e8e0",textAlign:"center",marginBottom:6,lineHeight:1.2}}>{recipe.name}</div>
                 
                 <div style={{fontSize:11,color:cat.color,textAlign:"center",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>⏱ {recipe.time} min · {recipe.servings}</div>
 
@@ -1660,7 +1487,7 @@ function App() {
                   {[["Protein",recipe.protein+"g","#6dcc6d"],["Kolh.",recipe.carbs+"g","#7aa0cc"],["Fett",recipe.fat+"g","#c4a852"],["kcal",recipe.kcal,"#cc7a7a"]].map(([l,v,col])=>(
                     <div key={l} style={{textAlign:"center",background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"8px 4px"}}>
                       <div style={{fontSize:14,fontWeight:700,color:col}}>{v}</div>
-                      <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase",marginTop:2}}>{l}</div>
+                      <div style={{fontSize:8,color:"#555",textTransform:"uppercase",marginTop:2}}>{l}</div>
                     </div>
                   ))}
                 </div>
@@ -1670,7 +1497,7 @@ function App() {
                   <div style={{fontSize:12,color:"#999",lineHeight:1.5}}>{recipe.why}</div>
                 </div>
 
-                <div style={{fontSize:10,color:T.textFaint,textAlign:"center",marginTop:16,textTransform:"uppercase",letterSpacing:"0.1em"}}>{recipe.tag}</div>
+                <div style={{fontSize:10,color:"#444",textAlign:"center",marginTop:16,textTransform:"uppercase",letterSpacing:"0.1em"}}>{recipe.tag}</div>
               </div>
             </div>
 
@@ -1678,9 +1505,9 @@ function App() {
             <div style={{display:"flex",justifyContent:"center",gap:32,padding:"20px 18px 40px"}}>
               <button onClick={handleTinderNo} disabled={tinderIndex>=recipes.length-1} style={{
                 width:68,height:68,borderRadius:"50%",
-                background:T.cardBg,border:"2px solid #cc7a7a44",
+                background:"#1a1a18",border:"2px solid #cc7a7a44",
                 fontSize:28,cursor:tinderIndex>=recipes.length-1?"not-allowed":"pointer",
-                color:T.red,opacity:tinderIndex>=recipes.length-1?0.3:1,
+                color:"#cc7a7a",opacity:tinderIndex>=recipes.length-1?0.3:1,
                 boxShadow:"0 4px 16px rgba(204,122,122,0.15)",transition:"all 0.2s"
               }}>✕</button>
               
@@ -1692,268 +1519,8 @@ function App() {
               }}>❤</button>
             </div>
 
-            <div style={{textAlign:"center",paddingBottom:20,fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>
+            <div style={{textAlign:"center",paddingBottom:20,fontSize:10,color:"#444",textTransform:"uppercase",letterSpacing:"0.1em"}}>
               ✕ Skippa · ❤ Laga & Spara
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* SETTINGS MODAL */}
-      {showSettings && (
-        <div style={{position:"fixed",inset:0,zIndex:310,background:T.bg,overflowY:"auto"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
-              <button onClick={()=>setShowSettings(false)} style={{background:isDark?"#1a1a18":"#f0f0e8",border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:18,fontWeight:700,color:T.text}}>⚙ Inställningar</div>
-              <div style={{width:36}}></div>
-            </div>
-
-            {/* Profil section */}
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Profil</div>
-              <button onClick={()=>{setShowSettings(false);setScreen("profile");}} style={{width:"100%",background:T.cardBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text,marginBottom:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <span style={{fontSize:20}}>👤</span>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:600}}>Min profil</div>
-                    <div style={{fontSize:11,color:T.textFaint}}>Namn, vikt, längd, mål</div>
-                  </div>
-                </div>
-                <span style={{color:T.textFaint}}>→</span>
-              </button>
-              <button onClick={()=>{setShowSettings(false);setShowOnboarding(true);setOnboardStep(0);setOnbGender(profile.gender||"man");setOnbAge(profile.age||"");setOnbHeight(profile.height||"");setOnbWeight(profile.weight||"");setOnbActivity(profile.activity||"moderate");setOnbGoal(fitnessGoal||"deffa");}} style={{width:"100%",background:T.cardBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text}}>
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <span style={{fontSize:20}}>🎯</span>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:600}}>Uppdatera mål & kalorier</div>
-                    <div style={{fontSize:11,color:T.textFaint}}>Beräkna om baserat på dina mått</div>
-                  </div>
-                </div>
-                <span style={{color:T.textFaint}}>→</span>
-              </button>
-            </div>
-
-            {/* Tema section */}
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Tema</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-                {[
-                  {id:"auto",label:"Auto",emoji:"🌓",desc:"Följ system"},
-                  {id:"light",label:"Ljust",emoji:"☀️",desc:"Alltid ljust"},
-                  {id:"dark",label:"Mörkt",emoji:"🌙",desc:"Alltid mörkt"}
-                ].map(t => (
-                  <button key={t.id} onClick={async ()=>{setTheme(t.id);await saveToCloud({theme:t.id});}} style={{background:theme===t.id?T.cardBg:"transparent",border:`1px solid ${theme===t.id?T.accent+"66":T.border}`,borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:T.text,transition:"all 0.2s"}}>
-                    <div style={{fontSize:22,marginBottom:6}}>{t.emoji}</div>
-                    <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>{t.label}</div>
-                    <div style={{fontSize:9,color:T.textFaint}}>{t.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Prenumeration */}
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Prenumeration</div>
-              <button onClick={()=>{setShowSettings(false);setPricingOpen(true);}} style={{width:"100%",background:isPremium?(isDark?"#1a1a08":"#f8f0d8"):T.cardBg,border:`1px solid ${isPremium?T.accent+"66":T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text}}>
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <span style={{fontSize:20}}>{isPremium?"✨":"💳"}</span>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:600,color:isPremium?T.accent:T.text}}>{isPremium?"Premium aktiv":"Uppgradera till Premium"}</div>
-                    <div style={{fontSize:11,color:T.textFaint}}>{isPremium?"Obegränsat med recept":"100 kr/mån · Obegränsat"}</div>
-                  </div>
-                </div>
-                <span style={{color:T.textFaint}}>→</span>
-              </button>
-            </div>
-
-            {/* Konto */}
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Konto</div>
-              <div style={{background:T.cardBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginBottom:8}}>
-                <div style={{fontSize:11,color:T.textFaint,marginBottom:4}}>Inloggad som</div>
-                <div style={{fontSize:13,color:T.text,marginBottom:2}}>{user?.email}</div>
-                <div style={{fontSize:10,color:emailVerified?T.green:"#cc7a7a",marginTop:4}}>{emailVerified?"✓ Verifierad":"⚠ Ej verifierad"}</div>
-              </div>
-              <button onClick={handleLogout} style={{width:"100%",background:"transparent",border:`1px solid ${T.border2}`,color:T.red,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:600}}>Logga ut</button>
-            </div>
-
-            <div style={{textAlign:"center",fontSize:10,color:T.textVeryFaint,marginTop:20}}>FitFuel · v1.0</div>
-          </div>
-        </div>
-      )}
-
-      {/* ONBOARDING WIZARD */}
-      {showOnboarding && (() => {
-        const steps = ["gender","age","height","weight","activity","goal","summary"];
-        const stepId = steps[onboardStep];
-        const canNext = 
-          (stepId==="gender" && onbGender) ||
-          (stepId==="age" && Number(onbAge)>=10 && Number(onbAge)<=100) ||
-          (stepId==="height" && Number(onbHeight)>=100 && Number(onbHeight)<=250) ||
-          (stepId==="weight" && Number(onbWeight)>=30 && Number(onbWeight)<=250) ||
-          (stepId==="activity" && onbActivity) ||
-          (stepId==="goal" && onbGoal) ||
-          stepId==="summary";
-        
-        const bmr = calculateBMR(onbGender, onbWeight, onbHeight, onbAge);
-        const tdee = calculateTDEE(bmr, onbActivity);
-        const targetKcal = calculateTargetKcal(tdee, onbGoal);
-        const protein = Math.round(targetKcal * 0.32 / 4);
-        const carbs = Math.round(targetKcal * 0.40 / 4);
-        const fat = Math.round(targetKcal * 0.28 / 9);
-        
-        const saveOnboarding = async () => {
-          const newProfile = {...profile, gender:onbGender, age:onbAge, height:onbHeight, weight:onbWeight, activity:onbActivity, goal:onbGoal};
-          setProfile(newProfile);
-          setEditProfile(newProfile);
-          setFitnessGoal(onbGoal);
-          setDailyKcal(targetKcal);
-          await saveToCloud({
-            profile: newProfile,
-            fitnessGoal: onbGoal,
-            dailyKcal: targetKcal,
-            onboardingComplete: true
-          });
-          setShowOnboarding(false);
-        };
-        
-        return (
-          <div style={{position:"fixed",inset:0,zIndex:400,background:T.bg,overflowY:"auto"}}>
-            <div style={{maxWidth:480,margin:"0 auto",padding:"40px 20px 120px",minHeight:"100vh",display:"flex",flexDirection:"column"}}>
-              
-              {/* Progress */}
-              <div style={{display:"flex",gap:4,marginBottom:32}}>
-                {steps.map((_,i)=>(
-                  <div key={i} style={{flex:1,height:3,borderRadius:99,background:i<=onboardStep?T.accent:T.border2,transition:"background 0.3s"}}/>
-                ))}
-              </div>
-
-              <div style={{flex:1}}>
-                {stepId==="gender" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 1 av 7</div>
-                    <h2 style={{fontSize:26,fontWeight:700,color:T.text,marginBottom:8,fontFamily:'"Fraunces", serif'}}>Välkommen! 👋</h2>
-                    <p style={{fontSize:14,color:T.textDim,marginBottom:28,lineHeight:1.5}}>Vi behöver lite info för att räkna ut rätt kalorier och makron åt dig.</p>
-                    <div style={{fontSize:13,color:T.textFaint,marginBottom:14,fontWeight:600}}>Vilket kön är du?</div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                      {[{id:"man",label:"Man",emoji:"👨"},{id:"kvinna",label:"Kvinna",emoji:"👩"}].map(g=>(
-                        <button key={g.id} onClick={()=>setOnbGender(g.id)} style={{background:onbGender===g.id?T.cardBg:"transparent",border:`1px solid ${onbGender===g.id?T.accent:T.border}`,borderRadius:14,padding:"28px 16px",cursor:"pointer",fontFamily:"inherit",color:T.text}}>
-                          <div style={{fontSize:38,marginBottom:8}}>{g.emoji}</div>
-                          <div style={{fontSize:14,fontWeight:600}}>{g.label}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {stepId==="age" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 2 av 7</div>
-                    <h2 style={{fontSize:26,fontWeight:700,color:T.text,marginBottom:28,fontFamily:'"Fraunces", serif'}}>Hur gammal är du?</h2>
-                    <input type="number" value={onbAge} onChange={e=>setOnbAge(e.target.value)} placeholder="t.ex. 28" autoFocus style={{width:"100%",background:T.cardBg,border:`1px solid ${T.border2}`,borderRadius:12,padding:"18px",fontSize:20,color:T.text,textAlign:"center",fontFamily:"inherit"}}/>
-                    <div style={{fontSize:11,color:T.textFaint,marginTop:8,textAlign:"center"}}>år</div>
-                  </div>
-                )}
-                
-                {stepId==="height" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 3 av 7</div>
-                    <h2 style={{fontSize:26,fontWeight:700,color:T.text,marginBottom:28,fontFamily:'"Fraunces", serif'}}>Hur lång är du?</h2>
-                    <input type="number" value={onbHeight} onChange={e=>setOnbHeight(e.target.value)} placeholder="t.ex. 180" autoFocus style={{width:"100%",background:T.cardBg,border:`1px solid ${T.border2}`,borderRadius:12,padding:"18px",fontSize:20,color:T.text,textAlign:"center",fontFamily:"inherit"}}/>
-                    <div style={{fontSize:11,color:T.textFaint,marginTop:8,textAlign:"center"}}>cm</div>
-                  </div>
-                )}
-                
-                {stepId==="weight" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 4 av 7</div>
-                    <h2 style={{fontSize:26,fontWeight:700,color:T.text,marginBottom:28,fontFamily:'"Fraunces", serif'}}>Vad väger du?</h2>
-                    <input type="number" value={onbWeight} onChange={e=>setOnbWeight(e.target.value)} placeholder="t.ex. 75" autoFocus style={{width:"100%",background:T.cardBg,border:`1px solid ${T.border2}`,borderRadius:12,padding:"18px",fontSize:20,color:T.text,textAlign:"center",fontFamily:"inherit"}}/>
-                    <div style={{fontSize:11,color:T.textFaint,marginTop:8,textAlign:"center"}}>kg</div>
-                  </div>
-                )}
-                
-                {stepId==="activity" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 5 av 7</div>
-                    <h2 style={{fontSize:24,fontWeight:700,color:T.text,marginBottom:20,fontFamily:'"Fraunces", serif'}}>Hur aktiv är du?</h2>
-                    <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                      {ACTIVITY_LEVELS.map(a=>(
-                        <button key={a.id} onClick={()=>setOnbActivity(a.id)} style={{background:onbActivity===a.id?T.cardBg:"transparent",border:`1px solid ${onbActivity===a.id?T.accent:T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:T.text,display:"flex",alignItems:"center",gap:12}}>
-                          <div style={{fontSize:26}}>{a.emoji}</div>
-                          <div style={{flex:1}}>
-                            <div style={{fontSize:14,fontWeight:600,marginBottom:2}}>{a.label}</div>
-                            <div style={{fontSize:11,color:T.textFaint}}>{a.desc}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {stepId==="goal" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 6 av 7</div>
-                    <h2 style={{fontSize:26,fontWeight:700,color:T.text,marginBottom:20,fontFamily:'"Fraunces", serif'}}>Vad är ditt mål?</h2>
-                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                      {GOAL_OPTIONS.map(g=>(
-                        <button key={g.id} onClick={()=>setOnbGoal(g.id)} style={{background:onbGoal===g.id?T.cardBg:"transparent",border:`1px solid ${onbGoal===g.id?T.accent:T.border}`,borderRadius:14,padding:"18px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:T.text,display:"flex",alignItems:"center",gap:14}}>
-                          <div style={{fontSize:32}}>{g.emoji}</div>
-                          <div style={{flex:1}}>
-                            <div style={{fontSize:15,fontWeight:700,marginBottom:3}}>{g.label}</div>
-                            <div style={{fontSize:12,color:T.textFaint}}>{g.desc} · {g.kcalDelta>0?"+"+g.kcalDelta:g.kcalDelta} kcal/dag</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {stepId==="summary" && (
-                  <div>
-                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8}}>Steg 7 av 7</div>
-                    <h2 style={{fontSize:24,fontWeight:700,color:T.text,marginBottom:8,fontFamily:'"Fraunces", serif'}}>Din plan är klar! 🎯</h2>
-                    <p style={{fontSize:13,color:T.textDim,marginBottom:24}}>Baserat på dina uppgifter rekommenderar vi:</p>
-                    
-                    <div style={{background:T.cardBg,border:`1px solid ${T.accent}33`,borderRadius:16,padding:"24px 20px",marginBottom:16,textAlign:"center"}}>
-                      <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6}}>Dagligt kaloriintag</div>
-                      <div style={{fontSize:42,fontWeight:700,color:T.accent,fontFamily:'"Fraunces", serif'}}>{targetKcal.toLocaleString()}</div>
-                      <div style={{fontSize:11,color:T.textFaint,marginTop:2}}>kcal/dag</div>
-                    </div>
-                    
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
-                      <div style={{background:T.cardBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
-                        <div style={{fontSize:18,fontWeight:700,color:T.green}}>{protein}g</div>
-                        <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:2}}>Protein</div>
-                      </div>
-                      <div style={{background:T.cardBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
-                        <div style={{fontSize:18,fontWeight:700,color:T.blue}}>{carbs}g</div>
-                        <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:2}}>Kolhydr.</div>
-                      </div>
-                      <div style={{background:T.cardBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
-                        <div style={{fontSize:18,fontWeight:700,color:T.yellow}}>{fat}g</div>
-                        <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:2}}>Fett</div>
-                      </div>
-                    </div>
-                    
-                    <div style={{fontSize:11,color:T.textFaint,textAlign:"center",marginBottom:4}}>BMR: {bmr} kcal · TDEE: {tdee} kcal</div>
-                    <div style={{fontSize:10,color:T.textVeryFaint,textAlign:"center"}}>Beräknat med Mifflin-St Jeor-formeln</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Navigation */}
-              <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"16px 20px calc(24px + env(safe-area-inset-bottom))",background:T.bg,borderTop:`1px solid ${T.border}`,display:"flex",gap:10,maxWidth:480,margin:"0 auto"}}>
-                {onboardStep>0 && (
-                  <button onClick={()=>setOnboardStep(onboardStep-1)} style={{flex:1,background:"transparent",border:`1px solid ${T.border2}`,color:T.textDim,borderRadius:99,padding:"15px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>← Tillbaka</button>
-                )}
-                {stepId==="summary" ? (
-                  <button onClick={saveOnboarding} style={{flex:2,background:"linear-gradient(135deg,#6dcc6d,#4aaa4a)",color:"#080808",border:"none",borderRadius:99,padding:"15px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 20px rgba(109,204,109,0.5)"}}>Kom igång 🚀</button>
-                ) : (
-                  <button onClick={()=>canNext && setOnboardStep(onboardStep+1)} disabled={!canNext} style={{flex:2,background:canNext?"linear-gradient(135deg,#e8c97a,#c4a852)":"#2a2a20",color:canNext?"#080808":T.textFaint,border:"none",borderRadius:99,padding:"15px",fontSize:15,fontWeight:700,cursor:canNext?"pointer":"not-allowed",fontFamily:"inherit"}}>Nästa →</button>
-                )}
-              </div>
             </div>
           </div>
         );
@@ -1961,18 +1528,18 @@ function App() {
 
       {/* FAVORITES VIEW */}
       {showFavorites && (
-        <div style={{position:"fixed",inset:0,zIndex:280,background:T.bg2,overflowY:"auto"}}>
+        <div style={{position:"fixed",inset:0,zIndex:280,background:"#0e0e0c",overflowY:"auto"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-              <button onClick={()=>setShowFavorites(false)} style={{background:T.cardBg,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:18,fontWeight:700,color:T.text}}>💖 Mina favoriter</div>
+              <button onClick={()=>setShowFavorites(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:18,fontWeight:700,color:"#e8e8e0"}}>💖 Mina favoriter</div>
               <div style={{width:36}}></div>
             </div>
 
             {favorites.length === 0 ? (
-              <div style={{textAlign:"center",padding:"60px 20px",color:T.textFaint}}>
+              <div style={{textAlign:"center",padding:"60px 20px",color:"#555"}}>
                 <div style={{fontSize:48,marginBottom:16}}>💔</div>
-                <div style={{fontSize:16,marginBottom:8,color:T.textDim}}>Inga favoriter än</div>
+                <div style={{fontSize:16,marginBottom:8,color:"#888"}}>Inga favoriter än</div>
                 <div style={{fontSize:13}}>Swipa höger på recept du gillar!</div>
               </div>
             ) : (
@@ -1980,13 +1547,13 @@ function App() {
                 {favorites.map(f => {
                   const cat = CATEGORIES.find(c => ALL_RECIPES[c.id].find(r => r.id === f.id));
                   return (
-                    <div key={f.id} style={{background:T.bg3,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",display:"flex",alignItems:"center",gap:14}}>
+                    <div key={f.id} style={{background:"#141410",border:"1px solid #1a1a14",borderRadius:14,padding:"14px 16px",display:"flex",alignItems:"center",gap:14}}>
                       <div style={{fontSize:36}}>{f.emoji}</div>
                       <div style={{flex:1,cursor:"pointer"}} onClick={()=>{setCurrentRecipe(f);setRecipeStep(0);setShowFavorites(false);setModalOpen(true);}}>
-                        <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:3}}>{f.name}</div>
-                        <div style={{fontSize:11,color:T.textFaint}}>⏱ {f.time} min · {f.kcal} kcal · {f.protein}g protein</div>
+                        <div style={{fontSize:14,fontWeight:600,color:"#e8e8e0",marginBottom:3}}>{f.name}</div>
+                        <div style={{fontSize:11,color:"#666"}}>⏱ {f.time} min · {f.kcal} kcal · {f.protein}g protein</div>
                       </div>
-                      <button onClick={()=>removeFavorite(f.id)} style={{background:"transparent",border:"none",color:T.textFaint,fontSize:18,cursor:"pointer",padding:8}}>✕</button>
+                      <button onClick={()=>removeFavorite(f.id)} style={{background:"transparent",border:"none",color:"#555",fontSize:18,cursor:"pointer",padding:8}}>✕</button>
                     </div>
                   );
                 })}
@@ -1998,68 +1565,73 @@ function App() {
 
       {/* RECIPE MODAL */}
       {modalOpen && currentRecipe && (
-        <div onClick={()=>setModalOpen(false)} style={{position:"fixed",inset:0,zIndex:200,background:T.bg2,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:T.bg2,width:"100%",maxWidth:580,height:"100vh",overflowY:"auto",padding:"44px 16px 44px"}}>
+        <div onClick={()=>setModalOpen(false)} style={{position:"fixed",inset:0,zIndex:200,background:"#0e0e0c",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#0e0e0c",width:"100%",maxWidth:580,height:"100vh",overflowY:"auto",padding:"44px 16px 44px"}}>
             <div style={{width:40,height:4,background:"#333",borderRadius:99,margin:"0 auto 14px"}}/>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <span style={{fontSize:34}}>{currentRecipe.emoji}</span>
                 <div>
                   <h2 style={{fontSize:16,color:"#f0f0e8",margin:"0 0 2px"}}>{currentRecipe.name}</h2>
-                  <div style={{fontSize:11,color:T.textFaint}}>⏱ {currentRecipe.time} min · {currentRecipe.servings}</div>
+                  <div style={{fontSize:11,color:"#555"}}>⏱ {currentRecipe.time} min · {currentRecipe.servings}</div>
                   <div style={{fontSize:10,color:"#777",marginTop:1}}>{currentRecipe.tag}</div>
                 </div>
               </div>
-              <button onClick={()=>setModalOpen(false)} style={{background:T.cardBg,border:"none",color:T.textDim,width:27,height:27,borderRadius:"50%",cursor:"pointer",fontSize:13}}>✕</button>
+              <button onClick={()=>setModalOpen(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:27,height:27,borderRadius:"50%",cursor:"pointer",fontSize:13}}>✕</button>
             </div>
             <div style={{display:"flex",gap:5,marginBottom:8}}>
               {[["Protein",currentRecipe.protein+"g","#6dcc6d"],["Kolh.",currentRecipe.carbs+"g","#7aa0cc"],["Fett",currentRecipe.fat+"g","#c4a852"],["kcal",currentRecipe.kcal,"#cc7a7a"]].map(([l,v,c])=>(
                 <div key={l} style={{flex:1,textAlign:"center",background:"rgba(0,0,0,0.4)",borderRadius:7,padding:"5px 3px"}}>
                   <div style={{fontSize:12,fontWeight:700,color:c}}>{v}</div>
-                  <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase"}}>{l}</div>
+                  <div style={{fontSize:8,color:"#444",textTransform:"uppercase"}}>{l}</div>
                 </div>
               ))}
             </div>
             {/* % of daily goal */}
-            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 12px",marginBottom:11,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <div style={{fontSize:11,color:T.textFaint}}>Andel av ditt dagsmål ({dailyKcal.toLocaleString()} kcal)</div>
+            <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:10,padding:"8px 12px",marginBottom:11,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{fontSize:11,color:"#555"}}>Andel av ditt dagsmål ({dailyKcal.toLocaleString()} kcal)</div>
               <div style={{fontSize:12,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{Math.round((currentRecipe.kcal/dailyKcal)*100)}%</div>
             </div>
-            <div style={{background:T.bg3,borderLeft:"3px solid #6dcc6d",borderRadius:"0 9px 9px 0",padding:"9px 12px",marginBottom:11}}>
-              <div style={{fontSize:9,color:T.green,marginBottom:3,textTransform:"uppercase",letterSpacing:"0.1em"}}>Varför denna rätt?</div>
+            <div style={{background:"#141410",borderLeft:"3px solid #6dcc6d",borderRadius:"0 9px 9px 0",padding:"9px 12px",marginBottom:11}}>
+              <div style={{fontSize:9,color:"#6dcc6d",marginBottom:3,textTransform:"uppercase",letterSpacing:"0.1em"}}>Varför denna rätt?</div>
               <div style={{fontSize:12,color:"#7a8a70",lineHeight:1.6}}>{currentRecipe.why}</div>
             </div>
-            <div style={{background:T.bg3,borderRadius:11,padding:"12px",marginBottom:13}}>
-              <div style={{fontSize:9,color:T.textFaint,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.1em"}}>Ingredienser</div>
+            <div style={{background:"#141410",borderRadius:11,padding:"12px",marginBottom:13}}>
+              <div style={{fontSize:9,color:"#555",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.1em"}}>Ingredienser</div>
               {currentRecipe.ingredients.map(({amount,item})=>(
                 <div key={item} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:"1px solid #1a1a18"}}>
                   <span style={{fontSize:12,color:"#a0a090"}}>{item}</span>
-                  <span style={{fontSize:12,color:T.accent,fontWeight:700}}>{amount}</span>
+                  <span style={{fontSize:12,color:"#e8c97a",fontWeight:700}}>{amount}</span>
                 </div>
               ))}
             </div>
             {locked ? (
               <div style={{background:"#1a1210",border:"1px solid #3a2210",borderRadius:13,padding:"20px",textAlign:"center"}}>
                 <div style={{fontSize:28,marginBottom:9}}>🔒</div>
-                <div style={{fontSize:15,fontWeight:700,color:T.accent,marginBottom:7}}>Du har använt dina {FREE_LIMIT} gratis recept</div>
+                <div style={{fontSize:15,fontWeight:700,color:"#e8c97a",marginBottom:7}}>Du har använt dina {FREE_LIMIT} gratis recept</div>
                 <div style={{fontSize:12,color:"#7a6a50",lineHeight:1.7,marginBottom:16}}>Uppgradera till Premium för obegränsad tillgång.</div>
                 <button onClick={()=>{setModalOpen(false);setPricingOpen(true);}} style={{width:"100%",padding:"12px",borderRadius:99,background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>✨ Bli Premium — 100 kr/mån</button>
               </div>
             ) : (
               <>
-                <div style={{fontSize:10,color:T.accent,marginBottom:12,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600}}>Gör så här ({currentRecipe.steps.length} steg)</div>
-                
-                {currentRecipe.steps.map((step, i) => (
-                  <div key={i} style={{background:T.bg3,border:"1px solid #2a2a18",borderRadius:13,padding:"14px 15px",marginBottom:9,display:"flex",gap:12}}>
-                    <div style={{flexShrink:0,width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700}}>{i+1}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:14,fontWeight:700,color:"#f0f0e8",marginBottom:5}}>{step.title}</div>
-                      <div style={{fontSize:12,color:"#9a9a88",lineHeight:1.65}}>{step.desc}</div>
-                    </div>
-                  </div>
-                ))}
-                
-                <button onClick={()=>setModalOpen(false)} style={{width:"100%",marginTop:14,padding:"14px",background:"linear-gradient(135deg,#4aaa4a,#2a7a2a)",color:"#fff",border:"none",borderRadius:12,cursor:"pointer",fontFamily:"inherit",fontSize:14,fontWeight:700,boxShadow:"0 4px 16px rgba(74,170,74,0.3)"}}>✅ Smaklig måltid!</button>
+                <div style={{display:"flex",gap:4,marginBottom:7}}>
+                  {currentRecipe.steps.map((_,i)=>(
+                    <div key={i} onClick={()=>setRecipeStep(i)} style={{flex:1,height:3,borderRadius:99,cursor:"pointer",background:i<=recipeStep?"#e8c97a":"#2a2a20",transition:"background 0.3s"}}/>
+                  ))}
+                </div>
+                <div style={{fontSize:10,color:"#444",marginBottom:9,textAlign:"right"}}>Steg {recipeStep+1} av {currentRecipe.steps.length}</div>
+                <div style={{background:"#141410",border:"1px solid #e8c97a30",borderRadius:13,padding:"15px",marginBottom:9}}>
+                  <div style={{fontSize:9,color:"#e8c97a",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.1em"}}>Steg {recipeStep+1}</div>
+                  <div style={{fontSize:16,fontWeight:700,color:"#f0f0e8",marginBottom:9}}>{currentRecipe.steps[recipeStep].title}</div>
+                  <div style={{fontSize:13,color:"#9a9a88",lineHeight:1.85}}>{currentRecipe.steps[recipeStep].desc}</div>
+                </div>
+                <div style={{display:"flex",gap:7}}>
+                  {recipeStep>0&&<button onClick={()=>setRecipeStep(p=>p-1)} style={{flex:1,padding:"10px",background:"transparent",border:"1px solid #2a2a20",color:"#777",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>← Föregående</button>}
+                  {recipeStep<currentRecipe.steps.length-1
+                    ?<button onClick={()=>setRecipeStep(p=>p+1)} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>Nästa →</button>
+                    :<button onClick={()=>setModalOpen(false)} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#4aaa4a,#2a7a2a)",color:"#fff",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>✅ Smaklig måltid!</button>
+                  }
+                </div>
               </>
             )}
           </div>
@@ -2069,27 +1641,27 @@ function App() {
       {/* PRICING MODAL */}
       {pricingOpen && (
         <div onClick={()=>setPricingOpen(false)} style={{position:"fixed",inset:0,zIndex:300,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(12px)",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:T.bg2,borderTop:"1px solid #2a2a18",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:500,padding:"22px 18px 48px"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#0e0e0c",borderTop:"1px solid #2a2a18",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:500,padding:"22px 18px 48px"}}>
             <div style={{width:40,height:4,background:"#333",borderRadius:99,margin:"0 auto 20px"}}/>
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:38,marginBottom:8}}>✨</div>
-              <h2 style={{fontSize:20,color:T.accent,margin:"0 0 5px"}}>FitFuel Premium</h2>
-              <div style={{fontSize:13,color:T.textFaint}}>Obegränsad tillgång — sparat i molnet</div>
+              <h2 style={{fontSize:20,color:"#e8c97a",margin:"0 0 5px"}}>FitFuel Premium</h2>
+              <div style={{fontSize:13,color:"#555"}}>Obegränsad tillgång — sparat i molnet</div>
             </div>
             {[["💪","Träningsmat","Proteinrika deffa-recept"],["✨","Lyxhelg","Restaurangkänsla hemma"],["🍽️","Vardag","Snabba vardagsrätter"],["🍓","Efterrätt","Sötsug utan dåligt samvete"],["🔄","Obegränsat","Nytt recept varje gång"],["☁️","Molnsynkat","Fungerar på alla dina enheter"]].map(([icon,title,sub])=>(
-              <div key={title} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:`1px solid ${T.border}`}}>
+              <div key={title} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:"1px solid #1a1a14"}}>
                 <span style={{fontSize:18}}>{icon}</span>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,color:"#d0d0c0",fontWeight:600}}>{title}</div>
-                  <div style={{fontSize:11,color:T.textFaint}}>{sub}</div>
+                  <div style={{fontSize:11,color:"#444"}}>{sub}</div>
                 </div>
-                <span style={{fontSize:14,color:T.green}}>✓</span>
+                <span style={{fontSize:14,color:"#6dcc6d"}}>✓</span>
               </div>
             ))}
             <button onClick={activatePremium} style={{marginTop:18,width:"100%",padding:"14px",borderRadius:99,background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",fontFamily:"inherit",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 8px 32px rgba(232,201,122,0.3)"}}>
               Starta Premium — 100 kr/mån
             </button>
-            <div style={{textAlign:"center",marginTop:10,fontSize:11,color:T.textVeryFaint}}>Avsluta när som helst</div>
+            <div style={{textAlign:"center",marginTop:10,fontSize:11,color:"#333"}}>Avsluta när som helst</div>
           </div>
         </div>
       )}
@@ -2118,10 +1690,10 @@ function Root() {
   }, []);
   
   if (fbError) return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,padding:24,fontFamily:"Georgia,serif"}}>
+    <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,padding:24,fontFamily:"Georgia,serif"}}>
       <div style={{fontSize:48}}>⚠️</div>
-      <div style={{fontSize:16,color:T.accent,fontWeight:700,textAlign:"center"}}>Kunde inte ansluta till molnet</div>
-      <div style={{fontSize:13,color:T.textFaint,textAlign:"center",maxWidth:300,lineHeight:1.7}}>
+      <div style={{fontSize:16,color:"#e8c97a",fontWeight:700,textAlign:"center"}}>Kunde inte ansluta till molnet</div>
+      <div style={{fontSize:13,color:"#555",textAlign:"center",maxWidth:300,lineHeight:1.7}}>
         Kontrollera att du har internetanslutning och ladda om sidan. Om problemet kvarstår, kontakta support.
       </div>
       <button onClick={()=>window.location.reload()} style={{padding:"12px 28px",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#080808",border:"none",borderRadius:99,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"Georgia,serif"}}>
@@ -2131,10 +1703,10 @@ function Root() {
   );
   
   if (!fbReady) return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
+    <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
       <div style={{fontSize:48,animation:"pulse 1.5s ease-in-out infinite"}}>🔥</div>
-      <div style={{fontSize:14,color:T.textFaint,fontFamily:"Georgia,serif"}}>Ansluter till molnet...</div>
-      <div style={{fontSize:11,color:T.textVeryFaint,fontFamily:"Georgia,serif"}}>leaneats.netlify.app</div>
+      <div style={{fontSize:14,color:"#444",fontFamily:"Georgia,serif"}}>Ansluter till molnet...</div>
+      <div style={{fontSize:11,color:"#333",fontFamily:"Georgia,serif"}}>leaneats.netlify.app</div>
     </div>
   );
   return <App/>;
