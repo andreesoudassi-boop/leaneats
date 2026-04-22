@@ -1265,84 +1265,84 @@ function App() {
             {showGoalSetup && <GoalSetup onSave={saveGoal}/>}
 
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-              <div style={{width:42,height:42,borderRadius:"50%",overflow:"hidden",background:"#1a1a14",border:"1px solid #2a2a1a",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>
+              <div style={{width:42,height:42,borderRadius:"50%",overflow:"hidden",background:T.border,border:`1px solid ${T.border2}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>
                 {profile.avatar ? <img src={profile.avatar} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : "👤"}
               </div>
               <div>
-                <div style={{fontSize:12,color:"#444"}}>Hej,</div>
-                <div style={{fontSize:16,fontWeight:700,color:"#e8e8e0"}}>{profile.name||user.email} 👋</div>
+                <div style={{fontSize:12,color:T.textFaint}}>Hej,</div>
+                <div style={{fontSize:16,fontWeight:700,color:T.text}}>{profile.name||user.email} 👋</div>
               </div>
-              <div style={{marginLeft:"auto",fontSize:10,color:"#6dcc6d",background:"#0a160a",border:"1px solid #1a3a1a",borderRadius:99,padding:"3px 10px"}}>☁️ Synkad</div>
+              <div style={{marginLeft:"auto",fontSize:10,color:T.green,background:isDark?"#0a160a":"#e8f5e8",border:`1px solid ${isDark?"#1a3a1a":"#b8dbb8"}`,borderRadius:99,padding:"3px 10px"}}>☁️ Synkad</div>
             </div>
 
             {/* Goal + Calorie Banner */}
-            <div style={{background:"#0e0e0c",border:`1px solid ${fitnessGoal==="deffa"?"#6dcc6d44":"#e8c97a44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18,cursor:"pointer"}} onClick={()=>setShowGoalSetup(true)}>
+            <div style={{background:T.bg2,border:`1px solid ${fitnessGoal==="deffa"?T.green+"44":T.accent+"44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18,cursor:"pointer"}} onClick={()=>setShowGoalSetup(true)}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:24}}>{fitnessGoal==="deffa"?"🔥":"💪"}</span>
                   <div>
-                    <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
-                    <div style={{fontSize:11,color:"#444"}}>{dailyKcal.toLocaleString()} kcal / dag</div>
+                    <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?T.green:T.accent}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
+                    <div style={{fontSize:11,color:T.textFaint}}>{dailyKcal.toLocaleString()} kcal / dag</div>
                   </div>
                 </div>
-                <div style={{fontSize:11,color:"#555",border:"1px solid #2a2a1a",borderRadius:99,padding:"4px 10px"}}>Ändra →</div>
+                <div style={{fontSize:11,color:T.textFaint,border:`1px solid ${T.border2}`,borderRadius:99,padding:"4px 10px"}}>Ändra →</div>
               </div>
               {/* Macro targets */}
               <div style={{display:"flex",gap:6}}>
                 {[
-                  ["Protein", Math.round(dailyKcal*0.32/4)+"g", "#6dcc6d"],
-                  ["Kolhydr.", Math.round(dailyKcal*0.40/4)+"g", "#7aa0cc"],
-                  ["Fett", Math.round(dailyKcal*0.28/9)+"g", "#c4a852"],
+                  ["Protein", Math.round(dailyKcal*0.32/4)+"g", T.green],
+                  ["Kolhydr.", Math.round(dailyKcal*0.40/4)+"g", T.blue],
+                  ["Fett", Math.round(dailyKcal*0.28/9)+"g", T.yellow],
                 ].map(([l,v,c])=>(
-                  <div key={l} style={{flex:1,background:"#0a0a08",borderRadius:8,padding:"6px",textAlign:"center"}}>
+                  <div key={l} style={{flex:1,background:T.bg3,borderRadius:8,padding:"6px",textAlign:"center"}}>
                     <div style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
-                    <div style={{fontSize:9,color:"#444",textTransform:"uppercase"}}>{l}</div>
+                    <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>{l}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             <h2 style={{fontSize:"clamp(18px,4vw,28px)",fontWeight:700,lineHeight:1.1,marginBottom:6,
-              background:"linear-gradient(135deg,#f0f0e0,#e8c97a 55%,#6dcc6d)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
+              background:isDark?"linear-gradient(135deg,#f0f0e0,#e8c97a 55%,#6dcc6d)":"linear-gradient(135deg,#2a2a1a,#b8942a 55%,#4aaa4a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
               Välj kategori.<br/>Bläddra & välj.
             </h2>
-            <p style={{fontSize:13,color:"#444",marginBottom:14}}>Swipa höger på det du vill laga. ❤ = sparas som favorit.</p>
+            <p style={{fontSize:13,color:T.textFaint,marginBottom:14}}>Swipa höger på det du vill laga. ❤ = sparas som favorit.</p>
             
             {favorites.length > 0 && (
-              <button onClick={()=>setShowFavorites(true)} style={{width:"100%",background:"linear-gradient(135deg,#cc7a7a22,#e8c97a22)",border:"1px solid #cc7a7a44",borderRadius:12,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <button onClick={()=>setShowFavorites(true)} style={{width:"100%",background:isDark?"linear-gradient(135deg,#cc7a7a22,#e8c97a22)":"linear-gradient(135deg,#f8e8e8,#faf0d8)",border:`1px solid ${T.red}44`,borderRadius:12,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:20}}>💖</span>
                   <div style={{textAlign:"left"}}>
-                    <div style={{fontSize:13,fontWeight:600,color:"#e8e8e0"}}>Mina favoriter</div>
-                    <div style={{fontSize:10,color:"#666"}}>{favorites.length} sparade recept</div>
+                    <div style={{fontSize:13,fontWeight:600,color:T.text}}>Mina favoriter</div>
+                    <div style={{fontSize:10,color:T.textFaint}}>{favorites.length} sparade recept</div>
                   </div>
                 </div>
-                <span style={{fontSize:14,color:"#888"}}>→</span>
+                <span style={{fontSize:14,color:T.textDim}}>→</span>
               </button>
             )}
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:18}}>
               {CATEGORIES.map(cat=>(
                 <button key={cat.id} className="cat-btn" onClick={()=>handleSpin(cat.id)}
-                  style={{background:"#0e0e0c",border:`1px solid #1a1a14`,
+                  style={{background:T.bg2,border:`1px solid ${T.border}`,
                     borderRadius:16,padding:"18px 12px",cursor:"pointer",textAlign:"center",fontFamily:"inherit",
                     transition:"all 0.25s"}}>
                   <div style={{fontSize:34,marginBottom:7}}>{cat.emoji}</div>
                   <div style={{fontSize:14,fontWeight:700,color:cat.color,marginBottom:3}}>{cat.label}</div>
-                  <div style={{fontSize:10,color:"#444"}}>{cat.desc}</div>
+                  <div style={{fontSize:10,color:T.textFaint}}>{cat.desc}</div>
                   <div style={{marginTop:9,fontSize:10,color:cat.color,opacity:0.6}}>Bläddra →</div>
                 </button>
               ))}
             </div>
 
             {!isPremium && (
-              <div style={{background:"#0e0e0c",border:"1px solid #1a1a10",borderRadius:12,padding:"13px 15px"}}>
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"13px 15px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-                  <span style={{fontSize:12,color:"#555"}}>Gratis-plan</span>
-                  <span style={{fontSize:11,color:freeLeft>0?"#6dcc6d":"#cc7a7a"}}>{freeLeft>0?`${freeLeft} kvar`:"Uppgradera"}</span>
+                  <span style={{fontSize:12,color:T.textFaint}}>Gratis-plan</span>
+                  <span style={{fontSize:11,color:freeLeft>0?T.green:T.red}}>{freeLeft>0?`${freeLeft} kvar`:"Uppgradera"}</span>
                 </div>
-                <div style={{background:"#1a1a14",borderRadius:99,height:3,overflow:"hidden"}}>
-                  <div style={{height:"100%",borderRadius:99,background:"#6dcc6d",width:`${(freeUsed/FREE_LIMIT)*100}%`,transition:"width 0.4s"}}/>
+                <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden"}}>
+                  <div style={{height:"100%",borderRadius:99,background:T.green,width:`${(freeUsed/FREE_LIMIT)*100}%`,transition:"width 0.4s"}}/>
                 </div>
               </div>
             )}
