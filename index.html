@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -857,7 +856,7 @@ function App() {
   // Protein filter state
   const [showProteinFilter, setShowProteinFilter] = useState(false);
   const [selectedCatId, setSelectedCatId] = useState(null);
-  const [proteinFilter, setProteinFilter] = useState("all");
+  const [proteinFilter, setProteinFilter] = useState(["all"]);
 
   // Settings & Onboarding
   const [showSettings, setShowSettings] = useState(false);
@@ -1041,13 +1040,13 @@ function App() {
   const handleSpin = async (catId) => {
     if (locked) { setPricingOpen(true); return; }
     setSelectedCatId(catId);
-    setProteinFilter("all");
+    setProteinFilter(["all"]);
     setShowProteinFilter(true);
   };
 
   // ── Starta Tinder-läge med protein-filter ──
-  const startTinder = (filter) => {
-    setProteinFilter(filter);
+  const startTinder = (filters) => {
+    setProteinFilter(filters);
     setShowProteinFilter(false);
     setTinderCatId(selectedCatId);
     setTinderIndex(0);
@@ -1056,12 +1055,17 @@ function App() {
   };
 
   // ── Hjälpfunktion: hämta filtrerade recept (exkl favoriter) ──
-  const getFilteredRecipes = (catId, filter) => {
+  const getFilteredRecipes = (catId, filters) => {
     const all = ALL_RECIPES[catId] || [];
     const favIds = new Set(favorites.map(f => f.id));
     const notLiked = all.filter(r => !favIds.has(r.id));
-    if (filter === "all") return notLiked;
-    return notLiked.filter(r => classifyRecipe(r, catId).includes(filter));
+    // filters kan vara string ("all", "kyckling") eller array
+    const filterArr = Array.isArray(filters) ? filters : [filters];
+    if (filterArr.length === 0 || filterArr.includes("all")) return notLiked;
+    return notLiked.filter(r => {
+      const types = classifyRecipe(r, catId);
+      return filterArr.some(f => types.includes(f));
+    });
   };
 
   // ── Tinder: swipa höger (JA) = spara favorit + försvinner från högen ──
@@ -1482,12 +1486,32 @@ function App() {
       {/* PROTEIN FILTER SELECTION */}
       {showProteinFilter && selectedCatId && (() => {
         const cat = CATEGORIES.find(c => c.id === selectedCatId);
-        const isDesserts = selectedCatId === "efterratt";
-        const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
+        const typeList = PROTEIN_TYPES;
+        // Lokal state för multi-select — använder proteinFilter som state
+        const current = Array.isArray(proteinFilter) ? proteinFilter : [proteinFilter];
+        const toggleType = (typeId) => {
+          if (typeId === "all") {
+            setProteinFilter(["all"]);
+            return;
+          }
+          // Välj specifik: ta bort "all" om den finns
+          let next = current.filter(x => x !== "all");
+          if (next.includes(typeId)) {
+            next = next.filter(x => x !== typeId);
+          } else {
+            next = [...next, typeId];
+          }
+          if (next.length === 0) next = ["all"];
+          setProteinFilter(next);
+        };
+        
+        // Räkna hur många recept som matchar CURRENT val
+        const selectedRecipes = getFilteredRecipes(selectedCatId, current);
+        const canStart = selectedRecipes.length > 0;
         
         return (
           <div style={{position:"fixed",inset:0,zIndex:290,background:"#0e0e0c",overflowY:"auto"}}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 120px"}}>
               {/* Top bar */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowProteinFilter(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -1495,40 +1519,64 @@ function App() {
                 <div style={{width:36}}></div>
               </div>
 
-              <div style={{textAlign:"center",marginBottom:28}}>
+              <div style={{textAlign:"center",marginBottom:24}}>
                 <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6}}>Steg 2 av 2</div>
                 <h2 style={{fontSize:24,fontWeight:700,color:"#e8e8e0",marginBottom:6,fontFamily:'"Fraunces", serif'}}>
-                  {isDesserts ? "Vad är du sugen på?" : "Vad vill du äta?"}
+                  Vad är du sugen på?
                 </h2>
                 <p style={{fontSize:12,color:"#555"}}>
-                  {isDesserts ? "Välj typ av efterrätt" : "Välj proteintyp eller se alla"}
+                  Bocka flera — eller välj "Alla"
                 </p>
               </div>
 
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24}}>
                 {typeList.map(t => {
-                  const count = getFilteredRecipes(selectedCatId, t.id).length;
+                  const isSelected = current.includes(t.id);
+                  const count = getFilteredRecipes(selectedCatId, [t.id]).length;
                   return (
-                    <button key={t.id} onClick={()=>startTinder(t.id)} disabled={count===0}
+                    <button key={t.id} onClick={()=>toggleType(t.id)} disabled={count===0 && t.id!=="all"}
                       style={{
-                        background:"#141410",
-                        border:`1px solid ${t.color}33`,
+                        background:isSelected?`linear-gradient(135deg,${t.color}22,${t.color}11)`:"#141410",
+                        border:`2px solid ${isSelected?t.color:t.color+"22"}`,
                         borderRadius:16,
-                        padding:"22px 14px",
-                        cursor:count===0?"not-allowed":"pointer",
+                        padding:"20px 14px",
+                        cursor:(count===0 && t.id!=="all")?"not-allowed":"pointer",
                         fontFamily:"inherit",
                         textAlign:"center",
-                        opacity:count===0?0.4:1,
+                        opacity:(count===0 && t.id!=="all")?0.4:1,
                         transition:"all 0.2s",
-                        boxShadow:`0 2px 12px ${t.color}11`
+                        position:"relative"
                       }}>
-                      <div style={{fontSize:40,marginBottom:8}}>{t.emoji}</div>
-                      <div style={{fontSize:14,fontWeight:700,color:t.color,marginBottom:4}}>{t.label}</div>
+                      {isSelected && (
+                        <div style={{position:"absolute",top:8,right:8,width:22,height:22,borderRadius:"50%",background:t.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#0d0d0d",fontWeight:700}}>✓</div>
+                      )}
+                      <div style={{fontSize:38,marginBottom:6}}>{t.emoji}</div>
+                      <div style={{fontSize:14,fontWeight:700,color:t.color,marginBottom:3}}>{t.label}</div>
                       <div style={{fontSize:10,color:"#555"}}>{count} recept</div>
                     </button>
                   );
                 })}
               </div>
+            </div>
+
+            {/* Fast-placerad "Bläddra"-knapp längst ner */}
+            <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"16px 20px 30px",background:"linear-gradient(to top,#0e0e0c 70%,rgba(14,14,12,0))",maxWidth:540,margin:"0 auto"}}>
+              <button onClick={()=>startTinder(current)} disabled={!canStart}
+                style={{
+                  width:"100%",
+                  background:canStart?`linear-gradient(135deg,${cat.color},${cat.color}dd)`:"#2a2a20",
+                  color:canStart?"#0d0d0d":"#666",
+                  border:"none",
+                  borderRadius:99,
+                  padding:"18px",
+                  fontSize:15,
+                  fontWeight:700,
+                  cursor:canStart?"pointer":"not-allowed",
+                  fontFamily:"inherit",
+                  boxShadow:canStart?`0 4px 20px ${cat.color}44`:"none"
+                }}>
+                {canStart ? `Bläddra ${selectedRecipes.length} recept →` : "Välj minst en typ"}
+              </button>
             </div>
           </div>
         );
@@ -1538,9 +1586,23 @@ function App() {
       {tinderMode && tinderCatId && (() => {
         const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
         const cat = CATEGORIES.find(c => c.id === tinderCatId);
-        const isDesserts = tinderCatId === "efterratt";
-        const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
-        const filterType = typeList.find(t => t.id === proteinFilter) || typeList[0];
+        const typeList = PROTEIN_TYPES;
+        const filterArr = Array.isArray(proteinFilter) ? proteinFilter : [proteinFilter];
+        // Bygg label för header
+        let filterLabel;
+        if (filterArr.includes("all") || filterArr.length === 0) {
+          filterLabel = "🎲 Alla";
+        } else if (filterArr.length === 1) {
+          const f = typeList.find(t => t.id === filterArr[0]);
+          filterLabel = f ? `${f.emoji} ${f.label}` : "Alla";
+        } else {
+          // Flera valda — visa emojis
+          const emojis = filterArr.map(id => {
+            const t = typeList.find(x => x.id === id);
+            return t ? t.emoji : "";
+          }).join("");
+          filterLabel = `${emojis} (${filterArr.length})`;
+        }
         
         const safeIndex = Math.min(tinderIndex, recipes.length - 1);
         const recipe = recipes[safeIndex];
@@ -1576,7 +1638,7 @@ function App() {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"44px 18px 14px"}}>
               <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterType.emoji} {filterType.label}</div>
+                <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterLabel}</div>
                 <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{safeIndex + 1} av {recipes.length}</div>
               </div>
               <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:"#1a1a18",border:"none",color:tinderHistory.length===0?"#333":"#888",width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
