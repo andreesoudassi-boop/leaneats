@@ -1,5 +1,6 @@
-<!DOCTYPE html>
 
+
+<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8"/>
@@ -7,21 +8,14 @@
 <title>FitFuel – Kalorisnål Träningsmat</title>
 
 <!-- React -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 
 <!-- Firebase Compat (works with Babel) -->
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAp9usbHcNSDu6PQ-iqIjFo92Tswl-EpYc",
@@ -64,7 +58,6 @@
   input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;border:none;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
   @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:0.8}}
 </style>
-
 </head>
 <body>
 <div id="root"></div>
@@ -798,6 +791,31 @@ function calculateTargetKcal(tdee, goalId) {
   return Math.max(1200, Math.min(4000, tdee + goal.kcalDelta));
 }
 
+// ─── TEMA ─────────────────────────────────────────────────────────────────
+function getThemeColors(isDark) {
+  if (isDark) {
+    return {
+      bg: "#080808", bg2: "#0e0e0c", bg3: "#141410",
+      border: "#1a1a14", border2: "#2a2a20",
+      text: "#e8e8e0", textDim: "#888", textFaint: "#555", textVeryFaint: "#333",
+      accent: "#e8c97a",
+      green: "#6dcc6d", blue: "#7aa0cc", yellow: "#c4a852", red: "#cc7a7a",
+      cardBg: "#141410", navBg: "rgba(8,8,8,0.97)",
+      gradStart: "#1a1a08"
+    };
+  } else {
+    return {
+      bg: "#ffffff", bg2: "#fafaf7", bg3: "#f4f4ef",
+      border: "#e8e8e0", border2: "#d8d8d0",
+      text: "#1a1a14", textDim: "#666", textFaint: "#888", textVeryFaint: "#bbb",
+      accent: "#b8942a",
+      green: "#4aaa4a", blue: "#5a80a0", yellow: "#a48038", red: "#b06060",
+      cardBg: "#f4f4ef", navBg: "rgba(255,255,255,0.97)",
+      gradStart: "#f0e8c8"
+    };
+  }
+}
+
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 function App() {
   const FREE_LIMIT = 30;
@@ -866,6 +884,10 @@ function App() {
   // Email verification
   const [emailVerified, setEmailVerified] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  
+  // Tema
+  const [theme, setTheme] = useState("auto");
+  const [systemDark, setSystemDark] = useState(true);
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -878,6 +900,15 @@ function App() {
 
   const freeLeft = Math.max(0, FREE_LIMIT - freeUsed);
   const locked = !isPremium && freeUsed >= FREE_LIMIT;
+
+  // ── System dark-mode lyssnare ──────────────────────────────────────────
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    setSystemDark(mq.matches);
+    const listener = e => setSystemDark(e.matches);
+    mq.addEventListener("change", listener);
+    return () => mq.removeEventListener("change", listener);
+  }, []);
 
   // ── Firebase auth listener ───────────────────────────────────────────────
   useEffect(() => {
@@ -902,6 +933,7 @@ function App() {
             setSavedCard(data.savedCard || null);
             setPaymentMethod(data.paymentMethod || null);
             setFavorites(data.favorites || []);
+            if (data.theme) setTheme(data.theme);
             // Onboarding: visa om ej gjord
             if (!data.onboardingComplete) {
               setShowOnboarding(true);
@@ -924,6 +956,10 @@ function App() {
     });
     return unsub;
   }, []);
+
+  // ── Beräkna tema ──
+  const isDark = theme === "auto" ? systemDark : theme === "dark";
+  const T = getThemeColors(isDark);
 
   // ── Save to Firestore ────────────────────────────────────────────────────
   const saveToCloud = async (updates) => {
@@ -1036,26 +1072,26 @@ function App() {
     setTinderMode(true);
   };
 
-  // ── Hjälpfunktion: hämta filtrerade recept ──
+  // ── Hjälpfunktion: hämta filtrerade recept (exkl favoriter) ──
   const getFilteredRecipes = (catId, filter) => {
     const all = ALL_RECIPES[catId] || [];
-    if (filter === "all") return all;
-    return all.filter(r => classifyRecipe(r, catId).includes(filter));
+    const favIds = new Set(favorites.map(f => f.id));
+    const notLiked = all.filter(r => !favIds.has(r.id));
+    if (filter === "all") return notLiked;
+    return notLiked.filter(r => classifyRecipe(r, catId).includes(filter));
   };
 
-  // ── Tinder: swipa höger (JA) ──
+  // ── Tinder: swipa höger (JA) = spara favorit + försvinner från högen ──
   const handleTinderYes = async () => {
     const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
     const recipe = recipes[tinderIndex];
     if (!recipe) return;
     setSwipeDir("right");
     
-    // Lägg till i favoriter om inte redan där
-    if (!favorites.find(f => f.id === recipe.id)) {
-      const newFavs = [...favorites, recipe];
-      setFavorites(newFavs);
-      await saveToCloud({ favorites: newFavs });
-    }
+    // Lägg till i favoriter
+    const newFavs = [...favorites, recipe];
+    setFavorites(newFavs);
+    await saveToCloud({ favorites: newFavs });
     
     // Räkna som använt recept (om inte premium)
     const newUsed = !isPremium && freeUsed < FREE_LIMIT ? freeUsed + 1 : freeUsed;
@@ -1064,24 +1100,23 @@ function App() {
       await saveToCloud({ freeUsed: newUsed });
     }
     
-    // Öppna receptet
+    // Efter like försvinner receptet från listan (via getFilteredRecipes)
+    // Nästa kort glider in automatiskt
     setTimeout(() => {
-      setCurrentRecipe(recipe);
-      setRecipeStep(0);
-      setTinderMode(false);
       setSwipeDir(null);
-      setModalOpen(true);
-    }, 300);
+      setTinderHistory([]);
+    }, 350);
   };
 
   // ── Tinder: swipa vänster (NEJ) ──
   const handleTinderNo = () => {
     const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
-    if (tinderIndex >= recipes.length - 1) return;
+    const safeIdx = Math.min(tinderIndex, recipes.length - 1);
+    if (safeIdx >= recipes.length - 1) return;
     setSwipeDir("left");
-    setTinderHistory([...tinderHistory, tinderIndex]);
+    setTinderHistory([...tinderHistory, safeIdx]);
     setTimeout(() => {
-      setTinderIndex(tinderIndex + 1);
+      setTinderIndex(safeIdx + 1);
       setSwipeDir(null);
     }, 300);
   };
@@ -1523,30 +1558,42 @@ function App() {
       {/* TINDER SWIPE MODE */}
       {tinderMode && tinderCatId && (() => {
         const recipes = getFilteredRecipes(tinderCatId, proteinFilter);
-        const recipe = recipes[tinderIndex];
         const cat = CATEGORIES.find(c => c.id === tinderCatId);
         const isDesserts = tinderCatId === "efterratt";
         const typeList = isDesserts ? DESSERT_TYPES : PROTEIN_TYPES;
         const filterType = typeList.find(t => t.id === proteinFilter) || typeList[0];
         
-        // Inga recept i kategorin
-        if (recipes.length === 0) {
+        // Justera index om det hamnat utanför (efter like försvinner recept)
+        const safeIndex = Math.min(tinderIndex, recipes.length - 1);
+        const recipe = recipes[safeIndex];
+        
+        // Inga fler recept (eller slut på högen)
+        if (recipes.length === 0 || !recipe) {
           return (
             <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px"}}>
-              <div style={{fontSize:64,marginBottom:20}}>🤷</div>
-              <div style={{fontSize:18,color:"#e8e8e0",marginBottom:8,textAlign:"center"}}>Inga recept i denna kategori</div>
-              <div style={{fontSize:13,color:"#666",marginBottom:28,textAlign:"center"}}>Prova en annan filter-typ</div>
-              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:cat.color,color:"#080808",border:"none",borderRadius:99,padding:"14px 28px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>← Välj annan</button>
+              <div style={{fontSize:72,marginBottom:20}}>🎉</div>
+              <div style={{fontSize:20,color:"#e8e8e0",marginBottom:8,textAlign:"center",fontWeight:700}}>
+                {favorites.length > 0 ? "Du har sett alla!" : "Inga recept här"}
+              </div>
+              <div style={{fontSize:13,color:"#666",marginBottom:28,textAlign:"center",maxWidth:280,lineHeight:1.5}}>
+                {favorites.length > 0 
+                  ? "Kolla dina favoriter eller prova en annan kategori." 
+                  : "Prova en annan filter-typ eller kategori."}
+              </div>
+              <div style={{display:"flex",gap:10,flexDirection:"column",width:"100%",maxWidth:280}}>
+                {favorites.length > 0 && (
+                  <button onClick={()=>{setTinderMode(false);setShowFavorites(true);}} style={{background:`linear-gradient(135deg,${cat.color},${cat.color}cc)`,color:"#080808",border:"none",borderRadius:99,padding:"14px 24px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>💖 Mina favoriter ({favorites.length})</button>
+                )}
+                <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:"#1a1a18",color:"#e8e8e0",border:"1px solid #2a2a20",borderRadius:99,padding:"14px 24px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>← Välj annan typ</button>
+                <button onClick={()=>setTinderMode(false)} style={{background:"transparent",color:"#666",border:"none",padding:"10px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Tillbaka till hem</button>
+              </div>
             </div>
           );
         }
         
-        if (!recipe) return null;
-        
         const rotate = swipeDir === "right" ? 15 : swipeDir === "left" ? -15 : 0;
         const translateX = swipeDir === "right" ? 500 : swipeDir === "left" ? -500 : 0;
         const opacity = swipeDir ? 0 : 1;
-        const isFav = favorites.find(f => f.id === recipe.id);
         
         return (
           <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column"}}>
@@ -1555,7 +1602,7 @@ function App() {
               <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{textAlign:"center"}}>
                 <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterType.emoji} {filterType.label}</div>
-                <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{tinderIndex + 1} av {recipes.length}</div>
+                <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{safeIndex + 1} av {recipes.length}</div>
               </div>
               <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:"#1a1a18",border:"none",color:tinderHistory.length===0?"#333":"#888",width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
             </div>
@@ -1563,7 +1610,7 @@ function App() {
             {/* Progress bar */}
             <div style={{padding:"0 18px",marginBottom:8}}>
               <div style={{background:"#1a1a14",borderRadius:99,height:3,overflow:"hidden"}}>
-                <div style={{height:"100%",borderRadius:99,background:cat.color,width:`${((tinderIndex+1)/recipes.length)*100}%`,transition:"width 0.3s"}}/>
+                <div style={{height:"100%",borderRadius:99,background:cat.color,width:`${((safeIndex+1)/recipes.length)*100}%`,transition:"width 0.3s"}}/>
               </div>
             </div>
 
@@ -1582,10 +1629,6 @@ function App() {
                 transition:"all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
                 position:"relative"
               }}>
-                {isFav && (
-                  <div style={{position:"absolute",top:16,right:16,fontSize:22}}>💖</div>
-                )}
-                
                 <div style={{fontSize:80,textAlign:"center",marginBottom:16}}>{recipe.emoji}</div>
                 
                 <div style={{fontSize:22,fontWeight:700,color:"#e8e8e0",textAlign:"center",marginBottom:6,lineHeight:1.2}}>{recipe.name}</div>
@@ -1704,6 +1747,27 @@ function App() {
                 </div>
                 <span style={{color:"#555"}}>→</span>
               </button>
+            </div>
+
+            <div style={{marginBottom:28}}>
+              <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Tema</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                <button onClick={async ()=>{setTheme("auto");await saveToCloud({theme:"auto"});}} style={{background:theme==="auto"?"#141410":"transparent",border:theme==="auto"?"1px solid #e8c97a66":"1px solid #1a1a14",borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:"#e8e8e0"}}>
+                  <div style={{fontSize:22,marginBottom:6}}>🌓</div>
+                  <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>Auto</div>
+                  <div style={{fontSize:9,color:"#666"}}>Följ system</div>
+                </button>
+                <button onClick={async ()=>{setTheme("light");await saveToCloud({theme:"light"});}} style={{background:theme==="light"?"#141410":"transparent",border:theme==="light"?"1px solid #e8c97a66":"1px solid #1a1a14",borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:"#e8e8e0"}}>
+                  <div style={{fontSize:22,marginBottom:6}}>☀️</div>
+                  <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>Ljust</div>
+                  <div style={{fontSize:9,color:"#666"}}>Alltid ljust</div>
+                </button>
+                <button onClick={async ()=>{setTheme("dark");await saveToCloud({theme:"dark"});}} style={{background:theme==="dark"?"#141410":"transparent",border:theme==="dark"?"1px solid #e8c97a66":"1px solid #1a1a14",borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:"#e8e8e0"}}>
+                  <div style={{fontSize:22,marginBottom:6}}>🌙</div>
+                  <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>Mörkt</div>
+                  <div style={{fontSize:9,color:"#666"}}>Alltid mörkt</div>
+                </button>
+              </div>
             </div>
 
             <div style={{marginBottom:28}}>
@@ -2059,6 +2123,5 @@ function Root() {
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
 </script>
-
 </body>
 </html>
