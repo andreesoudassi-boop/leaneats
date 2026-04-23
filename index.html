@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="sv">
 <head>
 <meta charset="UTF-8"/>
@@ -6,14 +7,21 @@
 <title>FitFuel – Kalorisnål Träningsmat</title>
 
 <!-- React -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 
 <!-- Firebase Compat (works with Babel) -->
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAp9usbHcNSDu6PQ-iqIjFo92Tswl-EpYc",
@@ -56,6 +64,7 @@
   input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;border:none;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
   @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:0.8}}
 </style>
+
 </head>
 <body>
 <div id="root"></div>
@@ -844,6 +853,14 @@ function App() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [recipeStep, setRecipeStep] = useState(0);
 
+  // Dagens intag-tracker
+  const [todayKcal, setTodayKcal] = useState(0);
+  const [todayProtein, setTodayProtein] = useState(0);
+  const [todayCarbs, setTodayCarbs] = useState(0);
+  const [todayFat, setTodayFat] = useState(0);
+  const [todayDate, setTodayDate] = useState(""); // YYYY-MM-DD för att nolla nästa dag
+  const [todayMeals, setTodayMeals] = useState([]); // lista av ätna recept för ångra-funktion
+
   // Tinder-mode state
   const [tinderMode, setTinderMode] = useState(false);
   const [tinderCatId, setTinderCatId] = useState(null);
@@ -921,6 +938,29 @@ function App() {
             setPaymentMethod(data.paymentMethod || null);
             setFavorites(data.favorites || []);
             if (data.theme) setTheme(data.theme);
+            
+            // Ladda tracker-data + nollställ om ny dag
+            const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            if (data.todayDate === todayStr) {
+              setTodayKcal(data.todayKcal || 0);
+              setTodayProtein(data.todayProtein || 0);
+              setTodayCarbs(data.todayCarbs || 0);
+              setTodayFat(data.todayFat || 0);
+              setTodayMeals(data.todayMeals || []);
+              setTodayDate(todayStr);
+            } else {
+              // Ny dag - nollställ
+              setTodayKcal(0);
+              setTodayProtein(0);
+              setTodayCarbs(0);
+              setTodayFat(0);
+              setTodayMeals([]);
+              setTodayDate(todayStr);
+              await fb.setDoc(fb.doc(fb.db, "users", firebaseUser.uid), {
+                todayDate: todayStr, todayKcal: 0, todayProtein: 0, todayCarbs: 0, todayFat: 0, todayMeals: []
+              }, {merge: true});
+            }
+            
             if (!data.onboardingComplete) {
               setShowOnboarding(true);
               setOnboardStep(0);
@@ -1005,6 +1045,105 @@ function App() {
       if (user.emailVerified) setEmailVerified(true);
     } catch(e) { console.log("Check error:", e); }
   };
+
+  // ── Lägg till måltid i dagens tracker (använder skalade värden) ──
+  const addMealToTracker = async (recipe) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    // Om ny dag, nolla först
+    let baseKcal = todayDate === todayStr ? todayKcal : 0;
+    let baseProtein = todayDate === todayStr ? todayProtein : 0;
+    let baseCarbs = todayDate === todayStr ? todayCarbs : 0;
+    let baseFat = todayDate === todayStr ? todayFat : 0;
+    let baseMeals = todayDate === todayStr ? todayMeals : [];
+    
+    // SKALA receptets värden efter användarens mål
+    const factor = dailyKcal / 2000;
+    const scaledKcal = Math.round((recipe.kcal || 0) * factor);
+    const scaledProtein = Math.round((recipe.protein || 0) * factor);
+    const scaledCarbs = Math.round((recipe.carbs || 0) * factor);
+    const scaledFat = Math.round((recipe.fat || 0) * factor);
+    
+    const newKcal = baseKcal + scaledKcal;
+    const newProtein = baseProtein + scaledProtein;
+    const newCarbs = baseCarbs + scaledCarbs;
+    const newFat = baseFat + scaledFat;
+    const newMeals = [...baseMeals, {
+      id: recipe.id,
+      name: recipe.name,
+      emoji: recipe.emoji,
+      kcal: scaledKcal,
+      protein: scaledProtein,
+      carbs: scaledCarbs,
+      fat: scaledFat,
+      time: new Date().toISOString()
+    }];
+    
+    setTodayKcal(newKcal);
+    setTodayProtein(newProtein);
+    setTodayCarbs(newCarbs);
+    setTodayFat(newFat);
+    setTodayMeals(newMeals);
+    setTodayDate(todayStr);
+    
+    await saveToCloud({
+      todayDate: todayStr,
+      todayKcal: newKcal,
+      todayProtein: newProtein,
+      todayCarbs: newCarbs,
+      todayFat: newFat,
+      todayMeals: newMeals
+    });
+  };
+  
+  // ── Ångra senaste måltid ──
+  const undoLastMeal = async () => {
+    if (todayMeals.length === 0) return;
+    const last = todayMeals[todayMeals.length - 1];
+    const newKcal = Math.max(0, todayKcal - last.kcal);
+    const newProtein = Math.max(0, todayProtein - last.protein);
+    const newCarbs = Math.max(0, todayCarbs - last.carbs);
+    const newFat = Math.max(0, todayFat - last.fat);
+    const newMeals = todayMeals.slice(0, -1);
+    
+    setTodayKcal(newKcal);
+    setTodayProtein(newProtein);
+    setTodayCarbs(newCarbs);
+    setTodayFat(newFat);
+    setTodayMeals(newMeals);
+    
+    await saveToCloud({
+      todayKcal: newKcal,
+      todayProtein: newProtein,
+      todayCarbs: newCarbs,
+      todayFat: newFat,
+      todayMeals: newMeals
+    });
+  };
+
+  // ── Skala recept efter dagligt kaloriintag ──
+  // Standardrecept är byggt för 2000 kcal/dag. Skala med faktor = dailyKcal / 2000
+  const getScaleFactor = () => {
+    return dailyKcal / 2000;
+  };
+  
+  const scaleAmount = (amount) => {
+    const factor = getScaleFactor();
+    if (factor === 1 || !amount) return amount;
+    // Försök extrahera siffra + enhet från strängen, t.ex. "400g" eller "1 msk" eller "2 st"
+    const match = String(amount).match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
+    if (!match) return amount;
+    const num = parseFloat(match[1].replace(",", "."));
+    const unit = match[2];
+    const scaled = num * factor;
+    // Avrunda snyggt
+    let rounded;
+    if (scaled >= 100) rounded = Math.round(scaled / 10) * 10; // avrunda till 10-tal (430 inte 428)
+    else if (scaled >= 10) rounded = Math.round(scaled); // heltal
+    else rounded = Math.round(scaled * 10) / 10; // en decimal
+    return `${rounded}${unit ? (unit.startsWith(" ") ? "" : " ") + unit : ""}`.trim();
+  };
+  
+  const scaleNumber = (n) => Math.round((n || 0) * getScaleFactor());
 
   const handleLogout = async () => {
     await fb.signOut(fb.auth);
@@ -1150,9 +1289,9 @@ function App() {
   const navBtn = (id, emoji, label) => (
     <button key={id} onClick={()=>setScreen(id)} style={{
       flex:1,padding:"10px 0",background:"transparent",border:"none",
-      color:screen===id?"#e8c97a":"#444",cursor:"pointer",fontFamily:"inherit",
+      color:screen===id?T.accent:T.textFaint,cursor:"pointer",fontFamily:"inherit",
       fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
-      borderTop:`2px solid ${screen===id?"#e8c97a":"transparent"}`,
+      borderTop:`2px solid ${screen===id?T.accent:"transparent"}`,
       transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:4
     }}>
       <span style={{fontSize:18}}>{emoji}</span>{label}
@@ -1260,32 +1399,76 @@ function App() {
               <div style={{marginLeft:"auto",fontSize:10,color:"#6dcc6d",background:"#0a160a",border:"1px solid #1a3a1a",borderRadius:99,padding:"3px 10px"}}>☁️ Synkad</div>
             </div>
 
-            {/* Goal + Calorie Banner */}
-            <div style={{background:"#0e0e0c",border:`1px solid ${fitnessGoal==="deffa"?"#6dcc6d44":"#e8c97a44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18,cursor:"pointer"}} onClick={()=>setShowGoalSetup(true)}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:24}}>{fitnessGoal==="deffa"?"🔥":"💪"}</span>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
-                    <div style={{fontSize:11,color:"#444"}}>{dailyKcal.toLocaleString()} kcal / dag</div>
+            {/* Goal + Calorie Banner med TRACKER */}
+            {(() => {
+              const kcalPct = Math.min(100, (todayKcal / dailyKcal) * 100);
+              const kcalLeft = dailyKcal - todayKcal;
+              const isOver = todayKcal > dailyKcal;
+              const proteinTarget = Math.round(dailyKcal*0.32/4);
+              const carbsTarget = Math.round(dailyKcal*0.40/4);
+              const fatTarget = Math.round(dailyKcal*0.28/9);
+              
+              return (
+                <div style={{background:"#0e0e0c",border:`1px solid ${fitnessGoal==="deffa"?"#6dcc6d44":"#e8c97a44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18}}>
+                  {/* Överst: mål + ändra */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:24}}>{fitnessGoal==="deffa"?"🔥":"💪"}</span>
+                      <div>
+                        <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
+                        <div style={{fontSize:11,color:"#666"}}>
+                          <span style={{color:isOver?"#cc7a7a":"#e8e8e0",fontWeight:600}}>{Math.round(todayKcal).toLocaleString()}</span>
+                          <span style={{color:"#555"}}> / {dailyKcal.toLocaleString()} kcal</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={()=>setShowGoalSetup(true)} style={{fontSize:11,color:"#888",border:"1px solid #2a2a1a",background:"transparent",borderRadius:99,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit"}}>Ändra →</button>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div style={{background:"#1a1a14",borderRadius:99,height:6,overflow:"hidden",marginBottom:10}}>
+                    <div style={{height:"100%",borderRadius:99,
+                      background:isOver?"linear-gradient(90deg,#6dcc6d,#e8c97a,#cc7a7a)":
+                                fitnessGoal==="deffa"?"linear-gradient(90deg,#6dcc6d,#4aaa4a)":"linear-gradient(90deg,#e8c97a,#c4a852)",
+                      width:`${kcalPct}%`,transition:"width 0.4s"}}></div>
+                  </div>
+                  
+                  {/* Status-text */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,fontSize:10}}>
+                    <span style={{color:isOver?"#cc7a7a":"#6dcc6d"}}>
+                      {isOver ? `⚠ ${Math.round(todayKcal - dailyKcal)} över mål` : `${Math.round(kcalLeft)} kcal kvar`}
+                    </span>
+                    {todayMeals.length > 0 && (
+                      <button onClick={undoLastMeal} style={{fontSize:10,color:"#888",background:"transparent",border:"1px solid #2a2a20",borderRadius:99,padding:"3px 10px",cursor:"pointer",fontFamily:"inherit"}}>
+                        ↶ Ångra senaste
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Macros med progress */}
+                  <div style={{display:"flex",gap:6}}>
+                    {[
+                      ["Protein", todayProtein, proteinTarget, "#6dcc6d"],
+                      ["Kolhydr.", todayCarbs, carbsTarget, "#7aa0cc"],
+                      ["Fett", todayFat, fatTarget, "#c4a852"],
+                    ].map(([l,v,t,c])=>{
+                      const pct = Math.min(100, (v/t)*100);
+                      return (
+                        <div key={l} style={{flex:1,background:"#0a0a08",borderRadius:8,padding:"7px 4px",textAlign:"center"}}>
+                          <div style={{fontSize:12,fontWeight:700,color:c,marginBottom:2}}>
+                            {Math.round(v)}<span style={{fontSize:9,color:"#555",fontWeight:400}}>/{t}g</span>
+                          </div>
+                          <div style={{background:"#1a1a14",borderRadius:99,height:2,overflow:"hidden",marginBottom:3}}>
+                            <div style={{height:"100%",borderRadius:99,background:c,width:`${pct}%`,transition:"width 0.4s"}}></div>
+                          </div>
+                          <div style={{fontSize:8,color:"#444",textTransform:"uppercase"}}>{l}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-                <div style={{fontSize:11,color:"#555",border:"1px solid #2a2a1a",borderRadius:99,padding:"4px 10px"}}>Ändra →</div>
-              </div>
-              {/* Macro targets */}
-              <div style={{display:"flex",gap:6}}>
-                {[
-                  ["Protein", Math.round(dailyKcal*0.32/4)+"g", "#6dcc6d"],
-                  ["Kolhydr.", Math.round(dailyKcal*0.40/4)+"g", "#7aa0cc"],
-                  ["Fett", Math.round(dailyKcal*0.28/9)+"g", "#c4a852"],
-                ].map(([l,v,c])=>(
-                  <div key={l} style={{flex:1,background:"#0a0a08",borderRadius:8,padding:"6px",textAlign:"center"}}>
-                    <div style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
-                    <div style={{fontSize:9,color:"#444",textTransform:"uppercase"}}>{l}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              );
+            })()}
 
             <h2 style={{fontSize:"clamp(18px,4vw,28px)",fontWeight:700,lineHeight:1.1,marginBottom:6,
               background:"linear-gradient(135deg,#f0f0e0,#e8c97a 55%,#6dcc6d)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
@@ -1478,7 +1661,7 @@ function App() {
       </div>
 
       {/* BOTTOM NAV */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:"rgba(8,8,8,0.97)",borderTop:"1px solid #1a1a14",backdropFilter:"blur(16px)"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)"}}>
         {navBtn("home","🏠","Hem")}
         {navBtn("profile","👤","Profil")}
       </div>
@@ -1673,7 +1856,7 @@ function App() {
                 <div style={{fontSize:11,color:cat.color,textAlign:"center",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>⏱ {recipe.time} min · {recipe.servings}</div>
 
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginBottom:18}}>
-                  {[["Protein",recipe.protein+"g","#6dcc6d"],["Kolh.",recipe.carbs+"g","#7aa0cc"],["Fett",recipe.fat+"g","#c4a852"],["kcal",recipe.kcal,"#cc7a7a"]].map(([l,v,col])=>(
+                  {[["Protein",scaleNumber(recipe.protein)+"g","#6dcc6d"],["Kolh.",scaleNumber(recipe.carbs)+"g","#7aa0cc"],["Fett",scaleNumber(recipe.fat)+"g","#c4a852"],["kcal",scaleNumber(recipe.kcal),"#cc7a7a"]].map(([l,v,col])=>(
                     <div key={l} style={{textAlign:"center",background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"8px 4px"}}>
                       <div style={{fontSize:14,fontWeight:700,color:col}}>{v}</div>
                       <div style={{fontSize:8,color:"#555",textTransform:"uppercase",marginTop:2}}>{l}</div>
@@ -2025,17 +2208,24 @@ function App() {
               <button onClick={()=>setModalOpen(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:27,height:27,borderRadius:"50%",cursor:"pointer",fontSize:13}}>✕</button>
             </div>
             <div style={{display:"flex",gap:5,marginBottom:8}}>
-              {[["Protein",currentRecipe.protein+"g","#6dcc6d"],["Kolh.",currentRecipe.carbs+"g","#7aa0cc"],["Fett",currentRecipe.fat+"g","#c4a852"],["kcal",currentRecipe.kcal,"#cc7a7a"]].map(([l,v,c])=>(
+              {[["Protein",scaleNumber(currentRecipe.protein)+"g","#6dcc6d"],["Kolh.",scaleNumber(currentRecipe.carbs)+"g","#7aa0cc"],["Fett",scaleNumber(currentRecipe.fat)+"g","#c4a852"],["kcal",scaleNumber(currentRecipe.kcal),"#cc7a7a"]].map(([l,v,c])=>(
                 <div key={l} style={{flex:1,textAlign:"center",background:"rgba(0,0,0,0.4)",borderRadius:7,padding:"5px 3px"}}>
                   <div style={{fontSize:12,fontWeight:700,color:c}}>{v}</div>
                   <div style={{fontSize:8,color:"#444",textTransform:"uppercase"}}>{l}</div>
                 </div>
               ))}
             </div>
+            {/* Scale indicator */}
+            {getScaleFactor() !== 1 && (
+              <div style={{background:"#0e1a10",border:"1px solid #2a3a20",borderRadius:10,padding:"7px 12px",marginBottom:11,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div style={{fontSize:11,color:"#6dcc6d"}}>✨ Anpassad efter ditt mål ({dailyKcal.toLocaleString()} kcal)</div>
+                <div style={{fontSize:10,color:"#888"}}>{getScaleFactor() > 1 ? "+" : ""}{Math.round((getScaleFactor()-1)*100)}%</div>
+              </div>
+            )}
             {/* % of daily goal */}
             <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:10,padding:"8px 12px",marginBottom:11,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <div style={{fontSize:11,color:"#555"}}>Andel av ditt dagsmål ({dailyKcal.toLocaleString()} kcal)</div>
-              <div style={{fontSize:12,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{Math.round((currentRecipe.kcal/dailyKcal)*100)}%</div>
+              <div style={{fontSize:12,fontWeight:700,color:fitnessGoal==="deffa"?"#6dcc6d":"#e8c97a"}}>{Math.round((scaleNumber(currentRecipe.kcal)/dailyKcal)*100)}%</div>
             </div>
             <div style={{background:"#141410",borderLeft:"3px solid #6dcc6d",borderRadius:"0 9px 9px 0",padding:"9px 12px",marginBottom:11}}>
               <div style={{fontSize:9,color:"#6dcc6d",marginBottom:3,textTransform:"uppercase",letterSpacing:"0.1em"}}>Varför denna rätt?</div>
@@ -2046,7 +2236,7 @@ function App() {
               {currentRecipe.ingredients.map(({amount,item})=>(
                 <div key={item} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:"1px solid #1a1a18"}}>
                   <span style={{fontSize:12,color:"#a0a090"}}>{item}</span>
-                  <span style={{fontSize:12,color:"#e8c97a",fontWeight:700}}>{amount}</span>
+                  <span style={{fontSize:12,color:"#e8c97a",fontWeight:700}}>{scaleAmount(amount)}</span>
                 </div>
               ))}
             </div>
@@ -2074,7 +2264,7 @@ function App() {
                   {recipeStep>0&&<button onClick={()=>setRecipeStep(p=>p-1)} style={{flex:1,padding:"10px",background:"transparent",border:"1px solid #2a2a20",color:"#777",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>← Föregående</button>}
                   {recipeStep<currentRecipe.steps.length-1
                     ?<button onClick={()=>setRecipeStep(p=>p+1)} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>Nästa →</button>
-                    :<button onClick={()=>setModalOpen(false)} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#4aaa4a,#2a7a2a)",color:"#fff",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>✅ Smaklig måltid!</button>
+                    :<button onClick={async()=>{await addMealToTracker(currentRecipe);setModalOpen(false);}} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#4aaa4a,#2a7a2a)",color:"#fff",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>✅ Smaklig måltid!</button>
                   }
                 </div>
               </>
@@ -2159,5 +2349,6 @@ function Root() {
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
 </script>
+
 </body>
 </html>
