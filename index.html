@@ -760,7 +760,7 @@ function Field({label, value, onChange, type="text", placeholder="", readOnly=fa
 }
 
 // ─── GOAL SETUP COMPONENT ────────────────────────────────────────────────
-function GoalSetup({ onSave, initialGoal="deffa", initialKcal=2000 }) {
+function GoalSetup({ onSave, initialGoal="deffa", initialKcal=2000, T, isDark }) {
   const [goal, setGoal] = React.useState(initialGoal);
   const [kcal, setKcal] = React.useState(initialKcal);
 
@@ -769,44 +769,53 @@ function GoalSetup({ onSave, initialGoal="deffa", initialKcal=2000 }) {
   const fat     = Math.round(kcal * 0.28 / 9);
   const presets = goal === "deffa" ? [1500,1800,2000,2200] : [2200,2500,2800,3200];
 
+  // Fallback om T saknas (backward compatibility)
+  const TT = T || {
+    bg:"#080808", bg2:"#0e0e0c", bg3:"#141410",
+    border:"#1a1a14", border2:"#2a2a20",
+    text:"#e8e8e0", textDim:"#888", textFaint:"#555", textVeryFaint:"#333",
+    accent:"#e8c97a", green:"#6dcc6d", blue:"#7aa0cc", yellow:"#c4a852", red:"#cc7a7a"
+  };
+  const dark = isDark !== undefined ? isDark : true;
+
   return (
-    <div style={{position:"fixed",inset:0,zIndex:400,background:"#0e0e0c",display:"flex",flexDirection:"column"}}>
-      <div style={{background:"#0e0e0c",width:"100%",maxWidth:520,margin:"0 auto",flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
+    <div style={{position:"fixed",inset:0,zIndex:400,background:TT.bg2,display:"flex",flexDirection:"column"}}>
+      <div style={{background:TT.bg2,width:"100%",maxWidth:520,margin:"0 auto",flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
         <div style={{overflowY:"auto",flex:1,padding:"44px 18px 8px"}}>
-        <div style={{width:40,height:4,background:"#333",borderRadius:99,margin:"0 auto 12px"}}/>
+        <div style={{width:40,height:4,background:TT.border2,borderRadius:99,margin:"0 auto 12px"}}/>
         <div style={{textAlign:"center",marginBottom:14}}>
-          <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:4}}>Ditt mål</div>
-          <div style={{fontSize:18,fontWeight:700,color:"#e8e8e0",marginBottom:2}}>Vad vill du uppnå?</div>
-          <div style={{fontSize:12,color:"#555"}}>Vi anpassar recept och makron efter ditt val</div>
+          <div style={{fontSize:10,color:TT.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:4}}>Ditt mål</div>
+          <div style={{fontSize:18,fontWeight:700,color:TT.text,marginBottom:2}}>Vad vill du uppnå?</div>
+          <div style={{fontSize:12,color:TT.textFaint}}>Vi anpassar recept och makron efter ditt val</div>
         </div>
 
         {/* Goal cards */}
         <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
           {[
-            {id:"deffa", emoji:"🔥", title:"Deffa", sub:"Bränn fett & bevara muskler", desc:"Kaloriunderskott · Högt protein", color:"#6dcc6d", bg:"#0e1a0e"},
-            {id:"bulka", emoji:"💪", title:"Bulka", sub:"Bygg muskler & styrka", desc:"Kaloriöverskott · Mycket protein", color:"#e8c97a", bg:"#1a1a08"},
+            {id:"deffa", emoji:"🔥", title:"Deffa", sub:"Bränn fett & bevara muskler", desc:"Kaloriunderskott · Högt protein", color:TT.green, bg:dark?"#0e1a0e":"#e8f5e8"},
+            {id:"bulka", emoji:"💪", title:"Bulka", sub:"Bygg muskler & styrka", desc:"Kaloriöverskott · Mycket protein", color:TT.accent, bg:dark?"#1a1a08":"#faf4e0"},
           ].map(g=>(
             <div key={g.id} onClick={()=>{setGoal(g.id); setKcal(g.id==="deffa"?2000:2500);}}
-              style={{background:goal===g.id?g.bg:"#141410",border:`${goal===g.id?"2px":"1px"} solid ${goal===g.id?g.color:"#1a1a14"}`,
+              style={{background:goal===g.id?g.bg:TT.bg3,border:`${goal===g.id?"2px":"1px"} solid ${goal===g.id?g.color:TT.border}`,
                 borderRadius:14,padding:"11px 14px",cursor:"pointer",transition:"all 0.2s",
                 boxShadow:goal===g.id?`0 0 20px ${g.color}18`:"none"}}>
               <div style={{display:"flex",alignItems:"center",gap:12}}>
                 <span style={{fontSize:28}}>{g.emoji}</span>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:15,fontWeight:700,color:goal===g.id?g.color:"#c0c0b0",marginBottom:2}}>{g.title}</div>
-                  <div style={{fontSize:11,color:"#555",lineHeight:1.5}}>{g.sub}<br/><span style={{color:"#3a3a2a"}}>{g.desc}</span></div>
+                  <div style={{fontSize:15,fontWeight:700,color:goal===g.id?g.color:TT.text,marginBottom:2}}>{g.title}</div>
+                  <div style={{fontSize:11,color:TT.textFaint,lineHeight:1.5}}>{g.sub}<br/><span style={{color:TT.textVeryFaint}}>{g.desc}</span></div>
                 </div>
-                <div style={{width:22,height:22,borderRadius:"50%",background:goal===g.id?g.color:"transparent",border:`2px solid ${goal===g.id?g.color:"#333"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#080808",flexShrink:0}}>
+                <div style={{width:22,height:22,borderRadius:"50%",background:goal===g.id?g.color:"transparent",border:`2px solid ${goal===g.id?g.color:TT.textVeryFaint}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#080808",flexShrink:0}}>
                   {goal===g.id?"✓":""}
                 </div>
               </div>
               {/* Show macros when selected */}
               {goal===g.id && (
                 <div style={{display:"flex",gap:6,marginTop:12}}>
-                  {[["Kcal/dag",kcal.toLocaleString(),g.color],["Protein",Math.round(kcal*0.32/4)+"g",g.color],["Underskott/Överskott",g.id==="deffa"?"-500":"+500","#7aa0cc"]].map(([l,v,c])=>(
-                    <div key={l} style={{flex:1,background:"rgba(0,0,0,0.3)",borderRadius:8,padding:"6px",textAlign:"center"}}>
+                  {[["Kcal/dag",kcal.toLocaleString(),g.color],["Protein",Math.round(kcal*0.32/4)+"g",g.color],["Underskott/Överskott",g.id==="deffa"?"-500":"+500",TT.blue]].map(([l,v,c])=>(
+                    <div key={l} style={{flex:1,background:dark?"rgba(0,0,0,0.3)":"rgba(0,0,0,0.05)",borderRadius:8,padding:"6px",textAlign:"center"}}>
                       <div style={{fontSize:12,fontWeight:700,color:c}}>{v}</div>
-                      <div style={{fontSize:8,color:"#444",textTransform:"uppercase",marginTop:1,lineHeight:1.3}}>{l}</div>
+                      <div style={{fontSize:8,color:TT.textFaint,textTransform:"uppercase",marginTop:1,lineHeight:1.3}}>{l}</div>
                     </div>
                   ))}
                 </div>
@@ -816,28 +825,28 @@ function GoalSetup({ onSave, initialGoal="deffa", initialKcal=2000 }) {
         </div>
 
         {/* Calorie picker */}
-        <div style={{background:"#141410",border:"1px solid #1a1a14",borderRadius:14,padding:"12px",marginBottom:12}}>
+        <div style={{background:TT.bg3,border:`1px solid ${TT.border}`,borderRadius:14,padding:"12px",marginBottom:12}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <div>
-              <div style={{fontSize:14,fontWeight:700,color:"#e8e8e0"}}>Dagligt kaloriintag</div>
-              <div style={{fontSize:11,color:"#555"}}>Justera efter dina behov</div>
+              <div style={{fontSize:14,fontWeight:700,color:TT.text}}>Dagligt kaloriintag</div>
+              <div style={{fontSize:11,color:TT.textFaint}}>Justera efter dina behov</div>
             </div>
-            <div style={{fontSize:22,fontWeight:700,background:`linear-gradient(135deg,${goal==="deffa"?"#6dcc6d":"#e8c97a"},#c4a852)`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
+            <div style={{fontSize:22,fontWeight:700,background:`linear-gradient(135deg,${goal==="deffa"?TT.green:TT.accent},${TT.yellow})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
               {kcal.toLocaleString()}
             </div>
           </div>
 
           {/* Slider */}
           <input type="range" min="1200" max="4000" step="50" value={kcal} onChange={e=>setKcal(Number(e.target.value))}
-            style={{width:"100%",height:6,borderRadius:99,appearance:"none",background:`linear-gradient(90deg, ${goal==="deffa"?"#6dcc6d":"#e8c97a"} ${((kcal-1200)/2800)*100}%, #2a2a20 ${((kcal-1200)/2800)*100}%)`,outline:"none",cursor:"pointer",marginBottom:8}}/>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#444",marginBottom:8}}>
+            style={{width:"100%",height:6,borderRadius:99,appearance:"none",background:`linear-gradient(90deg, ${goal==="deffa"?TT.green:TT.accent} ${((kcal-1200)/2800)*100}%, ${TT.border2} ${((kcal-1200)/2800)*100}%)`,outline:"none",cursor:"pointer",marginBottom:8}}/>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:TT.textFaint,marginBottom:8}}>
             <span>1 200 kcal</span><span>4 000 kcal</span>
           </div>
 
           {/* Preset buttons */}
           <div style={{display:"flex",gap:6}}>
             {presets.map(p=>(
-              <button key={p} onClick={()=>setKcal(p)} style={{flex:1,padding:"7px 4px",background:kcal===p?(goal==="deffa"?"#0e1a0e":"#1a1a08"):"#0a0a08",border:`1px solid ${kcal===p?(goal==="deffa"?"#6dcc6d":"#e8c97a"):"#2a2a1a"}`,borderRadius:99,color:kcal===p?(goal==="deffa"?"#6dcc6d":"#e8c97a"):"#555",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>
+              <button key={p} onClick={()=>setKcal(p)} style={{flex:1,padding:"7px 4px",background:kcal===p?(goal==="deffa"?(dark?"#0e1a0e":"#e8f5e8"):(dark?"#1a1a08":"#faf4e0")):TT.bg,border:`1px solid ${kcal===p?(goal==="deffa"?TT.green:TT.accent):TT.border2}`,borderRadius:99,color:kcal===p?(goal==="deffa"?TT.green:TT.accent):TT.textFaint,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>
                 {p.toLocaleString()}
               </button>
             ))}
@@ -846,10 +855,10 @@ function GoalSetup({ onSave, initialGoal="deffa", initialKcal=2000 }) {
 
         {/* Macro breakdown */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
-          {[["Protein",protein+"g","#6dcc6d","32%"],["Kolhydr.",carbs+"g","#7aa0cc","40%"],["Fett",fat+"g","#c4a852","28%"]].map(([l,v,c,pct])=>(
-            <div key={l} style={{background:"#141410",border:"1px solid #1a1a14",borderRadius:10,padding:"8px",textAlign:"center"}}>
+          {[["Protein",protein+"g",TT.green,"32%"],["Kolhydr.",carbs+"g",TT.blue,"40%"],["Fett",fat+"g",TT.yellow,"28%"]].map(([l,v,c,pct])=>(
+            <div key={l} style={{background:TT.bg3,border:`1px solid ${TT.border}`,borderRadius:10,padding:"8px",textAlign:"center"}}>
               <div style={{fontSize:14,fontWeight:700,color:c}}>{v}</div>
-              <div style={{fontSize:9,color:"#444",textTransform:"uppercase",marginTop:1}}>{l}</div>
+              <div style={{fontSize:9,color:TT.textFaint,textTransform:"uppercase",marginTop:1}}>{l}</div>
             </div>
           ))}
         </div>
@@ -1560,7 +1569,7 @@ function App() {
         {screen==="home" && (
           <div style={{maxWidth:540,margin:"0 auto",padding:"28px 16px 20px"}}>
             {/* Goal Setup Modal */}
-            {showGoalSetup && <GoalSetup onSave={saveGoal}/>}
+            {showGoalSetup && <GoalSetup onSave={saveGoal} T={T} isDark={isDark}/>}
 
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
               <div style={{width:42,height:42,borderRadius:"50%",overflow:"hidden",background:T.border,border:`1px solid ${T.border2}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>
@@ -1831,7 +1840,7 @@ function App() {
         )}
 
         {/* Goal setup overlay - shown from profile too */}
-        {showGoalSetup && screen==="profile" && <GoalSetup onSave={saveGoal} initialGoal={fitnessGoal} initialKcal={dailyKcal}/>}
+        {showGoalSetup && screen==="profile" && <GoalSetup onSave={saveGoal} initialGoal={fitnessGoal} initialKcal={dailyKcal} T={T} isDark={isDark}/>}
       </div>
 
       {/* BOTTOM NAV */}
@@ -1867,21 +1876,21 @@ function App() {
         const canStart = selectedRecipes.length > 0;
         
         return (
-          <div style={{position:"fixed",inset:0,zIndex:290,background:"#0e0e0c",overflowY:"auto"}}>
+          <div style={{position:"fixed",inset:0,zIndex:290,background:T.bg,overflowY:"auto"}}>
             <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 120px"}}>
               {/* Top bar */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-                <button onClick={()=>setShowProteinFilter(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <button onClick={()=>setShowProteinFilter(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:18,fontWeight:700,color:cat.color}}>{cat.emoji} {cat.label}</div>
                 <div style={{width:36}}></div>
               </div>
 
               <div style={{textAlign:"center",marginBottom:24}}>
-                <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6}}>Steg 2 av 2</div>
-                <h2 style={{fontSize:24,fontWeight:700,color:"#e8e8e0",marginBottom:6,fontFamily:'"Fraunces", serif'}}>
+                <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6}}>Steg 2 av 2</div>
+                <h2 style={{fontSize:24,fontWeight:700,color:T.text,marginBottom:6,fontFamily:'"Fraunces", serif'}}>
                   Vad är du sugen på?
                 </h2>
-                <p style={{fontSize:12,color:"#555"}}>
+                <p style={{fontSize:12,color:T.textFaint}}>
                   Bocka flera — eller välj "Alla"
                 </p>
               </div>
@@ -1893,7 +1902,7 @@ function App() {
                   return (
                     <button key={t.id} onClick={()=>toggleType(t.id)} disabled={count===0 && t.id!=="all"}
                       style={{
-                        background:isSelected?`linear-gradient(135deg,${t.color}22,${t.color}11)`:"#141410",
+                        background:isSelected?`linear-gradient(135deg,${t.color}22,${t.color}11)`:T.bg3,
                         border:`2px solid ${isSelected?t.color:t.color+"22"}`,
                         borderRadius:16,
                         padding:"20px 14px",
@@ -1909,7 +1918,7 @@ function App() {
                       )}
                       <div style={{fontSize:38,marginBottom:6}}>{t.emoji}</div>
                       <div style={{fontSize:14,fontWeight:700,color:t.color,marginBottom:3}}>{t.label}</div>
-                      <div style={{fontSize:10,color:"#555"}}>{count} recept</div>
+                      <div style={{fontSize:10,color:T.textFaint}}>{count} recept</div>
                     </button>
                   );
                 })}
@@ -1917,12 +1926,12 @@ function App() {
             </div>
 
             {/* Fast-placerad "Bläddra"-knapp längst ner */}
-            <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"16px 20px 30px",background:"linear-gradient(to top,#0e0e0c 70%,rgba(14,14,12,0))",maxWidth:540,margin:"0 auto"}}>
+            <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"16px 20px 30px",background:`linear-gradient(to top,${T.bg} 70%,transparent)`,maxWidth:540,margin:"0 auto"}}>
               <button onClick={()=>startTinder(current)} disabled={!canStart}
                 style={{
                   width:"100%",
-                  background:canStart?`linear-gradient(135deg,${cat.color},${cat.color}dd)`:"#2a2a20",
-                  color:canStart?"#0d0d0d":"#666",
+                  background:canStart?`linear-gradient(135deg,${cat.color},${cat.color}dd)`:T.border2,
+                  color:canStart?"#0d0d0d":T.textFaint,
                   border:"none",
                   borderRadius:99,
                   padding:"18px",
@@ -1990,20 +1999,20 @@ function App() {
         const opacity = swipeDir ? 0 : 1;
         
         return (
-          <div style={{position:"fixed",inset:0,zIndex:300,background:"#0e0e0c",display:"flex",flexDirection:"column"}}>
+          <div style={{position:"fixed",inset:0,zIndex:300,background:T.bg,display:"flex",flexDirection:"column"}}>
             {/* Top bar */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"44px 18px 14px"}}>
-              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <button onClick={()=>{setTinderMode(false);setShowProteinFilter(true);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterLabel}</div>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>{cat.label} · {filterLabel}</div>
                 <div style={{fontSize:13,color:cat.color,fontWeight:600,marginTop:2}}>{safeIndex + 1} av {recipes.length}</div>
               </div>
-              <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:"#1a1a18",border:"none",color:tinderHistory.length===0?"#333":"#888",width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
+              <button onClick={handleTinderUndo} disabled={tinderHistory.length===0} style={{background:T.bg2,border:"none",color:tinderHistory.length===0?T.textVeryFaint:T.textDim,width:36,height:36,borderRadius:"50%",cursor:tinderHistory.length===0?"not-allowed":"pointer",fontSize:16}}>↶</button>
             </div>
 
             {/* Progress bar */}
             <div style={{padding:"0 18px",marginBottom:8}}>
-              <div style={{background:"#1a1a14",borderRadius:99,height:3,overflow:"hidden"}}>
+              <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden"}}>
                 <div style={{height:"100%",borderRadius:99,background:cat.color,width:`${((safeIndex+1)/recipes.length)*100}%`,transition:"width 0.3s"}}/>
               </div>
             </div>
@@ -2011,7 +2020,7 @@ function App() {
             {/* Recipe card */}
             <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",overflow:"hidden"}}>
               <div style={{
-                background:`linear-gradient(145deg, #141410 0%, #1a1a14 100%)`,
+                background:isDark?`linear-gradient(145deg, #141410 0%, #1a1a14 100%)`:`linear-gradient(145deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
                 border:`1px solid ${cat.color}33`,
                 borderRadius:24,
                 padding:"32px 24px",
@@ -2027,25 +2036,25 @@ function App() {
                   <RecipeImage recipe={recipe} height={180} borderRadius={14} fallbackEmojiSize={80}/>
                 </div>
                 
-                <div style={{fontSize:22,fontWeight:700,color:"#e8e8e0",textAlign:"center",marginBottom:6,lineHeight:1.2}}>{recipe.name}</div>
+                <div style={{fontSize:22,fontWeight:700,color:T.text,textAlign:"center",marginBottom:6,lineHeight:1.2}}>{recipe.name}</div>
                 
                 <div style={{fontSize:11,color:cat.color,textAlign:"center",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>⏱ {recipe.time} min · {recipe.servings}</div>
 
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginBottom:18}}>
-                  {[["Protein",scaleNumber(recipe.protein)+"g","#6dcc6d"],["Kolh.",scaleNumber(recipe.carbs)+"g","#7aa0cc"],["Fett",scaleNumber(recipe.fat)+"g","#c4a852"],["kcal",scaleNumber(recipe.kcal),"#cc7a7a"]].map(([l,v,col])=>(
-                    <div key={l} style={{textAlign:"center",background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"8px 4px"}}>
+                  {[["Protein",scaleNumber(recipe.protein)+"g",T.green],["Kolh.",scaleNumber(recipe.carbs)+"g",T.blue],["Fett",scaleNumber(recipe.fat)+"g",T.yellow],["kcal",scaleNumber(recipe.kcal),T.red]].map(([l,v,col])=>(
+                    <div key={l} style={{textAlign:"center",background:isDark?"rgba(0,0,0,0.3)":"rgba(0,0,0,0.04)",borderRadius:10,padding:"8px 4px"}}>
                       <div style={{fontSize:14,fontWeight:700,color:col}}>{v}</div>
-                      <div style={{fontSize:8,color:"#555",textTransform:"uppercase",marginTop:2}}>{l}</div>
+                      <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase",marginTop:2}}>{l}</div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{background:"rgba(0,0,0,0.3)",borderLeft:`3px solid ${cat.color}`,borderRadius:"0 8px 8px 0",padding:"10px 12px"}}>
+                <div style={{background:isDark?"rgba(0,0,0,0.3)":"rgba(0,0,0,0.04)",borderLeft:`3px solid ${cat.color}`,borderRadius:"0 8px 8px 0",padding:"10px 12px"}}>
                   <div style={{fontSize:9,color:cat.color,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.1em"}}>Varför denna rätt?</div>
-                  <div style={{fontSize:12,color:"#999",lineHeight:1.5}}>{recipe.why}</div>
+                  <div style={{fontSize:12,color:T.textDim,lineHeight:1.5}}>{recipe.why}</div>
                 </div>
 
-                <div style={{fontSize:10,color:"#444",textAlign:"center",marginTop:16,textTransform:"uppercase",letterSpacing:"0.1em"}}>{recipe.tag}</div>
+                <div style={{fontSize:10,color:T.textFaint,textAlign:"center",marginTop:16,textTransform:"uppercase",letterSpacing:"0.1em"}}>{recipe.tag}</div>
               </div>
             </div>
 
@@ -2053,9 +2062,9 @@ function App() {
             <div style={{display:"flex",justifyContent:"center",gap:32,padding:"20px 18px 40px"}}>
               <button onClick={handleTinderNo} disabled={tinderIndex>=recipes.length-1} style={{
                 width:68,height:68,borderRadius:"50%",
-                background:"#1a1a18",border:"2px solid #cc7a7a44",
+                background:T.bg2,border:`2px solid ${T.red}44`,
                 fontSize:28,cursor:tinderIndex>=recipes.length-1?"not-allowed":"pointer",
-                color:"#cc7a7a",opacity:tinderIndex>=recipes.length-1?0.3:1,
+                color:T.red,opacity:tinderIndex>=recipes.length-1?0.3:1,
                 boxShadow:"0 4px 16px rgba(204,122,122,0.15)",transition:"all 0.2s"
               }}>✕</button>
               
@@ -2067,7 +2076,7 @@ function App() {
               }}>❤</button>
             </div>
 
-            <div style={{textAlign:"center",paddingBottom:20,fontSize:10,color:"#444",textTransform:"uppercase",letterSpacing:"0.1em"}}>
+            <div style={{textAlign:"center",paddingBottom:20,fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>
               ✕ Skippa · ❤ Laga & Spara
             </div>
           </div>
