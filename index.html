@@ -2113,84 +2113,84 @@ function App() {
 
       {/* SETTINGS MODAL */}
       {showSettings && (
-        <div style={{position:"fixed",inset:0,zIndex:310,background:"#0e0e0c",overflowY:"auto"}}>
+        <div style={{position:"fixed",inset:0,zIndex:310,background:T.bg,overflowY:"auto"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
-              <button onClick={()=>setShowSettings(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:18,fontWeight:700,color:"#e8e8e0"}}>⚙ Inställningar</div>
+              <button onClick={()=>setShowSettings(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:18,fontWeight:700,color:T.text}}>⚙ Inställningar</div>
               <div style={{width:36}}></div>
             </div>
 
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Profil</div>
-              <button onClick={()=>{setShowSettings(false);setScreen("profile");}} style={{width:"100%",background:"#141410",border:"1px solid #1a1a14",borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:"#e8e8e0",marginBottom:8}}>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Profil</div>
+              <button onClick={()=>{setShowSettings(false);setScreen("profile");}} style={{width:"100%",background:T.bg3,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text,marginBottom:8}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <span style={{fontSize:20}}>👤</span>
                   <div>
                     <div style={{fontSize:14,fontWeight:600}}>Min profil</div>
-                    <div style={{fontSize:11,color:"#666"}}>Namn, vikt, längd, mål</div>
+                    <div style={{fontSize:11,color:T.textFaint}}>Namn, vikt, längd, mål</div>
                   </div>
                 </div>
-                <span style={{color:"#555"}}>→</span>
+                <span style={{color:T.textFaint}}>→</span>
               </button>
-              <button onClick={()=>{setShowSettings(false);setShowOnboarding(true);setOnboardStep(0);setOnbGender(profile.gender||"man");setOnbAge(profile.age||"");setOnbHeight(profile.height||"");setOnbWeight(profile.weight||"");setOnbActivity(profile.activity||"moderate");setOnbGoal(fitnessGoal||"deffa");}} style={{width:"100%",background:"#141410",border:"1px solid #1a1a14",borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:"#e8e8e0"}}>
+              <button onClick={()=>{setShowSettings(false);setShowOnboarding(true);setOnboardStep(0);setOnbGender(profile.gender||"man");setOnbAge(profile.age||"");setOnbHeight(profile.height||"");setOnbWeight(profile.weight||"");setOnbActivity(profile.activity||"moderate");setOnbGoal(fitnessGoal||"deffa");}} style={{width:"100%",background:T.bg3,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <span style={{fontSize:20}}>🎯</span>
                   <div>
                     <div style={{fontSize:14,fontWeight:600}}>Uppdatera mål & kalorier</div>
-                    <div style={{fontSize:11,color:"#666"}}>Beräkna om baserat på dina mått</div>
+                    <div style={{fontSize:11,color:T.textFaint}}>Beräkna om baserat på dina mått</div>
                   </div>
                 </div>
-                <span style={{color:"#555"}}>→</span>
+                <span style={{color:T.textFaint}}>→</span>
               </button>
             </div>
 
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Tema</div>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Tema</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-                <button onClick={async ()=>{setTheme("auto");await saveToCloud({theme:"auto"});}} style={{background:theme==="auto"?"#141410":"transparent",border:theme==="auto"?"1px solid #e8c97a66":"1px solid #1a1a14",borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:"#e8e8e0"}}>
+                <button onClick={async ()=>{setTheme("auto");await saveToCloud({theme:"auto"});}} style={{background:theme==="auto"?T.bg3:"transparent",border:theme==="auto"?`1px solid ${T.accent}66`:`1px solid ${T.border}`,borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:T.text}}>
                   <div style={{fontSize:22,marginBottom:6}}>🌓</div>
                   <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>Auto</div>
-                  <div style={{fontSize:9,color:"#666"}}>Följ system</div>
+                  <div style={{fontSize:9,color:T.textFaint}}>Följ system</div>
                 </button>
-                <button onClick={async ()=>{setTheme("light");await saveToCloud({theme:"light"});}} style={{background:theme==="light"?"#141410":"transparent",border:theme==="light"?"1px solid #e8c97a66":"1px solid #1a1a14",borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:"#e8e8e0"}}>
+                <button onClick={async ()=>{setTheme("light");await saveToCloud({theme:"light"});}} style={{background:theme==="light"?T.bg3:"transparent",border:theme==="light"?`1px solid ${T.accent}66`:`1px solid ${T.border}`,borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:T.text}}>
                   <div style={{fontSize:22,marginBottom:6}}>☀️</div>
                   <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>Ljust</div>
-                  <div style={{fontSize:9,color:"#666"}}>Alltid ljust</div>
+                  <div style={{fontSize:9,color:T.textFaint}}>Alltid ljust</div>
                 </button>
-                <button onClick={async ()=>{setTheme("dark");await saveToCloud({theme:"dark"});}} style={{background:theme==="dark"?"#141410":"transparent",border:theme==="dark"?"1px solid #e8c97a66":"1px solid #1a1a14",borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:"#e8e8e0"}}>
+                <button onClick={async ()=>{setTheme("dark");await saveToCloud({theme:"dark"});}} style={{background:theme==="dark"?T.bg3:"transparent",border:theme==="dark"?`1px solid ${T.accent}66`:`1px solid ${T.border}`,borderRadius:12,padding:"16px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",color:T.text}}>
                   <div style={{fontSize:22,marginBottom:6}}>🌙</div>
                   <div style={{fontSize:12,fontWeight:600,marginBottom:2}}>Mörkt</div>
-                  <div style={{fontSize:9,color:"#666"}}>Alltid mörkt</div>
+                  <div style={{fontSize:9,color:T.textFaint}}>Alltid mörkt</div>
                 </button>
               </div>
             </div>
 
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Prenumeration</div>
-              <button onClick={()=>{setShowSettings(false);setPricingOpen(true);}} style={{width:"100%",background:isPremium?"#1a1a08":"#141410",border:"1px solid "+(isPremium?"#3a3010":"#1a1a14"),borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:"#e8e8e0"}}>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Prenumeration</div>
+              <button onClick={()=>{setShowSettings(false);setPricingOpen(true);}} style={{width:"100%",background:isPremium?(isDark?"#1a1a08":"#faf4e0"):T.bg3,border:`1px solid ${isPremium?(isDark?"#3a3010":"#e0d0a0"):T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <span style={{fontSize:20}}>{isPremium?"✨":"💳"}</span>
                   <div>
-                    <div style={{fontSize:14,fontWeight:600,color:isPremium?"#e8c97a":"#e8e8e0"}}>{isPremium?"Premium aktiv":"Uppgradera till Premium"}</div>
-                    <div style={{fontSize:11,color:"#666"}}>{isPremium?"Obegränsat med recept":"100 kr/mån · Obegränsat"}</div>
+                    <div style={{fontSize:14,fontWeight:600,color:isPremium?T.accent:T.text}}>{isPremium?"Premium aktiv":"Uppgradera till Premium"}</div>
+                    <div style={{fontSize:11,color:T.textFaint}}>{isPremium?"Obegränsat med recept":"100 kr/mån · Obegränsat"}</div>
                   </div>
                 </div>
-                <span style={{color:"#555"}}>→</span>
+                <span style={{color:T.textFaint}}>→</span>
               </button>
             </div>
 
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Konto</div>
-              <div style={{background:"#141410",border:"1px solid #1a1a14",borderRadius:12,padding:"14px 16px",marginBottom:8}}>
-                <div style={{fontSize:11,color:"#666",marginBottom:4}}>Inloggad som</div>
-                <div style={{fontSize:13,color:"#e8e8e0",marginBottom:2}}>{user && user.email}</div>
-                <div style={{fontSize:10,color:emailVerified?"#6dcc6d":"#cc7a7a",marginTop:4}}>{emailVerified?"✓ Verifierad":"⚠ Ej verifierad"}</div>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Konto</div>
+              <div style={{background:T.bg3,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginBottom:8}}>
+                <div style={{fontSize:11,color:T.textFaint,marginBottom:4}}>Inloggad som</div>
+                <div style={{fontSize:13,color:T.text,marginBottom:2}}>{user && user.email}</div>
+                <div style={{fontSize:10,color:emailVerified?T.green:T.red,marginTop:4}}>{emailVerified?"✓ Verifierad":"⚠ Ej verifierad"}</div>
               </div>
-              <button onClick={()=>{setShowSettings(false);handleLogout();}} style={{width:"100%",background:"transparent",border:"1px solid #2a2a20",color:"#cc7a7a",borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:600}}>Logga ut</button>
+              <button onClick={()=>{setShowSettings(false);handleLogout();}} style={{width:"100%",background:"transparent",border:`1px solid ${T.border2}`,color:T.red,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:600}}>Logga ut</button>
             </div>
 
-            <div style={{textAlign:"center",fontSize:10,color:"#333",marginTop:20}}>FitFuel · v1.0</div>
+            <div style={{textAlign:"center",fontSize:10,color:T.textVeryFaint,marginTop:20}}>FitFuel · v1.0</div>
           </div>
         </div>
       )}
