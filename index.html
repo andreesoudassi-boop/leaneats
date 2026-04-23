@@ -90,6 +90,117 @@ const PROTEIN_TYPES = [
   { id:"veg",      label:"Vegetariskt",    emoji:"🌱", color:"#6dcc6d" },
 ];
 
+// ─── UNSPLASH BILD-HÄMTNING ────────────────────────────────────────────────
+const UNSPLASH_KEY = "SBJ8oyMIyBt2fkNiRDdaB2w_ytCypq6Nn-1bvA6YbKs";
+const IMG_CACHE_KEY = "fitfuel_img_cache_v1";
+
+// Hämta cache från localStorage
+function getImgCache() {
+  try {
+    return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}");
+  } catch(e) { return {}; }
+}
+
+function saveImgCache(cache) {
+  try {
+    localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(cache));
+  } catch(e) { console.log("Cache save error:", e); }
+}
+
+// Översätt svenska recepttitlar till engelska söktermer
+function recipeToSearchTerm(recipe) {
+  const name = recipe.name.toLowerCase();
+  // Mappningar för bättre sökresultat
+  const mappings = [
+    [/kyckling/g, "chicken"],
+    [/lax/g, "salmon"],
+    [/räkor/g, "shrimp"],
+    [/torsk/g, "cod fish"],
+    [/tonfisk/g, "tuna"],
+    [/fisk/g, "fish"],
+    [/ägg/g, "eggs"],
+    [/kött/g, "beef"],
+    [/nötfärs|köttfärs/g, "ground beef"],
+    [/biff/g, "steak"],
+    [/pasta/g, "pasta"],
+    [/ris/g, "rice"],
+    [/quinoa/g, "quinoa"],
+    [/sallad/g, "salad"],
+    [/soppa/g, "soup"],
+    [/smoothie/g, "smoothie"],
+    [/yoghurt|yogurt/g, "yogurt"],
+    [/avokado/g, "avocado"],
+    [/pannkak/g, "pancakes"],
+    [/omelett/g, "omelette"],
+    [/sötpotatis/g, "sweet potato"],
+    [/potatis/g, "potato"],
+    [/grönsak/g, "vegetables"],
+    [/sparris/g, "asparagus"],
+    [/broccoli/g, "broccoli"],
+    [/pizza/g, "pizza"],
+    [/burgare/g, "burger"],
+    [/wrap/g, "wrap"],
+    [/taco/g, "tacos"],
+    [/bowl/g, "bowl"],
+    [/gröt/g, "porridge"],
+    [/havregr/g, "oatmeal"],
+    [/chia/g, "chia pudding"],
+    [/bars/g, "protein bar"],
+    [/glass/g, "ice cream"],
+    [/mandel/g, "almonds"],
+    [/jordnöt/g, "peanut"],
+    [/bär/g, "berries"],
+    [/blåbär/g, "blueberries"],
+    [/hallon/g, "raspberries"],
+    [/jordgubb/g, "strawberries"],
+    [/choklad/g, "chocolate"],
+    [/banan/g, "banana"],
+    [/kokos/g, "coconut"],
+    [/hummus/g, "hummus"],
+    [/tofu/g, "tofu"],
+    [/halloumi/g, "halloumi"],
+    [/feta/g, "feta cheese"],
+  ];
+  let search = name;
+  for (const [pattern, replacement] of mappings) {
+    search = search.replace(pattern, replacement);
+  }
+  // Ta bort svenska småord
+  search = search.replace(/\b(och|med|samt|en|ett|den|det|på|av|i|till|för)\b/g, "").trim();
+  search = search.replace(/\s+/g, " ");
+  return search + " food";
+}
+
+// Hämta bild för ett recept (med cache)
+async function fetchRecipeImage(recipe) {
+  const cache = getImgCache();
+  if (cache[recipe.id]) return cache[recipe.id];
+  
+  const query = recipeToSearchTerm(recipe);
+  try {
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&client_id=${UNSPLASH_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.results && data.results.length > 0) {
+      const result = data.results[0];
+      const imgData = {
+        url: result.urls.regular,
+        thumb: result.urls.small,
+        photographer: result.user.name,
+        photographerUrl: result.user.links.html
+      };
+      // Spara i cache
+      cache[recipe.id] = imgData;
+      saveImgCache(cache);
+      return imgData;
+    }
+  } catch(e) {
+    console.log("Unsplash error for", recipe.name, e);
+  }
+  return null;
+}
+
 const DESSERT_TYPES = [
   { id:"all",      label:"Alla",       emoji:"🎲", color:"#e8c97a" },
   { id:"choklad",  label:"Choklad",    emoji:"🍫", color:"#cc7a7a" },
@@ -811,6 +922,69 @@ function getThemeColors(isDark) {
       gradStart: "#f0e8c8"
     };
   }
+}
+
+// ─── RECIPE IMAGE KOMPONENT ────────────────────────────────────────────────
+function RecipeImage({ recipe, height = 200, borderRadius = 12, fallbackEmojiSize = 80 }) {
+  const [imgData, setImgData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [failed, setFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setFailed(false);
+    // Kolla cache först
+    const cache = getImgCache();
+    if (cache[recipe.id]) {
+      setImgData(cache[recipe.id]);
+      setLoading(false);
+      return;
+    }
+    // Hämta från API
+    fetchRecipeImage(recipe).then(data => {
+      if (cancelled) return;
+      if (data) {
+        setImgData(data);
+      } else {
+        setFailed(true);
+      }
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [recipe.id]);
+
+  if (imgData && !failed) {
+    return (
+      <div style={{position:"relative",width:"100%",height,borderRadius,overflow:"hidden",background:"#1a1a14"}}>
+        <img 
+          src={imgData.url} 
+          alt={recipe.name}
+          onError={()=>setFailed(true)}
+          style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
+        />
+        {/* Emoji badge uppe till vänster */}
+        <div style={{position:"absolute",top:10,left:10,fontSize:28,background:"rgba(0,0,0,0.6)",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
+          {recipe.emoji}
+        </div>
+        {/* Fotograf-credit längst ner */}
+        <div style={{position:"absolute",bottom:6,right:8,fontSize:8,color:"rgba(255,255,255,0.6)",background:"rgba(0,0,0,0.5)",padding:"2px 6px",borderRadius:4,backdropFilter:"blur(4px)"}}>
+          📷 {imgData.photographer}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: emoji på tonad bakgrund (samma som före)
+  return (
+    <div style={{width:"100%",height,borderRadius,background:"linear-gradient(135deg,#1a1a18,#0e0e0c)",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+      {loading ? (
+        <div style={{fontSize:24,opacity:0.3}}>⏳</div>
+      ) : (
+        <div style={{fontSize:fallbackEmojiSize}}>{recipe.emoji}</div>
+      )}
+    </div>
+  );
 }
 
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
@@ -1849,7 +2023,9 @@ function App() {
                 transition:"all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
                 position:"relative"
               }}>
-                <div style={{fontSize:80,textAlign:"center",marginBottom:16}}>{recipe.emoji}</div>
+                <div style={{marginBottom:14}}>
+                  <RecipeImage recipe={recipe} height={180} borderRadius={14} fallbackEmojiSize={80}/>
+                </div>
                 
                 <div style={{fontSize:22,fontWeight:700,color:"#e8e8e0",textAlign:"center",marginBottom:6,lineHeight:1.2}}>{recipe.name}</div>
                 
@@ -2196,6 +2372,12 @@ function App() {
         <div onClick={()=>setModalOpen(false)} style={{position:"fixed",inset:0,zIndex:200,background:"#0e0e0c",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
           <div onClick={e=>e.stopPropagation()} style={{background:"#0e0e0c",width:"100%",maxWidth:580,height:"100vh",overflowY:"auto",padding:"44px 16px 44px"}}>
             <div style={{width:40,height:4,background:"#333",borderRadius:99,margin:"0 auto 14px"}}/>
+            
+            {/* Stor bild */}
+            <div style={{marginBottom:14}}>
+              <RecipeImage recipe={currentRecipe} height={200} borderRadius={14} fallbackEmojiSize={80}/>
+            </div>
+            
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <span style={{fontSize:34}}>{currentRecipe.emoji}</span>
