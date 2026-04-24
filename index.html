@@ -110,95 +110,189 @@ function saveImgCache(cache) {
 // Översätt svenska recepttitlar till engelska söktermer
 function recipeToSearchTerm(recipe) {
   const name = recipe.name.toLowerCase();
-  // Mappningar för bättre sökresultat
+  // Mappningar för bättre sökresultat (utökade!)
   const mappings = [
-    [/kyckling/g, "chicken"],
+    // Kött & protein
+    [/kyckling(bröst|färs|lår|klubb)?/g, "chicken"],
+    [/kalkon/g, "turkey"],
     [/lax/g, "salmon"],
-    [/räkor/g, "shrimp"],
+    [/räkor|scampi/g, "shrimp"],
     [/torsk/g, "cod fish"],
     [/tonfisk/g, "tuna"],
+    [/forell/g, "trout"],
+    [/makrill/g, "mackerel"],
     [/fisk/g, "fish"],
-    [/ägg/g, "eggs"],
-    [/kött/g, "beef"],
-    [/nötfärs|köttfärs/g, "ground beef"],
-    [/biff/g, "steak"],
-    [/pasta/g, "pasta"],
-    [/ris/g, "rice"],
+    [/skaldjur/g, "seafood"],
+    [/ägg(röra|muffin|muffins|vit|vitor)?/g, "eggs"],
+    [/omelett/g, "omelette"],
+    [/frittata/g, "frittata"],
+    [/nötfärs|köttfärs|färs/g, "ground beef"],
+    [/biff|oxfilé|tournedos/g, "steak"],
+    [/nötkött|kött/g, "beef"],
+    [/lamm/g, "lamb"],
+    [/fläsk|bacon/g, "pork"],
+    [/skinka|prosciutto/g, "ham"],
+    // Kolhydrater
+    [/pasta|spaghetti|makaroner|fettuccine|penne/g, "pasta"],
+    [/ris(gryn)?/g, "rice"],
     [/quinoa/g, "quinoa"],
+    [/bulgur/g, "bulgur"],
+    [/nudlar|noodle/g, "noodles"],
+    [/potatis(mos)?/g, "potato"],
+    [/sötpotatis/g, "sweet potato"],
+    [/bröd/g, "bread"],
+    // Frukt & bär
+    [/banan/g, "banana"],
+    [/äpple/g, "apple"],
+    [/jordgubb/g, "strawberries"],
+    [/blåbär/g, "blueberries"],
+    [/hallon/g, "raspberries"],
+    [/bär/g, "berries"],
+    [/mango/g, "mango"],
+    [/ananas/g, "pineapple"],
+    [/citron/g, "lemon"],
+    [/apelsin/g, "orange"],
+    [/päron/g, "pear"],
+    [/persika/g, "peach"],
+    [/kiwi/g, "kiwi"],
+    [/vattenmelon/g, "watermelon"],
+    [/dadlar|dadel/g, "dates"],
+    // Rätter
     [/sallad/g, "salad"],
     [/soppa/g, "soup"],
     [/smoothie/g, "smoothie"],
-    [/yoghurt|yogurt/g, "yogurt"],
-    [/avokado/g, "avocado"],
+    [/yoghurt|yogurt|kvarg|skyr/g, "yogurt"],
     [/pannkak/g, "pancakes"],
-    [/omelett/g, "omelette"],
-    [/sötpotatis/g, "sweet potato"],
-    [/potatis/g, "potato"],
-    [/grönsak/g, "vegetables"],
-    [/sparris/g, "asparagus"],
-    [/broccoli/g, "broccoli"],
+    [/waffl|våffl/g, "waffles"],
     [/pizza/g, "pizza"],
-    [/burgare/g, "burger"],
+    [/burgare|burger/g, "burger"],
+    [/hamburger/g, "hamburger"],
     [/wrap/g, "wrap"],
     [/taco/g, "tacos"],
+    [/burrito/g, "burrito"],
     [/bowl/g, "bowl"],
-    [/gröt/g, "porridge"],
-    [/havregr/g, "oatmeal"],
+    [/gryta/g, "stew"],
+    [/gröt|havregr|havreprotein/g, "oatmeal"],
     [/chia/g, "chia pudding"],
-    [/bars/g, "protein bar"],
-    [/glass/g, "ice cream"],
+    [/müsli|muesli/g, "muesli"],
+    [/granola/g, "granola"],
+    [/overnight oats/g, "overnight oats"],
+    [/avokado(toast)?/g, "avocado toast"],
+    [/toast/g, "toast"],
+    [/kebab/g, "kebab"],
+    [/sushi/g, "sushi"],
+    [/curry/g, "curry"],
+    [/risotto/g, "risotto"],
+    // Sötsaker
+    [/bars|bar/g, "protein bar"],
+    [/glass|sorbet/g, "ice cream"],
+    [/choklad|chokolad/g, "chocolate"],
+    [/cheesecake/g, "cheesecake"],
+    [/pannacotta|panna cotta/g, "panna cotta"],
+    [/mousse/g, "mousse"],
+    [/kaka/g, "cake"],
+    [/muffin/g, "muffin"],
+    [/cookies|kakor/g, "cookies"],
+    [/bollar/g, "energy balls"],
+    [/tryffel/g, "chocolate truffle"],
+    [/semla|semlor/g, "swedish cream bun"],
+    [/brownie|kladdkaka/g, "brownie"],
+    // Grönsaker
+    [/grönsak|vegetari/g, "vegetables"],
+    [/sparris/g, "asparagus"],
+    [/broccoli/g, "broccoli"],
+    [/spenat/g, "spinach"],
+    [/kål/g, "cabbage"],
+    [/zucchini/g, "zucchini"],
+    [/morötter|morot/g, "carrots"],
+    [/tomat/g, "tomato"],
+    [/gurka/g, "cucumber"],
+    [/paprika/g, "bell pepper"],
+    [/lök/g, "onion"],
+    [/svamp|champinjon/g, "mushrooms"],
     [/mandel/g, "almonds"],
-    [/jordnöt/g, "peanut"],
-    [/bär/g, "berries"],
-    [/blåbär/g, "blueberries"],
-    [/hallon/g, "raspberries"],
-    [/jordgubb/g, "strawberries"],
-    [/choklad/g, "chocolate"],
-    [/banan/g, "banana"],
-    [/kokos/g, "coconut"],
+    [/jordnöt|peanut/g, "peanut butter"],
+    [/nötter/g, "nuts"],
     [/hummus/g, "hummus"],
     [/tofu/g, "tofu"],
+    [/tempeh/g, "tempeh"],
     [/halloumi/g, "halloumi"],
-    [/feta/g, "feta cheese"],
+    [/feta(ost)?/g, "feta cheese"],
+    [/ost/g, "cheese"],
+    [/bönor/g, "beans"],
+    [/kikärt/g, "chickpeas"],
+    [/linser/g, "lentils"],
+    [/edamame/g, "edamame"],
+    [/kokos/g, "coconut"],
+    // Drycker
+    [/shake/g, "protein shake"],
+    [/lassi/g, "mango lassi"],
+    [/proteinshake|proteinpulver/g, "protein shake"],
+    [/proteinmuffin|proteinpannkak|proteinbar|proteinbollar|proteinglass|proteinpudding|proteintryff|protein/g, "protein food"],
   ];
   let search = name;
   for (const [pattern, replacement] of mappings) {
     search = search.replace(pattern, replacement);
   }
   // Ta bort svenska småord
-  search = search.replace(/\b(och|med|samt|en|ett|den|det|på|av|i|till|för)\b/g, "").trim();
+  search = search.replace(/\b(och|med|samt|en|ett|den|det|på|av|i|till|för|eller)\b/g, "").trim();
   search = search.replace(/\s+/g, " ");
-  return search + " food";
+  return search + " food photography";
 }
 
-// Hämta bild för ett recept (med cache)
+// Backup-bilder per kategori (fallback om Unsplash inte hittar rätt)
+const CATEGORY_FALLBACK_IMAGES = {
+  frukost: "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=800&q=80", // frukost-bord
+  lunch: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80", // lunch-bowl
+  middag: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80", // middag-tallrik
+  mellanmal: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80" // snacks
+};
+
+function getFallbackImage(recipe) {
+  // Hitta kategorin via receptets ID-prefix
+  const prefix = recipe.id[0];
+  const catMap = {'f': 'frukost', 'l': 'lunch', 'd': 'middag', 's': 'mellanmal'};
+  const catId = catMap[prefix] || 'lunch';
+  return {
+    url: CATEGORY_FALLBACK_IMAGES[catId],
+    thumb: CATEGORY_FALLBACK_IMAGES[catId],
+    photographer: "Unsplash",
+    photographerUrl: "https://unsplash.com",
+    isFallback: true
+  };
+}
+
+// Hämta bild för ett recept (med cache + fallback)
 async function fetchRecipeImage(recipe) {
   const cache = getImgCache();
   if (cache[recipe.id]) return cache[recipe.id];
   
   const query = recipeToSearchTerm(recipe);
   try {
-    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&client_id=${UNSPLASH_KEY}`;
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=3&orientation=landscape&client_id=${UNSPLASH_KEY}`;
     const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (data.results && data.results.length > 0) {
-      const result = data.results[0];
-      const imgData = {
-        url: result.urls.regular,
-        thumb: result.urls.small,
-        photographer: result.user.name,
-        photographerUrl: result.user.links.html
-      };
-      // Spara i cache
-      cache[recipe.id] = imgData;
-      saveImgCache(cache);
-      return imgData;
+    if (res.ok) {
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const imgData = {
+          url: result.urls.regular,
+          thumb: result.urls.small,
+          photographer: result.user.name,
+          photographerUrl: result.user.links.html
+        };
+        // Spara i cache
+        cache[recipe.id] = imgData;
+        saveImgCache(cache);
+        return imgData;
+      }
     }
   } catch(e) {
     console.log("Unsplash error for", recipe.name, e);
   }
-  return null;
+  
+  // Fallback: kategori-bild (men spara INTE som cache så vi kan försöka igen senare)
+  return getFallbackImage(recipe);
 }
 
 const DESSERT_TYPES = [
@@ -937,12 +1031,13 @@ function getThemeColors(isDark) {
 function RecipeImage({ recipe, height = 200, borderRadius = 12, fallbackEmojiSize = 80 }) {
   const [imgData, setImgData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
-  const [failed, setFailed] = React.useState(false);
+  const [imgFailed, setImgFailed] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setFailed(false);
+    setImgFailed(false);
+    setImgData(null);
     // Kolla cache först
     const cache = getImgCache();
     if (cache[recipe.id]) {
@@ -950,41 +1045,39 @@ function RecipeImage({ recipe, height = 200, borderRadius = 12, fallbackEmojiSiz
       setLoading(false);
       return;
     }
-    // Hämta från API
+    // Hämta från API (eller fallback)
     fetchRecipeImage(recipe).then(data => {
       if (cancelled) return;
-      if (data) {
-        setImgData(data);
-      } else {
-        setFailed(true);
-      }
+      setImgData(data);
       setLoading(false);
     });
     return () => { cancelled = true; };
   }, [recipe.id]);
 
-  if (imgData && !failed) {
+  if (imgData && !imgFailed) {
     return (
       <div style={{position:"relative",width:"100%",height,borderRadius,overflow:"hidden",background:"#1a1a14"}}>
         <img 
           src={imgData.url} 
           alt={recipe.name}
-          onError={()=>setFailed(true)}
+          onError={()=>setImgFailed(true)}
           style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
         />
         {/* Emoji badge uppe till vänster */}
         <div style={{position:"absolute",top:10,left:10,fontSize:28,background:"rgba(0,0,0,0.6)",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
           {recipe.emoji}
         </div>
-        {/* Fotograf-credit längst ner */}
-        <div style={{position:"absolute",bottom:6,right:8,fontSize:8,color:"rgba(255,255,255,0.6)",background:"rgba(0,0,0,0.5)",padding:"2px 6px",borderRadius:4,backdropFilter:"blur(4px)"}}>
-          📷 {imgData.photographer}
-        </div>
+        {/* Fotograf-credit (bara om inte fallback) */}
+        {!imgData.isFallback && (
+          <div style={{position:"absolute",bottom:6,right:8,fontSize:8,color:"rgba(255,255,255,0.6)",background:"rgba(0,0,0,0.5)",padding:"2px 6px",borderRadius:4,backdropFilter:"blur(4px)"}}>
+            📷 {imgData.photographer}
+          </div>
+        )}
       </div>
     );
   }
 
-  // Fallback: emoji på tonad bakgrund (samma som före)
+  // Fallback: emoji på tonad bakgrund (när laddar eller allt misslyckats)
   return (
     <div style={{width:"100%",height,borderRadius,background:"linear-gradient(135deg,#1a1a18,#0e0e0c)",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
       {loading ? (
