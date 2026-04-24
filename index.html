@@ -441,6 +441,66 @@ const ALL_RECIPES = {
     { id:"f42", name:"Proteinmuffins Choklad", emoji:"🧁", time:25, kcal:200, protein:14, carbs:20, fat:6, servings:"8 st", tag:"Baka · Gym-snack", why:"Chokladmuffins med kvarg och proteinpulver — dessert som är gym-godkänd.",
       ingredients:[{amount:"200g",item:"kvarg"},{amount:"2 skopor",item:"proteinpulver choklad"},{amount:"2",item:"ägg"},{amount:"2 msk",item:"kakao"},{amount:"1 tsk",item:"bakpulver"}],
       steps:[{title:"Blanda allt",desc:"."},{title:"Häll i muffinsformar",desc:"."},{title:"Ugn 180°C",desc:"18 min."},{title:"Kyl + servera",desc:"."}]},
+    { id:"f43", name:"Bacon & Äggfrukost", emoji:"🥓", time:10, kcal:480, protein:38, carbs:6, fat:34, servings:"1 portion", tag:"Low carb · Fett & protein", why:"Bacon och ägg ger mättande fett + fullständigt protein. Perfekt keto-frukost.",
+      ingredients:[{amount:"4",item:"bacon-skivor"},{amount:"3",item:"ägg"},{amount:"1 msk",item:"smör"},{amount:"1 nypa",item:"salt & peppar"}],
+      steps:[{title:"Stek bacon",desc:"Krispigt i panna."},{title:"Stek ägg",desc:"I baconfettet."},{title:"Servera",desc:"Med salt & peppar."}]},
+    { id:"f44", name:"Ägg Benedict Light", emoji:"🍳", time:20, kcal:420, protein:32, carbs:28, fat:18, servings:"1 portion", tag:"Lyxig · Helg-frukost", why:"Pocherat ägg + skinka på råg = klassiskt med protein-twist.",
+      ingredients:[{amount:"2",item:"ägg"},{amount:"2 skivor",item:"rågbröd"},{amount:"4 skivor",item:"skinka"},{amount:"2 msk",item:"lätt hollandaise"},{amount:"1 tsk",item:"gräslök"}],
+      steps:[{title:"Pochera ägg",desc:"3 min i sjudande vatten med vinäger."},{title:"Rosta bröd",desc:"."},{title:"Lägg skinka + ägg",desc:"."},{title:"Toppa med sås",desc:"Strö gräslök."}]},
+    { id:"f45", name:"Kyckling-omelett", emoji:"🍳", time:12, kcal:420, protein:48, carbs:6, fat:22, servings:"1 portion", tag:"Pre-workout · Ren energi", why:"Kyckling + ägg = 48g protein. Ger långvarig energi för gymmet.",
+      ingredients:[{amount:"100g",item:"kokt kyckling"},{amount:"3",item:"ägg"},{amount:"30g",item:"ost riven"},{amount:"1 msk",item:"smör"},{amount:"1 tsk",item:"chiliflakes"}],
+      steps:[{title:"Vispa ägg",desc:"."},{title:"Smält smör",desc:"."},{title:"Häll ägg + kyckling + ost",desc:"."},{title:"Vik ihop",desc:"Servera."}]},
+    { id:"f46", name:"Röran på Rågbröd", emoji:"🥚", time:8, kcal:380, protein:26, carbs:34, fat:16, servings:"1 portion", tag:"Klassiker · Snabb", why:"Äggröra med mycket protein på rejält rågbröd. Den perfekta vardagsfrukosten.",
+      ingredients:[{amount:"3",item:"ägg"},{amount:"2 skivor",item:"rågbröd"},{amount:"1 msk",item:"smör"},{amount:"1 tsk",item:"gräslök"},{amount:"1 nypa",item:"salt"}],
+      steps:[{title:"Vispa ägg",desc:"Salta."},{title:"Stek på låg värme",desc:"Rör långsamt."},{title:"Servera",desc:"På rostat bröd med gräslök."}]},
+    { id:"f47", name:"Shakshuka Klassisk", emoji:"🍳", time:25, kcal:460, protein:30, carbs:28, fat:22, servings:"2 portioner", tag:"Orientalisk · Kryddig", why:"Ägg pocherade i kryddig tomatsås. Tomaternas lykopen + ägg protein = vinnare.",
+      ingredients:[{amount:"4",item:"ägg"},{amount:"400ml",item:"krossade tomater"},{amount:"1",item:"lök"},{amount:"1",item:"röd paprika"},{amount:"1 tsk",item:"paprikapulver"},{amount:"100g",item:"fetaost"}],
+      steps:[{title:"Fräs lök + paprika",desc:"5 min."},{title:"Tillsätt tomater",desc:"Kryddor, sjud 10 min."},{title:"Knäck i ägg",desc:"Lock på, sjud 6-8 min."},{title:"Toppa med feta",desc:"."}]},
+    { id:"f48", name:"Äggmuffins med Skinka", emoji:"🧁", time:25, kcal:280, protein:26, carbs:4, fat:18, servings:"6 st", tag:"Meal-prep · Portabelt", why:"Baka på söndag, ät hela veckan. 26g protein per portion, inget socker.",
+      ingredients:[{amount:"8",item:"ägg"},{amount:"150g",item:"skinka"},{amount:"100g",item:"ost"},{amount:"1",item:"paprika"},{amount:"1 tsk",item:"salt & peppar"}],
+      steps:[{title:"Vispa ägg",desc:"."},{title:"Häll i muffinsformar",desc:"Med skinka + paprika + ost."},{title:"Ugn 180°C",desc:"18 min."},{title:"Kyl",desc:"Förvara i kylen."}]},
+    { id:"f49", name:"Tortilla Española", emoji:"🥔", time:30, kcal:420, protein:22, carbs:38, fat:20, servings:"2 portioner", tag:"Spansk · Mättande", view:"Potatis-ägg-pannkaka som är lika god kall. Klassisk tapas.",why:"Klassisk spansk frukost/lunch — ägg + potatis = långvarig energi.",
+      ingredients:[{amount:"5",item:"ägg"},{amount:"300g",item:"potatis"},{amount:"1",item:"gul lök"},{amount:"3 msk",item:"olivolja"},{amount:"1 tsk",item:"salt"}],
+      steps:[{title:"Stek potatis + lök",desc:"15 min i olja."},{title:"Vispa ägg",desc:"Salta."},{title:"Blanda + stek",desc:"Lägre värme, 8 min."},{title:"Vänd + klart",desc:"3 min till."}]},
+    { id:"f50", name:"Croque Madame", emoji:"🥪", time:15, kcal:520, protein:34, carbs:38, fat:26, servings:"1 portion", tag:"Fransk · Helgfrukost", why:"Ostgratinerad macka med ägg. En klassiker som mättar länge.",
+      ingredients:[{amount:"2 skivor",item:"bröd"},{amount:"2 skivor",item:"skinka"},{amount:"50g",item:"ost"},{amount:"1",item:"ägg"},{amount:"1 msk",item:"smör"}],
+      steps:[{title:"Smöra bröd",desc:"."},{title:"Lägg skinka + ost",desc:"Toppa med bröd."},{title:"Stek båda sidor",desc:"Tills ost smält."},{title:"Toppa med stekt ägg",desc:"."}]},
+    { id:"f51", name:"Avokadotoast & Pocherat Ägg", emoji:"🥑", time:10, kcal:420, protein:20, carbs:30, fat:26, servings:"1 portion", tag:"Modern · Instagrammable", why:"Healthy fats + protein. Avokado ger omättat fett som stöttar hormoner.",
+      ingredients:[{amount:"1 skiva",item:"surdegsbröd"},{amount:"1",item:"avokado"},{amount:"1",item:"ägg"},{amount:"1 tsk",item:"chili"},{amount:"1 nypa",item:"flingsalt"}],
+      steps:[{title:"Rosta bröd",desc:"."},{title:"Mosa avokado",desc:"Salta."},{title:"Pochera ägg",desc:"3 min."},{title:"Bygg",desc:"Avokado + ägg + chili."}]},
+    { id:"f52", name:"Protein French Toast", emoji:"🍞", time:12, kcal:440, protein:38, carbs:44, fat:10, servings:"2 portioner", tag:"Söt · Protein", why:"Klassisk arme-riddare med proteinpulver. 38g protein per portion!",
+      ingredients:[{amount:"4 skivor",item:"fullkornsbröd"},{amount:"4",item:"ägg"},{amount:"2 skopor",item:"vaniljproteinpulver"},{amount:"1 dl",item:"mjölk"},{amount:"1 tsk",item:"kanel"},{amount:"1 msk",item:"honung"}],
+      steps:[{title:"Vispa ägg+protein+mjölk",desc:"."},{title:"Doppa bröd",desc:"Båda sidor."},{title:"Stek",desc:"2 min per sida."},{title:"Servera",desc:"Med honung + kanel."}]},
+    { id:"f53", name:"Kyckling & Bacon-wrap", emoji:"🌯", time:10, kcal:480, protein:42, carbs:32, fat:20, servings:"1 portion", tag:"Portabel · Mättande", why:"Kyckling + bacon + ägg = 42g protein i en handhållen frukost.",
+      ingredients:[{amount:"1",item:"tortilla fullkorn"},{amount:"100g",item:"kokt kyckling"},{amount:"2",item:"bacon-skivor"},{amount:"1",item:"ägg"},{amount:"30g",item:"ost"},{amount:"1 msk",item:"majonnäs"}],
+      steps:[{title:"Stek bacon + ägg",desc:"."},{title:"Värm tortilla",desc:"."},{title:"Fyll",desc:"Majo + kyckling + bacon + ägg + ost."},{title:"Rulla + ät",desc:"."}]},
+    { id:"f54", name:"Nötfärs-omelett", emoji:"🍳", time:15, kcal:520, protein:44, carbs:8, fat:32, servings:"1 portion", tag:"Kött & ägg · Mäktig", why:"Nötfärs + ägg = maximal protein + järn. Perfekt för tunga gym-dagar.",
+      ingredients:[{amount:"150g",item:"nötfärs"},{amount:"3",item:"ägg"},{amount:"1",item:"lök"},{amount:"30g",item:"ost"},{amount:"1 tsk",item:"paprikapulver"}],
+      steps:[{title:"Stek färsen + lök",desc:"Bryn färs."},{title:"Vispa ägg",desc:"."},{title:"Häll över färs",desc:"Toppa med ost."},{title:"Låt stelna",desc:"3 min."}]},
+    { id:"f55", name:"Lax & Äggröra", emoji:"🐟", time:10, kcal:420, protein:36, carbs:4, fat:28, servings:"1 portion", tag:"Omega-3 · Klassiker", why:"Rökt lax + ägg = omega-3 och protein direkt på morgonen.",
+      ingredients:[{amount:"100g",item:"rökt lax"},{amount:"3",item:"ägg"},{amount:"1 msk",item:"smör"},{amount:"1 msk",item:"dill"},{amount:"1 tsk",item:"citron"}],
+      steps:[{title:"Vispa ägg",desc:"."},{title:"Stek mjukt",desc:"Låg värme."},{title:"Toppa med lax + dill",desc:"."},{title:"Pressa citron",desc:"."}]},
+    { id:"f56", name:"Mozzarella-tomat Ägg", emoji:"🍅", time:10, kcal:360, protein:26, carbs:8, fat:24, servings:"1 portion", tag:"Italiensk · Fräsch", why:"Caprese-inspirerat med protein. Mozzarella + ägg + tomat = mums.",
+      ingredients:[{amount:"3",item:"ägg"},{amount:"100g",item:"mozzarella"},{amount:"2",item:"tomater"},{amount:"10",item:"basilikablad"},{amount:"1 msk",item:"olivolja"}],
+      steps:[{title:"Stek ägg",desc:"Stekta eller krämiga."},{title:"Lägg på tomat + mozzarella",desc:"."},{title:"Toppa med basilika",desc:"."},{title:"Ringla olivolja",desc:"."}]},
+    { id:"f57", name:"Huevos Rancheros", emoji:"🍳", time:20, kcal:460, protein:28, carbs:42, fat:20, servings:"1 portion", tag:"Mexikansk · Kryddig", why:"Stekt ägg på tortilla med bönor och salsa. Balanserad frukost med mycket smak.",
+      ingredients:[{amount:"2",item:"tortillas majs"},{amount:"2",item:"ägg"},{amount:"100g",item:"svarta bönor"},{amount:"3 msk",item:"salsa"},{amount:"30g",item:"cheddar"}],
+      steps:[{title:"Värm bönor",desc:"Med lite salsa."},{title:"Stek ägg",desc:"."},{title:"Värm tortilla",desc:"."},{title:"Bygg",desc:"Tortilla + bönor + ägg + salsa + ost."}]},
+    { id:"f58", name:"Steak & Ägg", emoji:"🥩", time:15, kcal:620, protein:58, carbs:2, fat:40, servings:"1 portion", tag:"Carnivore · Max protein", why:"Biff och ägg. Den ultimata pre-gym-frukosten med 58g protein.",
+      ingredients:[{amount:"150g",item:"entrecôte"},{amount:"3",item:"ägg"},{amount:"1 msk",item:"smör"},{amount:"1 nypa",item:"flingsalt"},{amount:"1 tsk",item:"svartpeppar"}],
+      steps:[{title:"Krydda köttet",desc:"Låt vila vid rumstemp."},{title:"Stek i panna",desc:"2 min per sida."},{title:"Vila 3 min",desc:"."},{title:"Stek ägg + servera",desc:"."}]},
+    { id:"f59", name:"Kalkon & Ägg Wrap", emoji:"🌯", time:8, kcal:380, protein:40, carbs:28, fat:10, servings:"1 portion", tag:"Lean protein · Snabb", why:"Kalkon är magrare än kyckling. 40g protein med minimalt fett.",
+      ingredients:[{amount:"1",item:"tortilla fullkorn"},{amount:"100g",item:"kalkonbröst"},{amount:"2",item:"ägg"},{amount:"30g",item:"ost"},{amount:"1 msk",item:"senap"}],
+      steps:[{title:"Stek ägg",desc:"."},{title:"Värm tortilla",desc:"."},{title:"Fyll",desc:"Senap + kalkon + ägg + ost."},{title:"Rulla",desc:"."}]},
+    { id:"f60", name:"Grekisk Frukosttallrik", emoji:"🫒", time:10, kcal:440, protein:28, carbs:24, fat:26, servings:"1 portion", tag:"Medelhavs · Rik", why:"Feta + ägg + oliver = medelhavsstil med bra fetter och fullständigt protein.",
+      ingredients:[{amount:"3",item:"ägg"},{amount:"80g",item:"fetaost"},{amount:"10",item:"oliver"},{amount:"1",item:"tomat"},{amount:"1 gurka",item:"liten"},{amount:"1 msk",item:"olivolja"}],
+      steps:[{title:"Koka ägg",desc:"6 min."},{title:"Skär grönt",desc:"."},{title:"Bygg tallriken",desc:"Ägg + feta + oliver + grönt."},{title:"Ringla olivolja",desc:"."}]},
+    { id:"f61", name:"Ägg & Grönkålsbowl", emoji:"🥬", time:12, kcal:380, protein:28, carbs:18, fat:22, servings:"1 portion", tag:"Superfood · Vegetariskt+", why:"Grönkål är en supermat full av vitamin K. Plus ägg = komplett näring.",
+      ingredients:[{amount:"3",item:"ägg"},{amount:"100g",item:"grönkål"},{amount:"50g",item:"fetaost"},{amount:"1 msk",item:"olivolja"},{amount:"1 tsk",item:"vitlök"}],
+      steps:[{title:"Fräs grönkål + vitlök",desc:"3 min."},{title:"Knäck i ägg",desc:"Stek mjukt."},{title:"Smula feta över",desc:"."},{title:"Servera",desc:"Ringla olivolja."}]},
+    { id:"f62", name:"Protein Frukost-smörgåstårta", emoji:"🥪", time:20, kcal:440, protein:38, carbs:32, fat:18, servings:"2 portioner", tag:"Rolig · Festlig", why:"Mini-smörgåstårta med kyckling + skinka + ägg. Imponerande på morgonen!",
+      ingredients:[{amount:"4 skivor",item:"matbröd"},{amount:"100g",item:"kokt kyckling"},{amount:"2 skivor",item:"skinka"},{amount:"3",item:"hårdkokta ägg"},{amount:"3 msk",item:"lätt kvarg"},{amount:"1 msk",item:"dill"}],
+      steps:[{title:"Hacka ägg",desc:"Blanda med kvarg + dill."},{title:"Bygg lager",desc:"Bröd + kyckling + bröd + skinka + bröd + ägg."},{title:"Toppa med kvarg",desc:"."},{title:"Kyl 30 min",desc:"Skär i bitar."}]},
   ],
   lunch:[
     { id:"l1", name:"Laxbowl & Quinoa", emoji:"🐟", time:25, kcal:580, protein:48, carbs:42, fat:18, servings:"2 portioner", tag:"Omega-3 · Komplett protein", why:"Laxens omega-3 minskar inflammation. Quinoa har alla aminosyror.",
@@ -581,6 +641,66 @@ const ALL_RECIPES = {
     { id:"l46", name:"Pumpasoppa", emoji:"🎃", time:35, kcal:300, protein:10, carbs:42, fat:10, servings:"2 portioner", tag:"Höst · Vegetarisk", why:"Pumpa är rik på betakaroten och ger varm höstkänsla.",
       ingredients:[{amount:"600g",item:"pumpa"},{amount:"1",item:"lök"},{amount:"7 dl",item:"grönsaksbuljong"},{amount:"1 dl",item:"kokosmjölk"},{amount:"1 tsk",item:"ingefära"}],
       steps:[{title:"Rosta pumpa",desc:"200°C, 20 min."},{title:"Koka med buljong + lök",desc:"10 min."},{title:"Mixa",desc:"."},{title:"Rör in kokosmjölk",desc:"."}]},
+    { id:"l47", name:"Nötkött & Broccoli Wok", emoji:"🥩", time:18, kcal:520, protein:48, carbs:28, fat:22, servings:"2 portioner", tag:"Asian · Snabb", why:"Klassisk takeaway-favorit, hemlagad. 48g protein med minimal stress.",
+      ingredients:[{amount:"400g",item:"biffremsor"},{amount:"300g",item:"broccoli"},{amount:"3 msk",item:"soja"},{amount:"1 msk",item:"ingefära"},{amount:"2 klyftor",item:"vitlök"},{amount:"1 msk",item:"sesamolja"}],
+      steps:[{title:"Marinera kött",desc:"Med soja + ingefära, 10 min."},{title:"Woka kött",desc:"3 min på hög värme."},{title:"Tillsätt broccoli + vitlök",desc:"4 min."},{title:"Servera",desc:"Med ris."}]},
+    { id:"l48", name:"Saftig Köttbullsmiddag", emoji:"🍝", time:25, kcal:580, protein:42, carbs:48, fat:22, servings:"2 portioner", tag:"Svensk klassiker", why:"Köttbullar med gräddsås. Svensk husmanskost som mättar länge.",
+      ingredients:[{amount:"400g",item:"blandfärs"},{amount:"1",item:"ägg"},{amount:"1 dl",item:"mjölk"},{amount:"0,5 dl",item:"ströbröd"},{amount:"1 dl",item:"grädde"},{amount:"2 dl",item:"buljong"}],
+      steps:[{title:"Blanda färs",desc:"Med ägg, mjölk, ströbröd."},{title:"Rulla bullar",desc:"."},{title:"Stek 8 min",desc:"."},{title:"Gör sås",desc:"Grädde + buljong i pannan."}]},
+    { id:"l49", name:"Kycklinggyros", emoji:"🌯", time:20, kcal:480, protein:44, carbs:34, fat:18, servings:"2 portioner", tag:"Grekisk · Wrap", why:"Marinerad kyckling i pita — grekisk gatumat med 44g protein.",
+      ingredients:[{amount:"400g",item:"kycklinglår"},{amount:"2 msk",item:"olivolja"},{amount:"1 tsk",item:"oregano"},{amount:"1 tsk",item:"paprikapulver"},{amount:"2",item:"pita"},{amount:"3 msk",item:"tzatziki"}],
+      steps:[{title:"Marinera kyckling",desc:"15 min."},{title:"Stek 8 min",desc:"."},{title:"Värm pita",desc:"."},{title:"Fyll",desc:"Kyckling + tzatziki."}]},
+    { id:"l50", name:"Fläskkarré i Paprikasås", emoji:"🐖", time:30, kcal:540, protein:46, carbs:24, fat:28, servings:"2 portioner", tag:"Ungersk · Kryddig", why:"Klassisk goulash-stil med paprikasås. Magert fläsk + massa smak.",
+      ingredients:[{amount:"400g",item:"fläskkarré"},{amount:"1",item:"lök"},{amount:"2",item:"röda paprikor"},{amount:"2 msk",item:"paprikapulver"},{amount:"2 dl",item:"gräddfil"},{amount:"1 msk",item:"tomatpuré"}],
+      steps:[{title:"Stek kött + lök",desc:"5 min."},{title:"Tillsätt paprika + kryddor",desc:"."},{title:"Sjud 15 min",desc:"."},{title:"Rör in gräddfil",desc:"."}]},
+    { id:"l51", name:"Lammkorma", emoji:"🍛", time:40, kcal:580, protein:42, carbs:32, fat:30, servings:"2 portioner", tag:"Indisk · Kryddig", why:"Ömt lamm i krämig sås. En av Indiens mest berömda curry-rätter.",
+      ingredients:[{amount:"400g",item:"lammbog"},{amount:"1",item:"lök"},{amount:"2 msk",item:"currypasta"},{amount:"1 dl",item:"yoghurt"},{amount:"1 dl",item:"grädde"},{amount:"1 msk",item:"cashewnötter"}],
+      steps:[{title:"Bryn lamm",desc:"5 min."},{title:"Fräs lök + curry",desc:"."},{title:"Tillsätt yoghurt + grädde",desc:"."},{title:"Sjud 30 min",desc:"Tills ömt."}]},
+    { id:"l52", name:"Biffrulle med Bacon", emoji:"🥓", time:25, kcal:560, protein:48, carbs:12, fat:34, servings:"2 portioner", tag:"Low-carb · Mäktig", why:"Biff omlindad med bacon. Keto-vänlig lunch med 48g protein.",
+      ingredients:[{amount:"400g",item:"nötfärs"},{amount:"8 skivor",item:"bacon"},{amount:"1",item:"ägg"},{amount:"1 tsk",item:"paprikapulver"},{amount:"50g",item:"ost"}],
+      steps:[{title:"Forma färsen som bröd",desc:"Med ägg + kryddor."},{title:"Linda bacon runt",desc:"."},{title:"Ugn 200°C",desc:"20 min."},{title:"Toppa med ost",desc:"Grilla 2 min."}]},
+    { id:"l53", name:"Kyckling Caesar-wrap", emoji:"🌯", time:12, kcal:480, protein:44, carbs:36, fat:18, servings:"1 portion", tag:"Snabb · Portabel", why:"Caesar-sallad rullad i tortilla. Lunch on-the-go med mycket protein.",
+      ingredients:[{amount:"1",item:"tortilla fullkorn"},{amount:"150g",item:"grillad kyckling"},{amount:"100g",item:"romansallad"},{amount:"3 msk",item:"caesardressing"},{amount:"30g",item:"parmesan"},{amount:"1 msk",item:"krutonger"}],
+      steps:[{title:"Värm tortilla",desc:"."},{title:"Fyll",desc:"Sallad + kyckling + dressing + parmesan."},{title:"Rulla tight",desc:"."},{title:"Skär i två",desc:"Servera."}]},
+    { id:"l54", name:"Älgfärs & Lingonsylt", emoji:"🦌", time:25, kcal:520, protein:46, carbs:32, fat:22, servings:"2 portioner", tag:"Svensk vilt · Mager", why:"Älgfärs är super-magert med högt järninnehåll. Lingonsylt ger den perfekta syran.",
+      ingredients:[{amount:"400g",item:"älgfärs"},{amount:"1",item:"lök"},{amount:"300g",item:"potatis"},{amount:"3 msk",item:"lingonsylt"},{amount:"1 msk",item:"smör"}],
+      steps:[{title:"Koka potatis",desc:"."},{title:"Bryn färs + lök",desc:"."},{title:"Salta",desc:"."},{title:"Servera",desc:"Med potatis + lingon."}]},
+    { id:"l55", name:"Chili con Carne Proffs", emoji:"🌶️", time:35, kcal:520, protein:42, carbs:38, fat:18, servings:"3 portioner", tag:"Hearty · Meal prep", why:"Långkokt chili = ännu godare. Fiberrika bönor + järnrik färs.",
+      ingredients:[{amount:"500g",item:"nötfärs"},{amount:"400g",item:"röda bönor"},{amount:"400g",item:"krossade tomater"},{amount:"1",item:"lök"},{amount:"1 msk",item:"chilipulver"},{amount:"1 tsk",item:"spiskummin"}],
+      steps:[{title:"Bryn färs + lök",desc:"."},{title:"Tillsätt kryddor + tomater",desc:"."},{title:"Sjud 25 min",desc:"."},{title:"Rör i bönor sista 5 min",desc:"."}]},
+    { id:"l56", name:"Kyckling Tikka Masala", emoji:"🍗", time:30, kcal:540, protein:46, carbs:36, fat:22, servings:"2 portioner", tag:"Indisk klassiker", why:"Mörad kyckling i krämig tomatsås. En av världens populäraste rätter.",
+      ingredients:[{amount:"400g",item:"kycklingfilé"},{amount:"1 dl",item:"yoghurt"},{amount:"2 msk",item:"tikka masala-pasta"},{amount:"400ml",item:"krossade tomater"},{amount:"1 dl",item:"grädde"},{amount:"1 msk",item:"koriander"}],
+      steps:[{title:"Marinera kyckling",desc:"Yoghurt + pasta, 15 min."},{title:"Stek kyckling",desc:"5 min."},{title:"Tillsätt tomater + grädde",desc:"."},{title:"Sjud 10 min",desc:"Toppa med koriander."}]},
+    { id:"l57", name:"Stekt Fläsk & Löksås", emoji:"🍖", time:25, kcal:580, protein:38, carbs:32, fat:32, servings:"2 portioner", tag:"Svensk husmanskost", why:"Klassisk svensk middag med 38g protein. Comfort food som alla älskar.",
+      ingredients:[{amount:"400g",item:"fläskkotletter"},{amount:"2",item:"gula lökar"},{amount:"2 dl",item:"grädde"},{amount:"1 msk",item:"smör"},{amount:"300g",item:"potatis"}],
+      steps:[{title:"Koka potatis",desc:"."},{title:"Stek fläsk",desc:"4 min per sida."},{title:"Fräs lök i smör",desc:"Tills mjuk."},{title:"Tillsätt grädde",desc:"Sjud 5 min."}]},
+    { id:"l58", name:"Beef Burrito Bowl", emoji:"🍚", time:20, kcal:560, protein:44, carbs:52, fat:18, servings:"2 portioner", tag:"Mexikansk · Bowl", why:"Allt från en burrito — utan tortillan. Färre kalorier, mer protein.",
+      ingredients:[{amount:"300g",item:"nötfärs"},{amount:"200g",item:"ris"},{amount:"200g",item:"svarta bönor"},{amount:"1",item:"avokado"},{amount:"3 msk",item:"salsa"},{amount:"1 msk",item:"taco-krydda"}],
+      steps:[{title:"Koka ris",desc:"."},{title:"Bryn färs + krydda",desc:"."},{title:"Värm bönor",desc:"."},{title:"Bygg bowl",desc:"Ris + färs + bönor + avokado + salsa."}]},
+    { id:"l59", name:"Pulled Pork-sallad", emoji:"🥗", time:15, kcal:480, protein:42, carbs:24, fat:22, servings:"2 portioner", tag:"BBQ · Sallad", why:"Långbränd pulled pork på bädd av sallad. Comfort food utan skuldkänsla.",
+      ingredients:[{amount:"300g",item:"färdig pulled pork"},{amount:"200g",item:"blandsallad"},{amount:"1",item:"avokado"},{amount:"100g",item:"tomater"},{amount:"3 msk",item:"BBQ-sås"},{amount:"1 msk",item:"olivolja"}],
+      steps:[{title:"Värm pulled pork",desc:"."},{title:"Bygg sallad",desc:"Blad + tomater + avokado."},{title:"Toppa med kött",desc:"."},{title:"Ringla BBQ + olja",desc:"."}]},
+    { id:"l60", name:"Pad Thai med Räkor & Kyckling", emoji:"🍜", time:20, kcal:520, protein:42, carbs:58, fat:14, servings:"2 portioner", tag:"Thai · Nudlar", why:"Thailändsk klassiker med räkor + kyckling = dubbel protein.",
+      ingredients:[{amount:"200g",item:"risnudlar"},{amount:"200g",item:"kycklingbröst"},{amount:"150g",item:"räkor"},{amount:"2",item:"ägg"},{amount:"3 msk",item:"pad thai-sås"},{amount:"1 msk",item:"jordnötter"}],
+      steps:[{title:"Blötlägg nudlar",desc:"."},{title:"Woka kyckling",desc:"."},{title:"Tillsätt räkor + nudlar + sås",desc:"."},{title:"Knäck i ägg",desc:"Toppa med jordnötter."}]},
+    { id:"l61", name:"Köttfärslimpa Klassisk", emoji:"🍞", time:50, kcal:540, protein:44, carbs:22, fat:28, servings:"3 portioner", tag:"Meal-prep · Mättande", why:"Baka en gång, ät i 3 dagar. Klassisk köttfärslimpa med 44g protein.",
+      ingredients:[{amount:"600g",item:"blandfärs"},{amount:"1",item:"ägg"},{amount:"1 dl",item:"ströbröd"},{amount:"1 dl",item:"mjölk"},{amount:"1",item:"lök"},{amount:"2 msk",item:"ketchup"}],
+      steps:[{title:"Blanda allt utom ketchup",desc:"."},{title:"Forma i långpanna",desc:"."},{title:"Pensla med ketchup",desc:"."},{title:"Ugn 200°C",desc:"45 min."}]},
+    { id:"l62", name:"Teriyaki Biff-bowl", emoji:"🍱", time:20, kcal:540, protein:46, carbs:48, fat:18, servings:"2 portioner", tag:"Japansk · Snabb", why:"Japansk bowl med marinerad biff. Sojan + honung = umami-bomb.",
+      ingredients:[{amount:"400g",item:"biffremsor"},{amount:"200g",item:"ris"},{amount:"150g",item:"edamame"},{amount:"3 msk",item:"teriyaki-sås"},{amount:"1 msk",item:"honung"},{amount:"1 tsk",item:"sesamfrön"}],
+      steps:[{title:"Koka ris",desc:"."},{title:"Marinera biff",desc:"Med teriyaki + honung."},{title:"Woka 3 min",desc:"."},{title:"Servera",desc:"Ris + biff + edamame + sesam."}]},
+    { id:"l63", name:"Entrecôte med Pepparsås", emoji:"🥩", time:20, kcal:620, protein:52, carbs:14, fat:38, servings:"2 portioner", tag:"Lyxig · Helg", why:"Klassisk biff med pepparsås — restauranghit hemma. 52g protein.",
+      ingredients:[{amount:"400g",item:"entrecôte"},{amount:"2 msk",item:"grönpeppar"},{amount:"2 dl",item:"grädde"},{amount:"1 msk",item:"smör"},{amount:"1 msk",item:"konjak"},{amount:"200g",item:"grönsaker"}],
+      steps:[{title:"Stek entrecôte",desc:"3 min per sida."},{title:"Vila kött",desc:"."},{title:"Gör sås",desc:"Grädde + peppar + konjak."},{title:"Servera",desc:"Med grönsaker."}]},
+    { id:"l64", name:"Korv Stroganoff Plus", emoji:"🌭", time:20, kcal:560, protein:32, carbs:48, fat:28, servings:"2 portioner", tag:"Svensk vardag", why:"Barndomsklassiker uppgraderad med extra korv och krämig sås.",
+      ingredients:[{amount:"400g",item:"falukorv"},{amount:"200g",item:"ris"},{amount:"2 dl",item:"grädde"},{amount:"2 msk",item:"tomatpuré"},{amount:"1",item:"lök"},{amount:"1 tsk",item:"paprikapulver"}],
+      steps:[{title:"Koka ris",desc:"."},{title:"Tärna korv + lök",desc:"."},{title:"Stek 5 min",desc:"."},{title:"Tillsätt grädde + tomatpuré",desc:"Sjud 5 min."}]},
+    { id:"l65", name:"Kycklingfajitas", emoji:"🌶️", time:20, kcal:480, protein:44, carbs:38, fat:14, servings:"2 portioner", tag:"Mexikansk · Festligt", why:"Sizzling fajitas direkt från pannan! 44g protein + lots of flavor.",
+      ingredients:[{amount:"400g",item:"kycklingbröst"},{amount:"2",item:"paprikor"},{amount:"1",item:"lök"},{amount:"4",item:"tortillas"},{amount:"2 msk",item:"fajitakrydda"},{amount:"1 msk",item:"olivolja"}],
+      steps:[{title:"Skär allt i remsor",desc:"."},{title:"Krydda kyckling",desc:"."},{title:"Woka kyckling + grönt",desc:"8 min."},{title:"Servera",desc:"Med tortillas."}]},
+    { id:"l66", name:"Baconlindad Kyckling", emoji:"🍗", time:30, kcal:540, protein:52, carbs:8, fat:32, servings:"2 portioner", tag:"Lowcarb · Mäktig", why:"Kyckling blir extra saftig med bacon runt. 52g protein, minimalt kolhydrater.",
+      ingredients:[{amount:"400g",item:"kycklingfilé"},{amount:"8 skivor",item:"bacon"},{amount:"2 msk",item:"smör"},{amount:"1 tsk",item:"timjan"},{amount:"200g",item:"sparris"}],
+      steps:[{title:"Krydda kyckling",desc:"."},{title:"Linda bacon",desc:"."},{title:"Stek i panna",desc:"Börja med baconsidorna."},{title:"Klart 15 min",desc:"Servera med sparris."}]},
   ],
   middag:[
     { id:"d1", name:"Kyckling & Sötpotatis", emoji:"🍗", time:30, kcal:520, protein:52, carbs:44, fat:10, servings:"2 portioner", tag:"Hög protein · Deffa", why:"Magert protein bevarar muskelmassa. Sötpotatis ger långsam energi.",
@@ -694,6 +814,63 @@ const ALL_RECIPES = {
     { id:"d37", name:"Chili con Carne", emoji:"🌶️", time:40, kcal:520, protein:38, carbs:48, fat:16, servings:"4 portioner", tag:"Tex-Mex · Mättande", why:"Bönor + köttfärs = proteinbomb. Perfekt att göra i stor sats och frysa.",
       ingredients:[{amount:"500g",item:"nötfärs"},{amount:"2 burkar",item:"kidneybönor"},{amount:"2 burkar",item:"krossade tomater"},{amount:"1",item:"lök"},{amount:"2 tsk",item:"chilipulver"}],
       steps:[{title:"Bryn färs + lök",desc:"."},{title:"Tillsätt tomater + bönor + chili",desc:"."},{title:"Sjud 25 min",desc:"."},{title:"Servera med ris",desc:"."}]},
+    { id:"d38", name:"Lammracks med Rosmarin", emoji:"🐑", time:35, kcal:620, protein:48, carbs:16, fat:40, servings:"2 portioner", tag:"Lyx · Söndagsmiddag", why:"Klassiskt lamm med rosmarin och vitlök. Restaurangkänsla hemma.",
+      ingredients:[{amount:"500g",item:"lammracks"},{amount:"4 klyftor",item:"vitlök"},{amount:"2 kvistar",item:"rosmarin"},{amount:"2 msk",item:"olivolja"},{amount:"300g",item:"rotfrukter"}],
+      steps:[{title:"Förbered kött",desc:"Rumstempererat + kryddat."},{title:"Ugnsrosta rotfrukter",desc:"200°C, 20 min."},{title:"Bränn lammet",desc:"2 min per sida."},{title:"Klart i ugn",desc:"8 min för rosa."}]},
+    { id:"d39", name:"Oxfile Wellington (enkel)", emoji:"🥩", time:50, kcal:720, protein:58, carbs:32, fat:42, servings:"2 portioner", tag:"Lyx · Jul/Nyår", why:"Oxfile i deg - imponerande men enklare än det låter. 58g protein!",
+      ingredients:[{amount:"400g",item:"oxfilé"},{amount:"1 paket",item:"smördeg"},{amount:"200g",item:"champinjoner"},{amount:"4 skivor",item:"parmaskinka"},{amount:"1",item:"äggula"}],
+      steps:[{title:"Stek kött hårt",desc:"1 min per sida."},{title:"Hacka champinjoner",desc:"Stek tills torra."},{title:"Rulla in kött",desc:"Skinka + svamp + deg."},{title:"Ugn 200°C",desc:"25 min. Pensla äggula."}]},
+    { id:"d40", name:"BBQ Ribs Slow-cook", emoji:"🍖", time:180, kcal:680, protein:52, carbs:28, fat:40, servings:"3 portioner", tag:"American BBQ", why:"Saftigt fläsk som faller av benet. Långlagat blir det extra smakligt.",
+      ingredients:[{amount:"1 kg",item:"revbensspjäll"},{amount:"3 msk",item:"BBQ-rub"},{amount:"2 dl",item:"BBQ-sås"},{amount:"1",item:"lök"},{amount:"3 klyftor",item:"vitlök"}],
+      steps:[{title:"Gnid in rub",desc:"Vila 30 min."},{title:"Ugn 130°C i 2h",desc:"Täckt."},{title:"Pensla BBQ-sås",desc:"."},{title:"Grilla 20 min",desc:"Karamellisera."}]},
+    { id:"d41", name:"Kycklinggryta Franska", emoji:"🍗", time:45, kcal:520, protein:48, carbs:20, fat:28, servings:"2 portioner", tag:"Coq au vin", why:"Klassisk fransk gryta där kycklingen blir ultra-mör i rödvinet.",
+      ingredients:[{amount:"500g",item:"kycklinglår"},{amount:"2 dl",item:"rödvin"},{amount:"150g",item:"bacon"},{amount:"200g",item:"små lökar"},{amount:"200g",item:"champinjoner"}],
+      steps:[{title:"Stek bacon",desc:"Spara fettet."},{title:"Bryn kyckling",desc:"."},{title:"Tillsätt vin + grönsaker",desc:"."},{title:"Sjud 35 min",desc:"Låg värme."}]},
+    { id:"d42", name:"Schnitzel med Potatismos", emoji:"🥩", time:25, kcal:680, protein:52, carbs:58, fat:28, servings:"2 portioner", tag:"Österrikisk · Comfort", why:"Krispig panering + saftigt kött + krämig potatismos. Comfort food i paradklass.",
+      ingredients:[{amount:"400g",item:"kalvschnitzel"},{amount:"2",item:"ägg"},{amount:"2 dl",item:"ströbröd"},{amount:"600g",item:"potatis"},{amount:"1 dl",item:"mjölk"},{amount:"50g",item:"smör"}],
+      steps:[{title:"Koka potatis",desc:"."},{title:"Panera kött",desc:"Mjöl → ägg → bröd."},{title:"Stek gyllenbrunt",desc:"3 min per sida."},{title:"Gör mos",desc:"Med smör + mjölk."}]},
+    { id:"d43", name:"Svinstek i Ugn", emoji:"🐖", time:90, kcal:620, protein:52, carbs:24, fat:34, servings:"4 portioner", tag:"Söndagsstek · Tradition", why:"Klassisk söndagsstek med knäprig svål. Meal prep för hela veckan.",
+      ingredients:[{amount:"1,5 kg",item:"fläskstek"},{amount:"1 msk",item:"salt"},{amount:"2 tsk",item:"peppar"},{amount:"2",item:"lökar"},{amount:"500g",item:"potatis"},{amount:"2 dl",item:"grädde"}],
+      steps:[{title:"Gnid in salt",desc:"Rutig svål."},{title:"Ugn 175°C",desc:"1,5 h."},{title:"Höj värme 250°C",desc:"Sista 15 min för svål."},{title:"Gör sås",desc:"Med skyn."}]},
+    { id:"d44", name:"Biff Rydberg", emoji:"🥩", time:25, kcal:640, protein:42, carbs:52, fat:32, servings:"2 portioner", tag:"Svensk klassiker", why:"Svensk restaurangklassiker: biff, potatis, lök. Servera med råa äggulor!",
+      ingredients:[{amount:"400g",item:"oxfilé"},{amount:"500g",item:"potatis"},{amount:"2",item:"gula lökar"},{amount:"4",item:"äggulor"},{amount:"2 msk",item:"smör"}],
+      steps:[{title:"Tärna allt",desc:"Kött + potatis + lök."},{title:"Stek separat",desc:"."},{title:"Samla på tallrik",desc:"."},{title:"Toppa med äggula",desc:"."}]},
+    { id:"d45", name:"Thai Beef Curry", emoji:"🍛", time:30, kcal:560, protein:42, carbs:34, fat:28, servings:"2 portioner", tag:"Thai · Kryddig", why:"Grön curry med biffremsor och kokosmjölk. Exotiskt, proteinrikt.",
+      ingredients:[{amount:"400g",item:"biffremsor"},{amount:"400ml",item:"kokosmjölk"},{amount:"3 msk",item:"grön curry-pasta"},{amount:"200g",item:"bambuskott"},{amount:"150g",item:"böngroddar"}],
+      steps:[{title:"Fräs curry-pasta",desc:"."},{title:"Tillsätt kokosmjölk",desc:"."},{title:"Koka kött 5 min",desc:"."},{title:"Grönsaker sist",desc:"Servera med ris."}]},
+    { id:"d46", name:"Fylld Kycklingfilé", emoji:"🧀", time:30, kcal:540, protein:54, carbs:8, fat:30, servings:"2 portioner", tag:"Lowcarb · Elegant", why:"Kycklingfilé fylld med ost och skinka. 54g protein!",
+      ingredients:[{amount:"400g",item:"kycklingfilé"},{amount:"100g",item:"mozzarella"},{amount:"4 skivor",item:"parmaskinka"},{amount:"1 knippe",item:"basilika"},{amount:"2 msk",item:"olivolja"}],
+      steps:[{title:"Skär ficka i kyckling",desc:"."},{title:"Fyll",desc:"Ost + skinka + basilika."},{title:"Stek",desc:"4 min per sida."},{title:"Klart i ugn",desc:"180°C, 10 min."}]},
+    { id:"d47", name:"Ryska Biffar (Kotlety)", emoji:"🍖", time:25, kcal:520, protein:42, carbs:22, fat:28, servings:"2 portioner", tag:"Östeuropisk · Mättande", why:"Saftiga biffar med lök och bröd. En klassiker i Östeuropa.",
+      ingredients:[{amount:"400g",item:"nötfärs"},{amount:"1",item:"ägg"},{amount:"1",item:"lök"},{amount:"1 skiva",item:"bröd i mjölk"},{amount:"2 msk",item:"olja"}],
+      steps:[{title:"Blötlägg bröd",desc:"."},{title:"Blanda färs + ägg + lök + bröd",desc:"."},{title:"Forma ovala biffar",desc:"."},{title:"Stek gyllenbrunt",desc:"4 min per sida."}]},
+    { id:"d48", name:"Kalvfärs & Risotto", emoji:"🍚", time:35, kcal:580, protein:38, carbs:58, fat:20, servings:"2 portioner", tag:"Italiensk · Krämig", why:"Saftig risotto med kalvfärs och parmesan. Krämig comfort food.",
+      ingredients:[{amount:"300g",item:"kalvfärs"},{amount:"200g",item:"risottoris"},{amount:"7 dl",item:"buljong"},{amount:"1 dl",item:"vitt vin"},{amount:"50g",item:"parmesan"},{amount:"1",item:"lök"}],
+      steps:[{title:"Bryn färs",desc:"Lyft ur."},{title:"Fräs lök + ris",desc:"2 min."},{title:"Tillsätt vin + buljong",desc:"Långsamt."},{title:"Rör i färs + parmesan",desc:"."}]},
+    { id:"d49", name:"Hel Ugnskyckling", emoji:"🍗", time:90, kcal:580, protein:58, carbs:24, fat:28, servings:"4 portioner", tag:"Söndag · Meal prep", why:"Saftig hel kyckling = proteinbomb + billig meal prep för veckan.",
+      ingredients:[{amount:"1,5 kg",item:"hel kyckling"},{amount:"1",item:"citron"},{amount:"4 klyftor",item:"vitlök"},{amount:"2 kvistar",item:"rosmarin"},{amount:"500g",item:"rotfrukter"},{amount:"2 msk",item:"olivolja"}],
+      steps:[{title:"Fyll kycklingen",desc:"Citron + vitlök + rosmarin."},{title:"Olja + salta",desc:"."},{title:"Ugn 180°C",desc:"75 min."},{title:"Vila 10 min",desc:"Servera med rotfrukter."}]},
+    { id:"d50", name:"Kalkon-gryta", emoji:"🦃", time:40, kcal:480, protein:48, carbs:30, fat:14, servings:"2 portioner", tag:"Mager · Hälsosam", why:"Kalkon är det magraste köttet. Perfekt för deffa utan att ge upp smaken.",
+      ingredients:[{amount:"400g",item:"kalkonbröst"},{amount:"1",item:"lök"},{amount:"2",item:"morötter"},{amount:"200g",item:"champinjoner"},{amount:"2 dl",item:"buljong"},{amount:"1 dl",item:"grädde"}],
+      steps:[{title:"Bryn kalkon",desc:"Tärnad."},{title:"Fräs grönsaker",desc:"."},{title:"Tillsätt buljong",desc:"Sjud 20 min."},{title:"Rör in grädde",desc:"."}]},
+    { id:"d51", name:"Oxkind i Rödvin", emoji:"🍷", time:180, kcal:560, protein:48, carbs:18, fat:30, servings:"2 portioner", tag:"Långbränt · Lyx", why:"Oxkind blir ultra-ömt efter 3 timmar. Köttet faller isär.",
+      ingredients:[{amount:"500g",item:"oxkind"},{amount:"3 dl",item:"rödvin"},{amount:"2 dl",item:"buljong"},{amount:"1",item:"morot"},{amount:"1",item:"lök"},{amount:"2 msk",item:"tomatpuré"}],
+      steps:[{title:"Bryn köttet",desc:"."},{title:"Tillsätt grönsaker + vin + buljong",desc:"."},{title:"Ugn 150°C",desc:"3 timmar."},{title:"Sila såsen",desc:"Reducera."}]},
+    { id:"d52", name:"Kåldolmar med Gräddsås", emoji:"🥬", time:60, kcal:520, protein:40, carbs:38, fat:22, servings:"3 portioner", tag:"Svensk tradition", why:"Färdiga kåldolmar med gräddsås. Svensk husmanskost i toppklass.",
+      ingredients:[{amount:"1",item:"vitkål"},{amount:"400g",item:"blandfärs"},{amount:"1 dl",item:"ris"},{amount:"1",item:"lök"},{amount:"3 dl",item:"grädde"},{amount:"2 dl",item:"buljong"}],
+      steps:[{title:"Förväll kålblad",desc:"."},{title:"Blanda fyllning",desc:"Färs + ris + lök."},{title:"Rulla dolmar",desc:"."},{title:"Ugn 180°C",desc:"45 min med grädde + buljong."}]},
+    { id:"d53", name:"Pepparstek Klassisk", emoji:"🥩", time:25, kcal:640, protein:52, carbs:22, fat:38, servings:"2 portioner", tag:"Restaurangnivå", why:"Mörtad biff med pepparsås — restauranghit. Gör såsen i samma panna.",
+      ingredients:[{amount:"400g",item:"entrecôte"},{amount:"3 msk",item:"krossad svartpeppar"},{amount:"2 dl",item:"grädde"},{amount:"1 msk",item:"smör"},{amount:"2 msk",item:"dijonsenap"},{amount:"300g",item:"pommes"}],
+      steps:[{title:"Rulla kött i peppar",desc:"."},{title:"Stek i smör",desc:"3 min per sida."},{title:"Gör sås",desc:"Grädde + senap i pannan."},{title:"Servera",desc:"Med pommes."}]},
+    { id:"d54", name:"Rostbiff Kallskuren", emoji:"🥩", time:45, kcal:520, protein:52, carbs:14, fat:28, servings:"4 portioner", tag:"Meal-prep · Kalla skivor", why:"Rostbiff i skivor = mager protein för mackor eller salladslunch hela veckan.",
+      ingredients:[{amount:"800g",item:"rostbiff"},{amount:"2 msk",item:"olja"},{amount:"2 tsk",item:"salt"},{amount:"1 tsk",item:"timjan"},{amount:"2 tsk",item:"peppar"},{amount:"4 klyftor",item:"vitlök"}],
+      steps:[{title:"Kryddriv köttet",desc:"."},{title:"Bränn hårt",desc:"1 min per sida."},{title:"Ugn 125°C",desc:"30 min (rosa)."},{title:"Kyl helt",desc:"Skär tunt."}]},
+    { id:"d55", name:"Chorizo & Bönor", emoji:"🌶️", time:25, kcal:520, protein:38, carbs:42, fat:22, servings:"2 portioner", tag:"Spansk · One-pot", why:"Kryddig chorizo + bönor = full smak med ett kärl att diska.",
+      ingredients:[{amount:"300g",item:"chorizo"},{amount:"400g",item:"vita bönor"},{amount:"400g",item:"krossade tomater"},{amount:"1",item:"paprika"},{amount:"1",item:"lök"},{amount:"1 tsk",item:"paprikapulver"}],
+      steps:[{title:"Stek chorizo",desc:"Lämna fettet."},{title:"Fräs lök + paprika",desc:"."},{title:"Tillsätt tomater + bönor",desc:"."},{title:"Sjud 15 min",desc:"."}]},
+    { id:"d56", name:"Asiatisk Fläskfärs-bowl", emoji:"🍜", time:15, kcal:520, protein:38, carbs:48, fat:20, servings:"2 portioner", tag:"Asian · Snabb", why:"Snabb asiatisk bowl med krispigfärs. Umami-bomb med massa smak.",
+      ingredients:[{amount:"400g",item:"fläskfärs"},{amount:"200g",item:"ris"},{amount:"3 msk",item:"soja"},{amount:"1 msk",item:"ingefära"},{amount:"2 klyftor",item:"vitlök"},{amount:"3",item:"salladslökar"}],
+      steps:[{title:"Koka ris",desc:"."},{title:"Bryn färs + ingefära + vitlök",desc:"."},{title:"Tillsätt soja",desc:"Koka krispig."},{title:"Servera",desc:"Med salladslök."}]},
   ],
   mellanmal:[
     {id:"s1",name:"Hårdkokta Ägg & Hummus",emoji:"🥚",time:12,kcal:280,protein:18,carbs:14,fat:16,servings:"1 portion",tag:"Klassiskt · Proteinrikt",why:"Ägg + hummus = komplett proteinkombination. Håller hungern borta i 3-4 timmar.",ingredients:[{amount:"3 st",item:"ägg"},{amount:"3 msk",item:"hummus"},{amount:"5 st",item:"körsbärstomater"},{amount:"salt & peppar",item:"efter smak"}],steps:[{title:"Koka ägg",desc:"8 min för hårdkokt."},{title:"Kyl i kallt vatten",desc:"Lätt att skala."},{title:"Lägg upp",desc:"Ägg, hummus, tomater."},{title:"Smaka av",desc:"Salt och peppar."}]},
@@ -1171,6 +1348,12 @@ function App() {
   const [favorites, setFavorites] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
   
+  // RIKTIG SWIPE - touch/drag
+  const [dragStart, setDragStart] = useState(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [shuffledOrder, setShuffledOrder] = useState([]); // slumpmässig ordning
+  
   // Protein filter state
   const [showProteinFilter, setShowProteinFilter] = useState(false);
   const [selectedCatId, setSelectedCatId] = useState(null);
@@ -1642,6 +1825,14 @@ function App() {
     setTinderCatId(selectedCatId);
     setTinderIndex(0);
     setTinderHistory([]);
+    // Skapa slumpmässig ordning av index [0,1,2,...n] → shuffle
+    const recipes = getFilteredRecipes(selectedCatId, filters);
+    const indexes = Array.from({length: recipes.length}, (_, i) => i);
+    for (let i = indexes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indexes[i], indexes[j]] = [indexes[j], indexes[i]];
+    }
+    setShuffledOrder(indexes);
     setTinderMode(true);
   };
 
@@ -2329,7 +2520,11 @@ return (
     }
     
     const safeIndex = Math.min(tinderIndex, recipes.length - 1);
-    const recipe = recipes[safeIndex];
+    // Använd shuffled order om den finns
+    const actualIdx = shuffledOrder.length > 0 && shuffledOrder[safeIndex] !== undefined 
+      ? shuffledOrder[safeIndex] 
+      : safeIndex;
+    const recipe = recipes[actualIdx];
     
     if (recipes.length === 0 || !recipe) {
       return (
@@ -2352,9 +2547,57 @@ return (
       );
     }
     
-    const rotate = swipeDir === "right" ? 15 : swipeDir === "left" ? -15 : 0;
-    const translateX = swipeDir === "right" ? 500 : swipeDir === "left" ? -500 : 0;
-    const opacity = swipeDir ? 0 : 1;
+    // Animationsberäkningar — kombinera klick-swipe + drag
+    let translateX = 0;
+    let rotate = 0;
+    let opacity = 1;
+    
+    if (swipeDir === "right") { translateX = 500; rotate = 15; opacity = 0; }
+    else if (swipeDir === "left") { translateX = -500; rotate = -15; opacity = 0; }
+    else if (isDragging) {
+      translateX = dragOffset;
+      rotate = dragOffset * 0.1; // liten rotation medan man drar
+      opacity = 1 - Math.abs(dragOffset) / 500; // fade när man drar långt
+    }
+    
+    // Visuellt feedback: ❤ eller ✕ dyker upp när man drar
+    const showLikeIndicator = isDragging && dragOffset > 50;
+    const showNopeIndicator = isDragging && dragOffset < -50;
+
+    // Touch event-hanterare
+    const handleTouchStart = (e) => {
+      const touch = e.touches[0];
+      setDragStart({x: touch.clientX, y: touch.clientY});
+      setIsDragging(true);
+    };
+    const handleTouchMove = (e) => {
+      if (!dragStart) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - dragStart.x;
+      setDragOffset(deltaX);
+    };
+    const handleTouchEnd = () => {
+      if (!dragStart) return;
+      // Om man dragit tillräckligt långt → swipe i den riktningen
+      if (dragOffset > 100) {
+        // Swipe höger = gilla
+        setDragOffset(0);
+        setIsDragging(false);
+        setDragStart(null);
+        handleTinderYes();
+      } else if (dragOffset < -100) {
+        // Swipe vänster = skippa
+        setDragOffset(0);
+        setIsDragging(false);
+        setDragStart(null);
+        handleTinderNo();
+      } else {
+        // Snäpp tillbaka
+        setDragOffset(0);
+        setIsDragging(false);
+        setDragStart(null);
+      }
+    };
     
     return (
       <div style={{position:"fixed",inset:0,zIndex:300,background:T.bg,display:"flex",flexDirection:"column"}}>
@@ -2376,8 +2619,12 @@ return (
         </div>
 
         {/* Recipe card */}
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",overflow:"hidden"}}>
-          <div style={{
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",overflow:"hidden",touchAction:"pan-y"}}>
+          <div 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
             background:isDark?`linear-gradient(145deg, #141410 0%, #1a1a14 100%)`:`linear-gradient(145deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
             border:`1px solid ${cat.color}33`,
             borderRadius:24,
@@ -2387,9 +2634,24 @@ return (
             boxShadow:`0 20px 60px ${cat.color}22, 0 0 1px ${cat.color}44`,
             transform:`translateX(${translateX}px) rotate(${rotate}deg)`,
             opacity,
-            transition:"all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
-            position:"relative"
+            transition: isDragging ? "none" : "all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
+            position:"relative",
+            cursor: isDragging ? "grabbing" : "grab",
+            userSelect:"none",
+            WebkitUserSelect:"none"
           }}>
+            {/* LIKE-stämpel (grön, höger) */}
+            {showLikeIndicator && (
+              <div style={{position:"absolute",top:30,left:30,zIndex:10,fontSize:36,fontWeight:900,color:T.green,border:`4px solid ${T.green}`,padding:"8px 20px",borderRadius:12,transform:"rotate(-20deg)",letterSpacing:"0.05em",background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}>
+                ❤ GILLA
+              </div>
+            )}
+            {/* NOPE-stämpel (röd, vänster) */}
+            {showNopeIndicator && (
+              <div style={{position:"absolute",top:30,right:30,zIndex:10,fontSize:36,fontWeight:900,color:T.red,border:`4px solid ${T.red}`,padding:"8px 20px",borderRadius:12,transform:"rotate(20deg)",letterSpacing:"0.05em",background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}>
+                ✕ NOPE
+              </div>
+            )}
             <div style={{marginBottom:14}}>
               <RecipeImage recipe={recipe} height={180} borderRadius={14} fallbackEmojiSize={80}/>
             </div>
@@ -2435,7 +2697,7 @@ return (
         </div>
 
         <div style={{textAlign:"center",paddingBottom:20,fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>
-          ✕ Skippa · ❤ Laga & Spara
+          ← Swipa eller tryck →
         </div>
       </div>
     );
