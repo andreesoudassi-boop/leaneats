@@ -459,7 +459,7 @@ const ALL_RECIPES = {
     { id:"f48", name:"Äggmuffins med Skinka", emoji:"🧁", time:25, kcal:280, protein:26, carbs:4, fat:18, servings:"6 st", tag:"Meal-prep · Portabelt", why:"Baka på söndag, ät hela veckan. 26g protein per portion, inget socker.",
       ingredients:[{amount:"8",item:"ägg"},{amount:"150g",item:"skinka"},{amount:"100g",item:"ost"},{amount:"1",item:"paprika"},{amount:"1 tsk",item:"salt & peppar"}],
       steps:[{title:"Vispa ägg",desc:"."},{title:"Häll i muffinsformar",desc:"Med skinka + paprika + ost."},{title:"Ugn 180°C",desc:"18 min."},{title:"Kyl",desc:"Förvara i kylen."}]},
-    { id:"f49", name:"Tortilla Española", emoji:"🥔", time:30, kcal:420, protein:22, carbs:38, fat:20, servings:"2 portioner", tag:"Spansk · Mättande", view:"Potatis-ägg-pannkaka som är lika god kall. Klassisk tapas.",why:"Klassisk spansk frukost/lunch — ägg + potatis = långvarig energi.",
+    { id:"f49", name:"Tortilla Española", emoji:"🥔", time:30, kcal:420, protein:22, carbs:38, fat:20, servings:"2 portioner", tag:"Spansk · Mättande", why:"Potatis-äggpannkaka som är lika god kall. Klassisk spansk frukost/lunch — ägg + potatis = långvarig energi.",
       ingredients:[{amount:"5",item:"ägg"},{amount:"300g",item:"potatis"},{amount:"1",item:"gul lök"},{amount:"3 msk",item:"olivolja"},{amount:"1 tsk",item:"salt"}],
       steps:[{title:"Stek potatis + lök",desc:"15 min i olja."},{title:"Vispa ägg",desc:"Salta."},{title:"Blanda + stek",desc:"Lägre värme, 8 min."},{title:"Vänd + klart",desc:"3 min till."}]},
     { id:"f50", name:"Croque Madame", emoji:"🥪", time:15, kcal:520, protein:34, carbs:38, fat:26, servings:"1 portion", tag:"Fransk · Helgfrukost", why:"Ostgratinerad macka med ägg. En klassiker som mättar länge.",
@@ -1348,11 +1348,7 @@ function App() {
   const [favorites, setFavorites] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
   
-  // RIKTIG SWIPE - touch/drag
-  const [dragStart, setDragStart] = useState(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [shuffledOrder, setShuffledOrder] = useState([]); // slumpmässig ordning
+
   
   // Protein filter state
   const [showProteinFilter, setShowProteinFilter] = useState(false);
@@ -1825,14 +1821,6 @@ function App() {
     setTinderCatId(selectedCatId);
     setTinderIndex(0);
     setTinderHistory([]);
-    // Skapa slumpmässig ordning av index [0,1,2,...n] → shuffle
-    const recipes = getFilteredRecipes(selectedCatId, filters);
-    const indexes = Array.from({length: recipes.length}, (_, i) => i);
-    for (let i = indexes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indexes[i], indexes[j]] = [indexes[j], indexes[i]];
-    }
-    setShuffledOrder(indexes);
     setTinderMode(true);
   };
 
@@ -2520,11 +2508,7 @@ return (
     }
     
     const safeIndex = Math.min(tinderIndex, recipes.length - 1);
-    // Använd shuffled order om den finns
-    const actualIdx = shuffledOrder.length > 0 && shuffledOrder[safeIndex] !== undefined 
-      ? shuffledOrder[safeIndex] 
-      : safeIndex;
-    const recipe = recipes[actualIdx];
+    const recipe = recipes[safeIndex];
     
     if (recipes.length === 0 || !recipe) {
       return (
@@ -2547,57 +2531,9 @@ return (
       );
     }
     
-    // Animationsberäkningar — kombinera klick-swipe + drag
-    let translateX = 0;
-    let rotate = 0;
-    let opacity = 1;
-    
-    if (swipeDir === "right") { translateX = 500; rotate = 15; opacity = 0; }
-    else if (swipeDir === "left") { translateX = -500; rotate = -15; opacity = 0; }
-    else if (isDragging) {
-      translateX = dragOffset;
-      rotate = dragOffset * 0.1; // liten rotation medan man drar
-      opacity = 1 - Math.abs(dragOffset) / 500; // fade när man drar långt
-    }
-    
-    // Visuellt feedback: ❤ eller ✕ dyker upp när man drar
-    const showLikeIndicator = isDragging && dragOffset > 50;
-    const showNopeIndicator = isDragging && dragOffset < -50;
-
-    // Touch event-hanterare
-    const handleTouchStart = (e) => {
-      const touch = e.touches[0];
-      setDragStart({x: touch.clientX, y: touch.clientY});
-      setIsDragging(true);
-    };
-    const handleTouchMove = (e) => {
-      if (!dragStart) return;
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - dragStart.x;
-      setDragOffset(deltaX);
-    };
-    const handleTouchEnd = () => {
-      if (!dragStart) return;
-      // Om man dragit tillräckligt långt → swipe i den riktningen
-      if (dragOffset > 100) {
-        // Swipe höger = gilla
-        setDragOffset(0);
-        setIsDragging(false);
-        setDragStart(null);
-        handleTinderYes();
-      } else if (dragOffset < -100) {
-        // Swipe vänster = skippa
-        setDragOffset(0);
-        setIsDragging(false);
-        setDragStart(null);
-        handleTinderNo();
-      } else {
-        // Snäpp tillbaka
-        setDragOffset(0);
-        setIsDragging(false);
-        setDragStart(null);
-      }
-    };
+    const rotate = swipeDir === "right" ? 15 : swipeDir === "left" ? -15 : 0;
+    const translateX = swipeDir === "right" ? 500 : swipeDir === "left" ? -500 : 0;
+    const opacity = swipeDir ? 0 : 1;
     
     return (
       <div style={{position:"fixed",inset:0,zIndex:300,background:T.bg,display:"flex",flexDirection:"column"}}>
@@ -2619,12 +2555,8 @@ return (
         </div>
 
         {/* Recipe card */}
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",overflow:"hidden",touchAction:"pan-y"}}>
-          <div 
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",overflow:"hidden"}}>
+          <div style={{
             background:isDark?`linear-gradient(145deg, #141410 0%, #1a1a14 100%)`:`linear-gradient(145deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
             border:`1px solid ${cat.color}33`,
             borderRadius:24,
@@ -2634,24 +2566,9 @@ return (
             boxShadow:`0 20px 60px ${cat.color}22, 0 0 1px ${cat.color}44`,
             transform:`translateX(${translateX}px) rotate(${rotate}deg)`,
             opacity,
-            transition: isDragging ? "none" : "all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
-            position:"relative",
-            cursor: isDragging ? "grabbing" : "grab",
-            userSelect:"none",
-            WebkitUserSelect:"none"
+            transition:"all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
+            position:"relative"
           }}>
-            {/* LIKE-stämpel (grön, höger) */}
-            {showLikeIndicator && (
-              <div style={{position:"absolute",top:30,left:30,zIndex:10,fontSize:36,fontWeight:900,color:T.green,border:`4px solid ${T.green}`,padding:"8px 20px",borderRadius:12,transform:"rotate(-20deg)",letterSpacing:"0.05em",background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}>
-                ❤ GILLA
-              </div>
-            )}
-            {/* NOPE-stämpel (röd, vänster) */}
-            {showNopeIndicator && (
-              <div style={{position:"absolute",top:30,right:30,zIndex:10,fontSize:36,fontWeight:900,color:T.red,border:`4px solid ${T.red}`,padding:"8px 20px",borderRadius:12,transform:"rotate(20deg)",letterSpacing:"0.05em",background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}>
-                ✕ NOPE
-              </div>
-            )}
             <div style={{marginBottom:14}}>
               <RecipeImage recipe={recipe} height={180} borderRadius={14} fallbackEmojiSize={80}/>
             </div>
@@ -2697,7 +2614,7 @@ return (
         </div>
 
         <div style={{textAlign:"center",paddingBottom:20,fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>
-          ← Swipa eller tryck →
+          ✕ Skippa · ❤ Laga & Spara
         </div>
       </div>
     );
