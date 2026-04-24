@@ -1043,6 +1043,14 @@ function App() {
   const [todayFat, setTodayFat] = useState(0);
   const [todayDate, setTodayDate] = useState(""); // YYYY-MM-DD för att nolla nästa dag
   const [todayMeals, setTodayMeals] = useState([]); // lista av ätna recept för ångra-funktion
+  
+  // Vattenspårning
+  const [todayWater, setTodayWater] = useState(0); // antal glas (0-12)
+  const waterGoal = 8; // standardmål 8 glas
+  
+  // Streak-system
+  const [streakCount, setStreakCount] = useState(0);
+  const [streakLastDate, setStreakLastDate] = useState(""); // senaste aktiva datum
 
   // Tinder-mode state
   const [tinderMode, setTinderMode] = useState(false);
@@ -1130,6 +1138,7 @@ function App() {
               setTodayCarbs(data.todayCarbs || 0);
               setTodayFat(data.todayFat || 0);
               setTodayMeals(data.todayMeals || []);
+              setTodayWater(data.todayWater || 0);
               setTodayDate(todayStr);
             } else {
               // Ny dag - nollställ
@@ -1138,11 +1147,16 @@ function App() {
               setTodayCarbs(0);
               setTodayFat(0);
               setTodayMeals([]);
+              setTodayWater(0);
               setTodayDate(todayStr);
               await fb.setDoc(fb.doc(fb.db, "users", firebaseUser.uid), {
-                todayDate: todayStr, todayKcal: 0, todayProtein: 0, todayCarbs: 0, todayFat: 0, todayMeals: []
+                todayDate: todayStr, todayKcal: 0, todayProtein: 0, todayCarbs: 0, todayFat: 0, todayMeals: [], todayWater: 0
               }, {merge: true});
             }
+            
+            // Ladda streak-data
+            setStreakCount(data.streakCount || 0);
+            setStreakLastDate(data.streakLastDate || "");
             
             if (!data.onboardingComplete) {
               setShowOnboarding(true);
@@ -1276,6 +1290,7 @@ function App() {
       todayFat: newFat,
       todayMeals: newMeals
     });
+    await updateStreak();
   };
   
   // ── Ångra senaste måltid ──
@@ -1301,6 +1316,51 @@ function App() {
       todayFat: newFat,
       todayMeals: newMeals
     });
+  };
+
+  // ── VATTEN ──
+  const addWater = async () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const baseWater = todayDate === todayStr ? todayWater : 0;
+    const newWater = Math.min(12, baseWater + 1); // max 12 glas
+    setTodayWater(newWater);
+    setTodayDate(todayStr);
+    await saveToCloud({ todayDate: todayStr, todayWater: newWater });
+    // Uppdatera streak om man lagt till vatten (räknas som aktiv dag)
+    await updateStreak();
+  };
+  
+  const removeWater = async () => {
+    const newWater = Math.max(0, todayWater - 1);
+    setTodayWater(newWater);
+    await saveToCloud({ todayWater: newWater });
+  };
+
+  // ── STREAK ──
+  // Räknar dagar i rad användaren har varit aktiv (loggat mat ELLER vatten)
+  const updateStreak = async () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (streakLastDate === todayStr) return; // redan aktiv idag
+    
+    // Kolla om igår var aktiv
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    
+    let newStreak;
+    if (streakLastDate === yesterdayStr) {
+      // Fortsätt streak
+      newStreak = streakCount + 1;
+    } else if (streakLastDate === "" || streakLastDate < yesterdayStr) {
+      // Ny streak (första gången eller avbrutet)
+      newStreak = 1;
+    } else {
+      newStreak = streakCount;
+    }
+    
+    setStreakCount(newStreak);
+    setStreakLastDate(todayStr);
+    await saveToCloud({ streakCount: newStreak, streakLastDate: todayStr });
   };
 
   // ── Skala recept efter dagligt kaloriintag ──
@@ -1652,6 +1712,60 @@ function App() {
                 </div>
               );
             })()}
+
+            {/* VATTENSPÅRNING + STREAK */}
+            <div style={{display:"grid",gridTemplateColumns:streakCount > 0 ? "1fr 1fr" : "1fr",gap:10,marginBottom:18}}>
+              {/* Vatten */}
+              <div style={{background:T.bg2,border:`1px solid ${T.blue}33`,borderRadius:14,padding:"12px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{fontSize:20}}>💧</span>
+                    <div>
+                      <div style={{fontSize:12,fontWeight:700,color:T.blue}}>Vatten</div>
+                      <div style={{fontSize:10,color:T.textFaint}}>{todayWater}/{waterGoal} glas</div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:4}}>
+                    {todayWater > 0 && (
+                      <button onClick={removeWater} style={{background:T.bg3,border:`1px solid ${T.border}`,color:T.textDim,width:26,height:26,borderRadius:"50%",cursor:"pointer",fontSize:14,padding:0,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
+                    )}
+                    <button onClick={addWater} disabled={todayWater>=12} style={{background:todayWater>=12?T.border:T.blue,border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:todayWater>=12?"not-allowed":"pointer",fontSize:14,padding:0,opacity:todayWater>=12?0.3:1,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>+</button>
+                  </div>
+                </div>
+                {/* Droppar visualisering */}
+                <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                  {[...Array(waterGoal)].map((_,i)=>(
+                    <div key={i} onClick={()=>{if(i+1>todayWater)addWater();else setTodayWater(i);}} style={{
+                      fontSize:18,
+                      opacity:i<todayWater?1:0.2,
+                      cursor:"pointer",
+                      transition:"all 0.2s",
+                      filter:i<todayWater?"none":"grayscale(1)"
+                    }}>💧</div>
+                  ))}
+                  {todayWater > waterGoal && [...Array(Math.min(4, todayWater - waterGoal))].map((_,i)=>(
+                    <div key={`bonus-${i}`} style={{fontSize:18}}>⭐</div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Streak */}
+              {streakCount > 0 && (
+                <div style={{background:streakCount >= 7 ? (isDark?"linear-gradient(135deg,#2a1a08,#1a1a08)":"linear-gradient(135deg,#ffe8c4,#fff4d8)") : T.bg2,border:`1px solid ${T.accent}44`,borderRadius:14,padding:"12px 14px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center"}}>
+                  <div style={{fontSize:28,marginBottom:2}}>🔥</div>
+                  <div style={{fontSize:20,fontWeight:700,color:T.accent,lineHeight:1}}>{streakCount}</div>
+                  <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginTop:2}}>
+                    {streakCount === 1 ? "dag" : "dagar i rad"}
+                  </div>
+                  {streakCount >= 7 && (
+                    <div style={{fontSize:8,color:T.accent,marginTop:3,fontWeight:700}}>🏆 En vecka!</div>
+                  )}
+                  {streakCount >= 30 && (
+                    <div style={{fontSize:8,color:T.accent,marginTop:3,fontWeight:700}}>💎 MÅNAD!</div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <h2 style={{fontSize:"clamp(18px,4vw,28px)",fontWeight:700,lineHeight:1.1,marginBottom:6,
               background:isDark?"linear-gradient(135deg,#f0f0e0,#e8c97a 55%,#6dcc6d)":"linear-gradient(135deg,#2a2a1a,#b8942a 55%,#4aaa4a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
