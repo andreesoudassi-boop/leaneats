@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FitFuel – Kalorisnål Träningsmat</title>
+<title>LeanEats – Kalorisnål Träningsmat</title>
 
 <!-- React -->
 
@@ -1177,6 +1177,16 @@ function App() {
   // Tema
   const [theme, setTheme] = useState("auto");
   const [systemDark, setSystemDark] = useState(true);
+  
+  // Admin-system
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userTier, setUserTier] = useState("free"); // free|premium|vip|trial|coach_client|blocked
+  const [trialEndsAt, setTrialEndsAt] = useState(""); // ISO-datum
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminSearch, setAdminSearch] = useState("");
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -1251,6 +1261,32 @@ function App() {
             setStreakCount(data.streakCount || 0);
             setStreakLastDate(data.streakLastDate || "");
             
+            // Ladda admin-status + tier
+            setIsAdmin(data.isAdmin === true);
+            setUserTier(data.userTier || "free");
+            setTrialEndsAt(data.trialEndsAt || "");
+            
+            // AUTO-ADMIN: Gör andree_amine_soudassi@hotmail.com till admin automatiskt
+            if (firebaseUser.email === "andree_amine_soudassi@hotmail.com" && data.isAdmin !== true) {
+              await fb.setDoc(fb.doc(fb.db, "users", firebaseUser.uid), {isAdmin: true, userTier: "vip"}, {merge: true});
+              setIsAdmin(true);
+              setUserTier("vip");
+              setIsPremium(true);
+            }
+            
+            // Bestäm isPremium baserat på tier
+            const tier = data.userTier || "free";
+            if (tier === "premium" || tier === "vip" || tier === "coach_client") {
+              setIsPremium(true);
+            } else if (tier === "trial" && data.trialEndsAt) {
+              // Kolla om trial fortfarande är giltig
+              const now = new Date();
+              const end = new Date(data.trialEndsAt);
+              setIsPremium(now < end);
+            } else {
+              setIsPremium(data.isPremium || false);
+            }
+            
             if (!data.onboardingComplete) {
               setShowOnboarding(true);
               setOnboardStep(0);
@@ -1302,10 +1338,11 @@ function App() {
     setAuthLoading(true); setAuthError("");
     try {
       const cred = await fb.createUserWithEmailAndPassword(fb.auth, authEmail, authPass);
-      const newProfile = {...defaultProfile, name: authName};
+      const newProfile = {...defaultProfile, name: authName, email: authEmail};
       await fb.setDoc(fb.doc(fb.db, "users", cred.user.uid), {
         profile: newProfile, isPremium: false, freeUsed: 0, savedCard: null, paymentMethod: null,
-        createdAt: new Date().toISOString(), onboardingComplete: false
+        createdAt: new Date().toISOString(), onboardingComplete: false,
+        userTier: "free"
       });
       setProfile(newProfile);
       setEditProfile(newProfile);
@@ -1456,7 +1493,69 @@ function App() {
     await saveToCloud({ streakCount: newStreak, streakLastDate: todayStr });
   };
 
-  // ── Skala recept efter dagligt kaloriintag ──
+  // ── ADMIN-FUNKTIONER ──
+  
+  // Ladda alla användare (bara för admin)
+  const loadAllUsers = async () => {
+    if (!isAdmin) return;
+    setAdminLoading(true);
+    try {
+      const snap = await fb.db.collection("users").get();
+      const list = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        list.push({
+          uid: doc.id,
+          email: d.profile?.email || "",
+          name: d.profile?.name || "",
+          tier: d.userTier || "free",
+          isPremium: d.isPremium || false,
+          isAdmin: d.isAdmin === true,
+          trialEndsAt: d.trialEndsAt || "",
+          createdAt: d.createdAt || "",
+          streakCount: d.streakCount || 0,
+          freeUsed: d.freeUsed || 0
+        });
+      });
+      // Sortera: admin först, sedan senast skapade
+      list.sort((a,b) => {
+        if (a.isAdmin !== b.isAdmin) return a.isAdmin ? -1 : 1;
+        return (b.createdAt || "").localeCompare(a.createdAt || "");
+      });
+      setAdminUsers(list);
+    } catch(e) { 
+      console.log("Admin load error:", e);
+      alert("Kunde inte ladda användare. Kolla konsolen.");
+    }
+    setAdminLoading(false);
+  };
+  
+  // Ändra tier för en användare
+  const setUserTierAdmin = async (uid, newTier, daysTrial = 0) => {
+    if (!isAdmin) return;
+    try {
+      const updates = { userTier: newTier };
+      if (newTier === "trial" && daysTrial > 0) {
+        const end = new Date();
+        end.setDate(end.getDate() + daysTrial);
+        updates.trialEndsAt = end.toISOString();
+      } else if (newTier !== "trial") {
+        updates.trialEndsAt = "";
+      }
+      if (newTier === "premium" || newTier === "vip" || newTier === "coach_client") {
+        updates.isPremium = true;
+      } else if (newTier === "free" || newTier === "blocked") {
+        updates.isPremium = false;
+      }
+      await fb.db.collection("users").doc(uid).set(updates, {merge: true});
+      await loadAllUsers();
+    } catch(e) { 
+      console.log("Tier update error:", e); 
+      alert("Fel: " + e.message);
+    }
+  };
+
+  // Skala recept efter dagligt kaloriintag
   // Standardrecept är byggt för 2000 kcal/dag. Skala med faktor = dailyKcal / 2000
   const getScaleFactor = () => {
     return dailyKcal / 2000;
@@ -1638,7 +1737,7 @@ function App() {
   if (!authReady) return (
     <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
       <div style={{fontSize:48,filter:"drop-shadow(0 0 24px rgba(232,201,122,0.5))"}}>🔥</div>
-      <div style={{fontSize:14,color:"#444"}}>Laddar FitFuel...</div>
+      <div style={{fontSize:14,color:"#444"}}>Laddar LeanEats...</div>
     </div>
   );
 
@@ -1649,7 +1748,7 @@ function App() {
       <div style={{width:"100%",maxWidth:400,position:"relative",zIndex:1}}>
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:52,marginBottom:10,filter:"drop-shadow(0 0 24px rgba(232,201,122,0.5))"}}>🔥</div>
-          <h1 style={{fontSize:26,fontWeight:700,color:"#e8c97a",marginBottom:6}}>FitFuel</h1>
+          <h1 style={{fontSize:26,fontWeight:700,color:"#e8c97a",marginBottom:6}}>LeanEats</h1>
           <p style={{fontSize:13,color:"#444"}}>Kalorisnål mat för träning & vardag</p>
         </div>
         <div style={{background:"#0e0e0c",border:"1px solid #1a1a14",borderRadius:18,padding:"22px"}}>
@@ -1692,7 +1791,7 @@ function App() {
         padding:"13px 18px",borderBottom:`1px solid ${T.border}`,background:T.navBg,backdropFilter:"blur(16px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
           <span style={{fontSize:18}}>🔥</span>
-          <span style={{fontSize:17,fontWeight:700,letterSpacing:"0.06em",color:T.accent}}>FitFuel</span>
+          <span style={{fontSize:17,fontWeight:700,letterSpacing:"0.06em",color:T.accent}}>LeanEats</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           {!isPremium && <span style={{fontSize:11,color:T.textFaint}}>{freeLeft} kvar</span>}
@@ -2361,6 +2460,23 @@ function App() {
               </button>
             </div>
 
+            {/* ADMIN-SEKTION - BARA FÖR ADMIN */}
+            {isAdmin && (
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:10,color:T.red,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4,fontWeight:700}}>🛡 Admin</div>
+                <button onClick={async ()=>{setShowSettings(false);setShowAdmin(true);await loadAllUsers();}} style={{width:"100%",background:isDark?"linear-gradient(135deg,#2a1414,#1a1410)":"linear-gradient(135deg,#fff0f0,#ffe8e8)",border:`1px solid ${T.red}66`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <span style={{fontSize:20}}>🛡</span>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:700,color:T.red}}>Admin-panel</div>
+                      <div style={{fontSize:11,color:T.textFaint}}>Hantera alla användare & abonnemang</div>
+                    </div>
+                  </div>
+                  <span style={{color:T.red}}>→</span>
+                </button>
+              </div>
+            )}
+
             <div style={{marginBottom:28}}>
               <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Tema</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
@@ -2406,7 +2522,161 @@ function App() {
               <button onClick={()=>{setShowSettings(false);handleLogout();}} style={{width:"100%",background:"transparent",border:`1px solid ${T.border2}`,color:T.red,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:600}}>Logga ut</button>
             </div>
 
-            <div style={{textAlign:"center",fontSize:10,color:T.textVeryFaint,marginTop:20}}>FitFuel · v1.0</div>
+            <div style={{textAlign:"center",fontSize:10,color:T.textVeryFaint,marginTop:20}}>LeanEats · v1.0</div>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN PANEL */}
+      {showAdmin && isAdmin && (
+        <div style={{position:"fixed",inset:0,zIndex:320,background:T.bg,overflowY:"auto"}}>
+          <div style={{maxWidth:640,margin:"0 auto",padding:"44px 16px 40px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+              <button onClick={()=>{setShowAdmin(false);setSelectedUser(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:18,fontWeight:700,color:T.red}}>🛡 Admin-panel</div>
+              <button onClick={loadAllUsers} style={{background:T.bg2,border:`1px solid ${T.border2}`,color:T.textDim,padding:"6px 12px",borderRadius:99,cursor:"pointer",fontSize:11,fontFamily:"inherit"}}>↻</button>
+            </div>
+
+            {/* Statistik-dashboard */}
+            {!selectedUser && (
+              <div style={{marginBottom:20}}>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                  <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px"}}>
+                    <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>Totalt</div>
+                    <div style={{fontSize:22,fontWeight:700,color:T.text}}>{adminUsers.length}</div>
+                    <div style={{fontSize:10,color:T.textFaint}}>användare</div>
+                  </div>
+                  <div style={{background:T.bg2,border:`1px solid ${T.accent}44`,borderRadius:12,padding:"12px"}}>
+                    <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>✨ Premium</div>
+                    <div style={{fontSize:22,fontWeight:700,color:T.accent}}>{adminUsers.filter(u=>u.tier==="premium").length}</div>
+                    <div style={{fontSize:10,color:T.green}}>{adminUsers.filter(u=>u.tier==="premium").length * 100} kr/mån</div>
+                  </div>
+                  <div style={{background:T.bg2,border:`1px solid ${T.green}44`,borderRadius:12,padding:"12px"}}>
+                    <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>🎁 VIP</div>
+                    <div style={{fontSize:22,fontWeight:700,color:T.green}}>{adminUsers.filter(u=>u.tier==="vip").length}</div>
+                    <div style={{fontSize:10,color:T.textFaint}}>gratis obegränsat</div>
+                  </div>
+                  <div style={{background:T.bg2,border:`1px solid ${T.blue}44`,borderRadius:12,padding:"12px"}}>
+                    <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>🆓 Gratis</div>
+                    <div style={{fontSize:22,fontWeight:700,color:T.blue}}>{adminUsers.filter(u=>u.tier==="free" || !u.tier).length}</div>
+                    <div style={{fontSize:10,color:T.textFaint}}>30/vecka</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Detaljer för en användare */}
+            {selectedUser && (
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                  <div>
+                    <div style={{fontSize:15,fontWeight:700,color:T.text}}>{selectedUser.name || "(ingen namn)"}</div>
+                    <div style={{fontSize:12,color:T.textFaint}}>{selectedUser.email || selectedUser.uid.substring(0,8)}...</div>
+                  </div>
+                  <button onClick={()=>setSelectedUser(null)} style={{background:T.bg3,border:"none",color:T.textDim,width:28,height:28,borderRadius:"50%",fontSize:14,cursor:"pointer"}}>✕</button>
+                </div>
+                
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14,fontSize:11}}>
+                  <div style={{background:T.bg3,borderRadius:8,padding:"8px"}}>
+                    <div style={{color:T.textFaint}}>Skapad</div>
+                    <div style={{color:T.text,fontWeight:600}}>{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString("sv-SE") : "okänt"}</div>
+                  </div>
+                  <div style={{background:T.bg3,borderRadius:8,padding:"8px"}}>
+                    <div style={{color:T.textFaint}}>Streak</div>
+                    <div style={{color:T.text,fontWeight:600}}>🔥 {selectedUser.streakCount} dagar</div>
+                  </div>
+                  <div style={{background:T.bg3,borderRadius:8,padding:"8px"}}>
+                    <div style={{color:T.textFaint}}>Nuvarande status</div>
+                    <div style={{color:T.accent,fontWeight:600}}>{selectedUser.tier || "free"}</div>
+                  </div>
+                  <div style={{background:T.bg3,borderRadius:8,padding:"8px"}}>
+                    <div style={{color:T.textFaint}}>Använt (gratis)</div>
+                    <div style={{color:T.text,fontWeight:600}}>{selectedUser.freeUsed}</div>
+                  </div>
+                </div>
+
+                {selectedUser.isAdmin ? (
+                  <div style={{background:isDark?"#1a0a0a":"#ffe0e0",border:`1px solid ${T.red}66`,borderRadius:10,padding:"10px",textAlign:"center",fontSize:12,color:T.red,fontWeight:700}}>
+                    🛡 Detta är en ADMIN-användare - kan inte ändras här
+                  </div>
+                ) : (
+                  <>
+                    <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",marginBottom:8,letterSpacing:"0.1em"}}>Ändra tier</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
+                      <button onClick={async ()=>{await setUserTierAdmin(selectedUser.uid, "free");setSelectedUser(null);}} style={{background:selectedUser.tier==="free"?T.blue+"22":T.bg3,border:`1px solid ${selectedUser.tier==="free"?T.blue:T.border}`,borderRadius:10,padding:"10px",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:T.text}}>
+                        🆓 Gratis<br/><span style={{fontSize:9,color:T.textFaint}}>30/vecka</span>
+                      </button>
+                      <button onClick={async ()=>{await setUserTierAdmin(selectedUser.uid, "vip");setSelectedUser(null);}} style={{background:selectedUser.tier==="vip"?T.green+"22":T.bg3,border:`1px solid ${selectedUser.tier==="vip"?T.green:T.border}`,borderRadius:10,padding:"10px",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:T.text}}>
+                        🎁 VIP<br/><span style={{fontSize:9,color:T.textFaint}}>gratis obegränsat</span>
+                      </button>
+                      <button onClick={async ()=>{await setUserTierAdmin(selectedUser.uid, "premium");setSelectedUser(null);}} style={{background:selectedUser.tier==="premium"?T.accent+"22":T.bg3,border:`1px solid ${selectedUser.tier==="premium"?T.accent:T.border}`,borderRadius:10,padding:"10px",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:T.text}}>
+                        ✨ Premium<br/><span style={{fontSize:9,color:T.textFaint}}>betalar 100 kr</span>
+                      </button>
+                      <button onClick={async ()=>{await setUserTierAdmin(selectedUser.uid, "trial", 30);setSelectedUser(null);}} style={{background:selectedUser.tier==="trial"?T.yellow+"22":T.bg3,border:`1px solid ${selectedUser.tier==="trial"?T.yellow:T.border}`,borderRadius:10,padding:"10px",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:T.text}}>
+                        ⏰ Trial<br/><span style={{fontSize:9,color:T.textFaint}}>30 dagar gratis</span>
+                      </button>
+                      <button onClick={async ()=>{await setUserTierAdmin(selectedUser.uid, "coach_client");setSelectedUser(null);}} style={{background:selectedUser.tier==="coach_client"?T.blue+"22":T.bg3,border:`1px solid ${selectedUser.tier==="coach_client"?T.blue:T.border}`,borderRadius:10,padding:"10px",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:T.text}}>
+                        🏋️ Coach-klient<br/><span style={{fontSize:9,color:T.textFaint}}>coach betalar</span>
+                      </button>
+                      <button onClick={async ()=>{if(confirm("Blockera användaren?")){await setUserTierAdmin(selectedUser.uid, "blocked");setSelectedUser(null);}}} style={{background:selectedUser.tier==="blocked"?T.red+"22":T.bg3,border:`1px solid ${selectedUser.tier==="blocked"?T.red:T.border}`,borderRadius:10,padding:"10px",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:T.red}}>
+                        🚫 Blockera<br/><span style={{fontSize:9,color:T.textFaint}}>ingen åtkomst</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Sökfält */}
+            {!selectedUser && (
+              <input 
+                type="text" 
+                placeholder="Sök email eller namn..." 
+                value={adminSearch}
+                onChange={e=>setAdminSearch(e.target.value)}
+                style={{width:"100%",background:T.bg2,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px",color:T.text,fontSize:13,fontFamily:"inherit",marginBottom:12}}
+              />
+            )}
+
+            {/* Användarlista */}
+            {!selectedUser && (
+              <div>
+                {adminLoading ? (
+                  <div style={{textAlign:"center",color:T.textFaint,padding:"40px"}}>⏳ Laddar...</div>
+                ) : adminUsers.length === 0 ? (
+                  <div style={{textAlign:"center",color:T.textFaint,padding:"40px"}}>Inga användare</div>
+                ) : (
+                  adminUsers
+                    .filter(u => !adminSearch || (u.email + u.name).toLowerCase().includes(adminSearch.toLowerCase()))
+                    .map(u => {
+                      const tierInfo = {
+                        free: {emoji:"🆓", label:"Gratis", color:T.blue},
+                        premium: {emoji:"✨", label:"Premium", color:T.accent},
+                        vip: {emoji:"🎁", label:"VIP", color:T.green},
+                        trial: {emoji:"⏰", label:"Trial", color:T.yellow},
+                        coach_client: {emoji:"🏋️", label:"Coach", color:T.blue},
+                        blocked: {emoji:"🚫", label:"Blockerad", color:T.red},
+                      }[u.tier] || {emoji:"🆓", label:"Gratis", color:T.blue};
+                      
+                      return (
+                        <button key={u.uid} onClick={()=>setSelectedUser(u)} style={{width:"100%",background:T.bg2,border:`1px solid ${u.isAdmin?T.red+"66":T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:13,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                              {u.isAdmin && "🛡 "}{u.name || "(utan namn)"}
+                            </div>
+                            <div style={{fontSize:11,color:T.textFaint,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                              {u.email || u.uid.substring(0,12)+"..."}
+                            </div>
+                          </div>
+                          <div style={{fontSize:11,color:tierInfo.color,background:tierInfo.color+"22",border:`1px solid ${tierInfo.color}44`,borderRadius:99,padding:"4px 10px",flexShrink:0,marginLeft:8}}>
+                            {tierInfo.emoji} {tierInfo.label}
+                          </div>
+                        </button>
+                      );
+                    })
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2678,7 +2948,7 @@ function App() {
             <div style={{width:40,height:4,background:"#333",borderRadius:99,margin:"0 auto 20px"}}/>
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:38,marginBottom:8}}>✨</div>
-              <h2 style={{fontSize:20,color:"#e8c97a",margin:"0 0 5px"}}>FitFuel Premium</h2>
+              <h2 style={{fontSize:20,color:"#e8c97a",margin:"0 0 5px"}}>LeanEats Premium</h2>
               <div style={{fontSize:13,color:"#555"}}>Obegränsad tillgång — sparat i molnet</div>
             </div>
             {[["💪","Träningsmat","Proteinrika deffa-recept"],["✨","Lyxhelg","Restaurangkänsla hemma"],["🍽️","Vardag","Snabba vardagsrätter"],["🍓","Efterrätt","Sötsug utan dåligt samvete"],["🔄","Obegränsat","Nytt recept varje gång"],["☁️","Molnsynkat","Fungerar på alla dina enheter"]].map(([icon,title,sub])=>(
