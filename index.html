@@ -3814,28 +3814,30 @@ function App() {
               setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}), 100);
             }} className="press-feedback" style={{
               position:"absolute",
-              top:-32,
-              width:72,
-              height:72,
+              top:-44,
+              width:60,
+              height:60,
               borderRadius:"50%",
               background:"linear-gradient(135deg,#ff6b35 0%,#ff3366 60%,#c4402b 100%)",
               border:`4px solid ${T.bg}`,
-              boxShadow:"0 8px 28px rgba(255,51,102,0.6), 0 0 40px rgba(255,107,53,0.4), 0 0 0 1px rgba(255,107,53,0.3)",
+              boxShadow:"0 6px 18px rgba(255,51,102,0.5), 0 0 24px rgba(255,107,53,0.35)",
               cursor:"pointer",
               fontFamily:"inherit",
               display:"flex",
               alignItems:"center",
               justifyContent:"center",
-              fontSize:36,
+              fontSize:28,
               animation:"pulse 2.5s ease-in-out infinite",
               zIndex:5
             }}>🔥</button>
-            <div style={{position:"absolute",bottom:6,fontSize:10,color:"#ff3366",textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:700}}>Swipea</div>
+            <div style={{position:"absolute",top:24,fontSize:9,color:"#ff3366",textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:700,whiteSpace:"nowrap"}}>Swipea</div>
           </div>
           
           {/* Recept (kategori-val) */}
           <button onClick={()=>{
             setScreen("home");
+            setShowCategoryPicker(true);
+            setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}), 100);
           }} style={{
             flex:1,padding:"10px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
