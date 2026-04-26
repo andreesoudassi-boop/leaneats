@@ -3091,7 +3091,13 @@ function App() {
   const formatExp = (v) => { const d = v.replace(/\D/g,"").slice(0,4); return d.length>2?d.slice(0,2)+"/"+d.slice(2):d; };
 
   const navBtn = (id, emoji, label) => (
-    <button key={id} onClick={()=>setScreen(id)} style={{
+    <button key={id} onClick={()=>{
+      if (id === "diary") {
+        setShowWeightLog(true);
+        return;
+      }
+      setScreen(id);
+    }} style={{
       flex:1,padding:"10px 0",background:"transparent",border:"none",
       color:screen===id?T.accent:T.textFaint,cursor:"pointer",fontFamily:"inherit",
       fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
@@ -3174,7 +3180,7 @@ function App() {
 
   // ── Main app ─────────────────────────────────────────────────────────────
   return (
-    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"Georgia,serif",color:T.text,paddingBottom:72}}>
+    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"Georgia,serif",color:T.text,paddingBottom:90}}>
       <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:`radial-gradient(ellipse at 50% 0%,${T.gradStart} 0%,transparent 55%)`}}/>
       
       {/* KONFETTI vid milstolpar */}
@@ -3767,10 +3773,69 @@ function App() {
         {showGoalSetup && screen==="profile" && <GoalSetup onSave={saveGoal} initialGoal={fitnessGoal} initialKcal={dailyKcal} T={T} isDark={isDark}/>}
       </div>
 
-      {/* BOTTOM NAV */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,display:"flex",background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)"}}>
-        {navBtn("home","🏠","Hem")}
-        {navBtn("profile","👤","Profil")}
+      {/* BOTTOM NAV - 4 tabs + stor swipe-knapp i mitten */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)",paddingBottom:"env(safe-area-inset-bottom)"}}>
+        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",position:"relative",height:64}}>
+          {/* Hem */}
+          {navBtn("home","🏠","Hem")}
+          
+          {/* Dagbok (Min Resa) */}
+          <button onClick={()=>setShowWeightLog(true)} style={{
+            flex:1,padding:"10px 0",background:"transparent",border:"none",
+            color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
+            fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
+            borderTop:"2px solid transparent",
+            display:"flex",flexDirection:"column",alignItems:"center",gap:4
+          }}>
+            <span style={{fontSize:18}}>📔</span>Dagbok
+          </button>
+          
+          {/* MITTEN: Stor swipe-knapp som sticker upp */}
+          <div style={{flex:1,display:"flex",justifyContent:"center",position:"relative"}}>
+            <button onClick={()=>{
+              setScreen("home");
+              // Öppna kategori-väljaren direkt
+              setTimeout(()=>{
+                setSelectedCatId("frukost");
+                setProteinFilter(["all"]);
+                setShowProteinFilter(true);
+              }, 50);
+            }} className="press-feedback" style={{
+              position:"absolute",
+              top:-22,
+              width:60,
+              height:60,
+              borderRadius:"50%",
+              background:"linear-gradient(135deg,#ff6b35 0%,#ff3366 60%,#c4402b 100%)",
+              border:`3px solid ${T.bg}`,
+              boxShadow:"0 6px 20px rgba(255,51,102,0.5), 0 0 30px rgba(255,107,53,0.3)",
+              cursor:"pointer",
+              fontFamily:"inherit",
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              fontSize:28,
+              animation:"pulse 2.5s ease-in-out infinite"
+            }}>🔥</button>
+            <div style={{position:"absolute",bottom:8,fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:600}}>Swipea</div>
+          </div>
+          
+          {/* Recept (kategori-val) */}
+          <button onClick={()=>{
+            setScreen("home");
+          }} style={{
+            flex:1,padding:"10px 0",background:"transparent",border:"none",
+            color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
+            fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
+            borderTop:"2px solid transparent",
+            display:"flex",flexDirection:"column",alignItems:"center",gap:4
+          }}>
+            <span style={{fontSize:18}}>🍽</span>Recept
+          </button>
+          
+          {/* Profil */}
+          {navBtn("profile","👤","Profil")}
+        </div>
       </div>
 
       {/* PROTEIN FILTER SELECTION */}
@@ -5495,7 +5560,7 @@ function App() {
                 </div>
 
                 {/* Pricing-info för coach */}
-                <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px"}}>
+                <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
                   <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Coach-prislista (kommer snart)</div>
                   <div style={{display:"flex",flexDirection:"column",gap:8,fontSize:12,color:T.textDim}}>
                     <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${T.border}`}}>
@@ -5511,6 +5576,64 @@ function App() {
                       <span style={{color:T.accent,fontWeight:700}}>1499 kr/mån</span>
                     </div>
                   </div>
+                </div>
+                
+                {/* Avsluta coach-konto */}
+                <div style={{background:T.bg2,border:`1px solid ${T.red}33`,borderRadius:14,padding:"16px"}}>
+                  <div style={{fontSize:11,color:T.red,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:700}}>⚠️ Farozon</div>
+                  <div style={{fontSize:12,color:T.textDim,lineHeight:1.5,marginBottom:12}}>
+                    Avslutar du ditt coach-konto behåller alla klienter sin nuvarande plan men blir vanliga premium-användare.
+                  </div>
+                  <button onClick={async () => {
+                    const clientCount = clientIds.length;
+                    const msg = clientCount > 0 
+                      ? `Är du säker på att du vill avsluta ditt coach-konto?\n\n${clientCount} ${clientCount === 1 ? "klient" : "klienter"} kommer att kopplas bort men behåller sina kalori- och makromål.`
+                      : `Är du säker på att du vill avsluta ditt coach-konto?`;
+                    if (!confirm(msg)) return;
+                    
+                    // Koppla bort alla klienter (de behåller sina kcal/makros men blir vanliga premium)
+                    for (const clientUid of clientIds) {
+                      try {
+                        await fb.db.collection("users").doc(clientUid).set({
+                          coachId: "",
+                          coachName: "",
+                          userTier: "free",
+                          coachNote: "",
+                          mealComments: {}
+                        }, {merge: true});
+                      } catch(e) { console.log("Disconnect client error:", e); }
+                    }
+                    
+                    // Stäng av coach-status
+                    setIsCoach(false);
+                    setCoachId("");
+                    setCoachName("");
+                    setInviteCode("");
+                    setClientIds([]);
+                    setCoachClients([]);
+                    
+                    await saveToCloud({
+                      isCoach: false,
+                      coachId: "",
+                      coachName: "",
+                      inviteCode: "",
+                      clientIds: []
+                    });
+                    
+                    alert("Coach-kontot är nu avslutat. Du kan när som helst aktivera det igen via 'Bli coach'.");
+                    setShowCoach(false);
+                  }} style={{
+                    width:"100%",
+                    background:"transparent",
+                    border:`1px solid ${T.red}66`,
+                    color:T.red,
+                    padding:"12px",
+                    borderRadius:99,
+                    fontSize:13,
+                    cursor:"pointer",
+                    fontFamily:"inherit",
+                    fontWeight:600
+                  }}>❌ Avsluta coach-konto</button>
                 </div>
               </>
             )}
@@ -6057,9 +6180,9 @@ function App() {
         
         const bmr = calculateBMR(onbGender, onbWeight, onbHeight, onbAge);
         const tdee = calculateTDEE(bmr, onbActivity);
-        // Justera kalorier baserat på cardio + styrketräning
-        const trainingBonus = Math.round((onbCardioHours * 50) + (onbStrengthSessions * 100));
-        const targetKcal = calculateTargetKcal(tdee + trainingBonus, onbGoal);
+        // Aktivitetsnivåerna (1.2-1.9) inkluderar redan träning - ingen bonus behövs!
+        // Cardio/styrka används bara för makrofördelning (mer styrka = mer protein)
+        const targetKcal = calculateTargetKcal(tdee, onbGoal);
         // Protein: anpassas efter styrketräning (mer styrka = mer protein)
         const proteinPct = onbStrengthSessions >= 4 ? 0.35 : onbStrengthSessions >= 2 ? 0.32 : 0.28;
         // Kolhydrater: anpassas efter cardio (mer cardio = mer kolh)
