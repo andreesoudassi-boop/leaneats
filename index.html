@@ -1286,6 +1286,279 @@ function getThemeColors(isDark) {
 }
 
 // ─── RECIPE IMAGE KOMPONENT ────────────────────────────────────────────────
+// ─── Add Ingredient Modal (för meal-builder) ─────────────────────────────
+function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favoriteFoods, isFavoriteFood, toggleFavoriteFood }) {
+  const [tab, setTab] = React.useState("search");
+  const [query, setQuery] = React.useState("");
+  const [results, setResults] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [selected, setSelected] = React.useState(null);
+  const [grams, setGrams] = React.useState(100);
+  
+  const doSearch = async (q) => {
+    if (!q || q.length < 2) { setResults([]); return; }
+    setLoading(true);
+    try {
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=15&fields=code,product_name,product_name_sv,brands,image_url,image_front_url,nutriments,serving_size`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const products = (data.products || [])
+        .filter(p => p.nutriments && (p.nutriments["energy-kcal_100g"] || p.nutriments.energy_100g))
+        .map(p => {
+          const nut = p.nutriments || {};
+          return {
+            barcode: p.code,
+            name: p.product_name_sv || p.product_name || "Okänd",
+            brand: p.brands || "",
+            image: p.image_url || p.image_front_url || "",
+            kcal_100g: Math.round(nut["energy-kcal_100g"] || nut.energy_100g/4.184 || 0),
+            protein_100g: parseFloat((nut.proteins_100g || 0).toFixed(1)),
+            carbs_100g: parseFloat((nut.carbohydrates_100g || 0).toFixed(1)),
+            fat_100g: parseFloat((nut.fat_100g || 0).toFixed(1))
+          };
+        })
+        .filter(p => p.kcal_100g > 0)
+        .slice(0, 12);
+      setResults(products);
+    } catch(e) { console.log(e); setResults([]); }
+    setLoading(false);
+  };
+  
+  return (
+    <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:350,background:T.bg,overflowY:"auto"}}>
+      <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+          <button onClick={onClose} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+          <div style={{fontSize:17,fontWeight:700,color:T.green}}>➕ Lägg till ingrediens</div>
+          <div style={{width:36}}></div>
+        </div>
+
+        {!selected ? (
+          <>
+            {/* Tabbar */}
+            <div style={{display:"flex",gap:4,marginBottom:14,background:T.bg2,padding:4,borderRadius:99,border:`1px solid ${T.border}`}}>
+              {[
+                {id:"search",label:"🔍 Sök"},
+                {id:"recents",label:`🕒 Senaste`},
+                {id:"favorites",label:`❤️ Fav`}
+              ].map(t=>(
+                <button key={t.id} onClick={()=>setTab(t.id)} style={{
+                  flex:1,
+                  padding:"8px 4px",
+                  background:tab===t.id ? T.green+"33" : "transparent",
+                  border:"none",
+                  borderRadius:99,
+                  fontSize:11,
+                  fontWeight:tab===t.id?700:500,
+                  color:tab===t.id ? T.green : T.textDim,
+                  cursor:"pointer",
+                  fontFamily:"inherit"
+                }}>{t.label}</button>
+              ))}
+            </div>
+
+            {/* Search */}
+            {tab === "search" && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Sök ingrediens..."
+                  value={query}
+                  onChange={e=>{
+                    setQuery(e.target.value);
+                    clearTimeout(window.__ingTimeout);
+                    window.__ingTimeout = setTimeout(()=>doSearch(e.target.value), 400);
+                  }}
+                  style={{width:"100%",background:T.bg2,border:`1px solid ${T.border2}`,borderRadius:12,padding:"12px 14px",fontSize:14,color:T.text,fontFamily:"inherit",outline:"none",marginBottom:14}}
+                />
+                
+                {loading && <div style={{textAlign:"center",padding:"20px",color:T.textFaint,fontSize:13}}>⏳ Söker...</div>}
+                
+                {!loading && query.length >= 2 && results.length === 0 && (
+                  <div style={{textAlign:"center",padding:"20px",color:T.textFaint,fontSize:13}}>🤷 Inga resultat</div>
+                )}
+                
+                {!loading && query.length < 2 && (
+                  <div style={{textAlign:"center",padding:"30px",color:T.textFaint,fontSize:13}}>
+                    🔍 Skriv minst 2 bokstäver för att söka
+                  </div>
+                )}
+                
+                {results.map((p,i)=>(
+                  <FoodItemRow key={p.barcode+"_ing_"+i} product={p} isFavorite={isFavoriteFood(p.barcode)} onSelect={()=>{setSelected(p);setGrams(100);}} onToggleFav={()=>toggleFavoriteFood(p)} T={T} index={i}/>
+                ))}
+              </>
+            )}
+
+            {/* Recents */}
+            {tab === "recents" && (
+              <>
+                {recentFoods.length === 0 ? (
+                  <div style={{textAlign:"center",padding:"30px",color:T.textFaint,fontSize:13}}>🕒 Inga senaste än</div>
+                ) : (
+                  recentFoods.map((p,i)=>(
+                    <FoodItemRow key={p.barcode+"_rec_"+i} product={p} isFavorite={isFavoriteFood(p.barcode)} onSelect={()=>{setSelected(p);setGrams(100);}} onToggleFav={()=>toggleFavoriteFood(p)} T={T} index={i}/>
+                  ))
+                )}
+              </>
+            )}
+
+            {/* Favorites */}
+            {tab === "favorites" && (
+              <>
+                {favoriteFoods.length === 0 ? (
+                  <div style={{textAlign:"center",padding:"30px",color:T.textFaint,fontSize:13}}>❤️ Inga favoriter än</div>
+                ) : (
+                  favoriteFoods.map((p,i)=>(
+                    <FoodItemRow key={p.barcode+"_fav_"+i} product={p} isFavorite={true} onSelect={()=>{setSelected(p);setGrams(100);}} onToggleFav={()=>toggleFavoriteFood(p)} T={T} index={i}/>
+                  ))
+                )}
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Vald produkt — välj portion */}
+            <div style={{background:T.bg2,border:`1px solid ${T.green}44`,borderRadius:14,padding:"16px",marginBottom:14}}>
+              <div style={{display:"flex",gap:12,marginBottom:14}}>
+                {selected.image && (
+                  <div style={{width:60,height:60,borderRadius:10,overflow:"hidden",background:T.bg3,flexShrink:0}}>
+                    <img src={selected.image} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  </div>
+                )}
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:2}}>{selected.name}</div>
+                  {selected.brand && <div style={{fontSize:11,color:T.textDim}}>{selected.brand}</div>}
+                  <div style={{fontSize:10,color:T.textFaint,marginTop:4}}>
+                    Per 100g: {selected.kcal_100g} kcal · P: {selected.protein_100g}g · K: {selected.carbs_100g}g · F: {selected.fat_100g}g
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Mängd</div>
+                <div style={{fontSize:22,fontWeight:700,color:T.green}}>{grams}<span style={{fontSize:12,color:T.textFaint,marginLeft:4}}>g</span></div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:12}}>
+                {[25,50,100,200].map(g=>(
+                  <button key={g} onClick={()=>setGrams(g)} className="press-feedback" style={{
+                    padding:"10px 4px",
+                    background:grams===g ? T.green+"33" : T.bg3,
+                    border:`1px solid ${grams===g ? T.green : T.border2}`,
+                    borderRadius:10,
+                    fontSize:12,
+                    fontWeight:700,
+                    color:grams===g ? T.green : T.text,
+                    cursor:"pointer",
+                    fontFamily:"inherit"
+                  }}>{g}g</button>
+                ))}
+              </div>
+              <input type="range" min="5" max="500" step="5" value={grams} onChange={e=>setGrams(Number(e.target.value))}
+                style={{width:"100%",height:6,borderRadius:99,appearance:"none",background:`linear-gradient(90deg, ${T.green} ${((grams-5)/495)*100}%, ${T.border2} ${((grams-5)/495)*100}%)`,outline:"none",cursor:"pointer"}}/>
+            </div>
+
+            {/* Förhandsvisning */}
+            <div style={{background:`linear-gradient(135deg,${T.green}22,${T.green}11)`,border:`1px solid ${T.green}44`,borderRadius:14,padding:"14px",marginBottom:14}}>
+              <div style={{fontSize:11,color:T.green,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8,fontWeight:700}}>Lägger till:</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6}}>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:700,color:T.red}}>{Math.round(selected.kcal_100g*(grams/100))}</div>
+                  <div style={{fontSize:8,color:T.textFaint}}>kcal</div>
+                </div>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:700,color:T.green}}>{(selected.protein_100g*(grams/100)).toFixed(1)}g</div>
+                  <div style={{fontSize:8,color:T.textFaint}}>protein</div>
+                </div>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:700,color:T.blue}}>{(selected.carbs_100g*(grams/100)).toFixed(1)}g</div>
+                  <div style={{fontSize:8,color:T.textFaint}}>kolh</div>
+                </div>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:700,color:T.yellow}}>{(selected.fat_100g*(grams/100)).toFixed(1)}g</div>
+                  <div style={{fontSize:8,color:T.textFaint}}>fett</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:10}}>
+              <button onClick={()=>setSelected(null)} style={{background:T.bg3,border:`1px solid ${T.border2}`,color:T.text,padding:"14px 20px",borderRadius:99,fontSize:13,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>← Annan</button>
+              <button onClick={()=>onAdd(selected, grams)} className="press-feedback" style={{
+                background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                color:"#0d0d0d",
+                border:"none",
+                borderRadius:99,
+                padding:"14px",
+                fontSize:14,
+                fontWeight:700,
+                cursor:"pointer",
+                fontFamily:"inherit",
+                boxShadow:`0 4px 16px ${T.green}66`
+              }}>✅ Lägg till i måltiden</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Food Item Row (för matsökning, senaste, favoriter) ─────────────────
+function FoodItemRow({ product, isFavorite, onSelect, onToggleFav, T, index }) {
+  return (
+    <div className="stagger-item" style={{
+      display:"flex",
+      alignItems:"center",
+      gap:10,
+      padding:"10px 12px",
+      background:T.bg2,
+      border:`1px solid ${T.border}`,
+      borderRadius:12,
+      marginBottom:6,
+      animationDelay:`${index*0.03}s`
+    }}>
+      {/* Bild */}
+      {product.image ? (
+        <div style={{width:48,height:48,borderRadius:8,overflow:"hidden",background:T.bg3,flexShrink:0}}>
+          <img src={product.image} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        </div>
+      ) : (
+        <div style={{width:48,height:48,borderRadius:8,background:T.bg3,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🍽</div>
+      )}
+      
+      {/* Info */}
+      <button onClick={onSelect} style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:0,cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
+        <div style={{fontSize:13,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+          {product.name}
+        </div>
+        {product.brand && (
+          <div style={{fontSize:11,color:T.textFaint,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginBottom:2}}>{product.brand}</div>
+        )}
+        <div style={{display:"flex",gap:8,fontSize:10,color:T.textDim}}>
+          <span style={{color:T.red,fontWeight:600}}>{product.kcal_100g} kcal</span>
+          <span style={{color:T.green}}>P: {product.protein_100g}g</span>
+          <span style={{color:T.blue}}>K: {product.carbs_100g}g</span>
+          <span style={{color:T.yellow}}>F: {product.fat_100g}g</span>
+        </div>
+      </button>
+      
+      {/* Favorit-knapp */}
+      <button onClick={onToggleFav} style={{
+        background:"transparent",
+        border:"none",
+        cursor:"pointer",
+        fontSize:20,
+        padding:"6px 4px",
+        flexShrink:0,
+        opacity:isFavorite ? 1 : 0.3,
+        transition:"all 0.2s"
+      }}>{isFavorite ? "❤️" : "🤍"}</button>
+    </div>
+  );
+}
+
 // ─── CONFETTI-komponent ───────────────────────────────────────────────────
 function Confetti({ trigger }) {
   const [pieces, setPieces] = React.useState([]);
@@ -1534,6 +1807,22 @@ function App() {
   const [scannerError, setScannerError] = useState("");
   const [scannerPortion, setScannerPortion] = useState(100); // portion i gram
   
+  // Matdatabas - sök & favoriter
+  const [scannerTab, setScannerTab] = useState("search"); // search|recents|favorites
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [recentFoods, setRecentFoods] = useState([]); // senaste 20 loggade produkter
+  const [favoriteFoods, setFavoriteFoods] = useState([]); // stjärnmärkta produkter
+  
+  // Mina egna måltider (skapade av användaren)
+  const [myMeals, setMyMeals] = useState([]); // [{id, name, emoji, ingredients:[{product, grams}], totalKcal, totalProtein, totalCarbs, totalFat}]
+  const [showMyMeals, setShowMyMeals] = useState(false);
+  const [mealBuilder, setMealBuilder] = useState(null); // {name, emoji, ingredients:[]} när man bygger en
+  const [mealBuilderOpen, setMealBuilderOpen] = useState(false);
+  const [showAddIngredient, setShowAddIngredient] = useState(false);
+  const [editingMealId, setEditingMealId] = useState(null); // id på måltid som redigeras
+  
   // Custom makros (coach kan sätta dessa, eller anpassas av träning)
   const [customProtein, setCustomProtein] = useState(0); // 0 = auto-räkna från kcal
   const [customCarbs, setCustomCarbs] = useState(0);
@@ -1651,6 +1940,13 @@ function App() {
             setCustomCarbs(data.customCarbs || 0);
             setCustomFat(data.customFat || 0);
             setCoachNote(data.coachNote || "");
+            
+            // Ladda senaste & favoriter (matdatabas)
+            setRecentFoods(data.recentFoods || []);
+            setFavoriteFoods(data.favoriteFoods || []);
+            
+            // Ladda egna måltider
+            setMyMeals(data.myMeals || []);
             
             // Ladda admin-status + tier
             setIsAdmin(data.isAdmin === true);
@@ -2302,11 +2598,16 @@ function App() {
     });
     await updateStreak();
     
+    // Spara till "senaste 20"
+    await addToRecent(scannerProduct);
+    
     // Stäng skannern
     setShowScanner(false);
     setScannerProduct(null);
     setScannerInput("");
     setScannerPortion(100);
+    setSearchQuery("");
+    setSearchResults([]);
   };
   
   // Stäng skannern och nollställ allt
@@ -2316,6 +2617,250 @@ function App() {
     setScannerInput("");
     setScannerError("");
     setScannerPortion(100);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+  
+  // ── MATDATABAS: SÖK & FAVORITER ──
+  
+  // Sök produkter via Open Food Facts (fri-text-sök)
+  const searchFoods = async (query) => {
+    if (!query || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    try {
+      // Använd Open Food Facts search API
+      // search_terms = textsökning, page_size = max 20 resultat
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,product_name_sv,brands,image_url,image_front_url,nutriments,serving_size`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        setSearchResults([]);
+        setSearchLoading(false);
+        return;
+      }
+      const data = await res.json();
+      if (!data.products || data.products.length === 0) {
+        setSearchResults([]);
+        setSearchLoading(false);
+        return;
+      }
+      // Filtrera och formatera
+      const products = data.products
+        .filter(p => p.nutriments && (p.nutriments["energy-kcal_100g"] || p.nutriments.energy_100g))
+        .map(p => {
+          const nut = p.nutriments || {};
+          return {
+            barcode: p.code,
+            name: p.product_name_sv || p.product_name || "Okänd produkt",
+            brand: p.brands || "",
+            image: p.image_url || p.image_front_url || "",
+            kcal_100g: Math.round(nut["energy-kcal_100g"] || nut.energy_100g/4.184 || 0),
+            protein_100g: parseFloat((nut.proteins_100g || 0).toFixed(1)),
+            carbs_100g: parseFloat((nut.carbohydrates_100g || 0).toFixed(1)),
+            fat_100g: parseFloat((nut.fat_100g || 0).toFixed(1)),
+            servingSize: p.serving_size || ""
+          };
+        })
+        .filter(p => p.kcal_100g > 0)
+        .slice(0, 15);
+      setSearchResults(products);
+    } catch(e) {
+      console.log("Search error:", e);
+      setSearchResults([]);
+    }
+    setSearchLoading(false);
+  };
+  
+  // Lägg till produkt till "senaste 20"
+  const addToRecent = async (product) => {
+    const filtered = recentFoods.filter(p => p.barcode !== product.barcode);
+    const newRecent = [product, ...filtered].slice(0, 20);
+    setRecentFoods(newRecent);
+    await saveToCloud({recentFoods: newRecent});
+  };
+  
+  // Toggle favorit
+  const toggleFavoriteFood = async (product) => {
+    const exists = favoriteFoods.find(p => p.barcode === product.barcode);
+    let newFavs;
+    if (exists) {
+      newFavs = favoriteFoods.filter(p => p.barcode !== product.barcode);
+    } else {
+      newFavs = [...favoriteFoods, product];
+    }
+    setFavoriteFoods(newFavs);
+    await saveToCloud({favoriteFoods: newFavs});
+  };
+  
+  // Kolla om en produkt är favorit
+  const isFavoriteFood = (barcode) => {
+    return favoriteFoods.some(p => p.barcode === barcode);
+  };
+
+  // ── MINA EGNA MÅLTIDER ──
+  
+  // Starta nytt måltidsbygge
+  const startMealBuilder = () => {
+    setMealBuilder({
+      id: "meal_" + Date.now(),
+      name: "",
+      emoji: "🍽",
+      ingredients: []
+    });
+    setEditingMealId(null);
+    setMealBuilderOpen(true);
+  };
+  
+  // Redigera befintlig måltid
+  const editMyMeal = (meal) => {
+    setMealBuilder({...meal});
+    setEditingMealId(meal.id);
+    setMealBuilderOpen(true);
+  };
+  
+  // Lägg till ingrediens till nuvarande bygge
+  const addIngredientToBuilder = (product, grams) => {
+    if (!mealBuilder) return;
+    const newIngredient = {
+      product: {
+        barcode: product.barcode,
+        name: product.name,
+        brand: product.brand || "",
+        image: product.image || "",
+        kcal_100g: product.kcal_100g,
+        protein_100g: product.protein_100g,
+        carbs_100g: product.carbs_100g,
+        fat_100g: product.fat_100g
+      },
+      grams: parseInt(grams) || 100
+    };
+    setMealBuilder({
+      ...mealBuilder,
+      ingredients: [...mealBuilder.ingredients, newIngredient]
+    });
+    setShowAddIngredient(false);
+  };
+  
+  // Ta bort ingrediens
+  const removeIngredientFromBuilder = (idx) => {
+    if (!mealBuilder) return;
+    setMealBuilder({
+      ...mealBuilder,
+      ingredients: mealBuilder.ingredients.filter((_, i) => i !== idx)
+    });
+  };
+  
+  // Räkna ut totaler för en måltid
+  const calcMealTotals = (ingredients) => {
+    let kcal = 0, protein = 0, carbs = 0, fat = 0;
+    ingredients.forEach(ing => {
+      const f = ing.grams / 100;
+      kcal += (ing.product.kcal_100g || 0) * f;
+      protein += (ing.product.protein_100g || 0) * f;
+      carbs += (ing.product.carbs_100g || 0) * f;
+      fat += (ing.product.fat_100g || 0) * f;
+    });
+    return {
+      kcal: Math.round(kcal),
+      protein: parseFloat(protein.toFixed(1)),
+      carbs: parseFloat(carbs.toFixed(1)),
+      fat: parseFloat(fat.toFixed(1))
+    };
+  };
+  
+  // Spara nuvarande måltidsbygge
+  const saveMyMeal = async () => {
+    if (!mealBuilder) return;
+    if (!mealBuilder.name || mealBuilder.name.trim().length < 2) {
+      alert("Ange ett namn på måltiden (minst 2 bokstäver)");
+      return;
+    }
+    if (mealBuilder.ingredients.length === 0) {
+      alert("Lägg till minst en ingrediens");
+      return;
+    }
+    const totals = calcMealTotals(mealBuilder.ingredients);
+    const newMeal = {
+      ...mealBuilder,
+      ...totals,
+      createdAt: new Date().toISOString()
+    };
+    let newMyMeals;
+    if (editingMealId) {
+      newMyMeals = myMeals.map(m => m.id === editingMealId ? newMeal : m);
+    } else {
+      newMyMeals = [newMeal, ...myMeals];
+    }
+    setMyMeals(newMyMeals);
+    await saveToCloud({myMeals: newMyMeals});
+    setMealBuilderOpen(false);
+    setMealBuilder(null);
+    setEditingMealId(null);
+  };
+  
+  // Ta bort en egen måltid
+  const deleteMyMeal = async (id) => {
+    if (!confirm("Ta bort denna måltid?")) return;
+    const newMyMeals = myMeals.filter(m => m.id !== id);
+    setMyMeals(newMyMeals);
+    await saveToCloud({myMeals: newMyMeals});
+  };
+  
+  // Logga en egen måltid till tracker
+  const logMyMeal = async (meal, mealType = null) => {
+    if (!mealType) {
+      const hour = new Date().getHours();
+      if (hour < 10) mealType = "frukost";
+      else if (hour < 14) mealType = "lunch";
+      else if (hour < 17) mealType = "mellanmal";
+      else mealType = "middag";
+    }
+    
+    const todayStr = new Date().toISOString().split('T')[0];
+    const newKcal = todayKcal + (meal.kcal || 0);
+    const newProtein = todayProtein + (meal.protein || 0);
+    const newCarbs = todayCarbs + (meal.carbs || 0);
+    const newFat = todayFat + (meal.fat || 0);
+    
+    const fakeMeal = {
+      id: meal.id + "_" + Date.now(),
+      name: meal.name,
+      emoji: meal.emoji,
+      kcal: meal.kcal,
+      protein: meal.protein,
+      carbs: meal.carbs,
+      fat: meal.fat,
+      mealType: mealType,
+      isMyMeal: true,
+      time: new Date().toISOString()
+    };
+    const newMeals = [...todayMeals, fakeMeal];
+    
+    setTodayKcal(newKcal);
+    setTodayProtein(newProtein);
+    setTodayCarbs(newCarbs);
+    setTodayFat(newFat);
+    setTodayMeals(newMeals);
+    setTodayDate(todayStr);
+    
+    if (todayKcal < dailyKcal && newKcal >= dailyKcal) {
+      setConfettiTrigger(Date.now());
+    }
+    setHeartBeat(true);
+    setTimeout(() => setHeartBeat(false), 600);
+    
+    await saveToCloud({
+      todayDate: todayStr,
+      todayKcal: newKcal,
+      todayProtein: newProtein,
+      todayCarbs: newCarbs,
+      todayFat: newFat,
+      todayMeals: newMeals
+    });
+    await updateStreak();
+    setShowMyMeals(false);
   };
 
   // Skala recept efter dagligt kaloriintag
@@ -2701,30 +3246,40 @@ function App() {
               );
             })()}
 
-            {/* SKANNER-KNAPP - LIFESUM-KILLER! */}
-            <button onClick={()=>{setShowScanner(true);setScannerProduct(null);setScannerInput("");setScannerError("");}} className="press-feedback" style={{
-              width:"100%",
-              background:`linear-gradient(135deg,${T.accent},${T.yellow})`,
-              border:"none",
-              borderRadius:14,
-              padding:"14px 16px",
-              cursor:"pointer",
-              fontFamily:"inherit",
-              marginBottom:14,
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"space-between",
-              boxShadow:`0 4px 16px ${T.accent}33`
-            }}>
-              <div style={{display:"flex",alignItems:"center",gap:12}}>
-                <span style={{fontSize:24}}>📷</span>
-                <div style={{textAlign:"left"}}>
-                  <div style={{fontSize:14,fontWeight:700,color:"#0d0d0d"}}>Skanna streckkod</div>
-                  <div style={{fontSize:11,color:"#0d0d0d",opacity:0.7,fontWeight:500}}>Logga mat snabbt — 3+ miljoner produkter</div>
-                </div>
-              </div>
-              <span style={{fontSize:18,color:"#0d0d0d",fontWeight:700}}>→</span>
-            </button>
+            {/* SKANNER + MINA RÄTTER - LIFESUM-KILLERS! */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              {/* Skanner-knapp */}
+              <button onClick={()=>{setShowScanner(true);setScannerProduct(null);setScannerInput("");setScannerError("");}} className="press-feedback" style={{
+                background:`linear-gradient(135deg,${T.accent},${T.yellow})`,
+                border:"none",
+                borderRadius:14,
+                padding:"14px 12px",
+                cursor:"pointer",
+                fontFamily:"inherit",
+                textAlign:"left",
+                boxShadow:`0 4px 16px ${T.accent}33`
+              }}>
+                <div style={{fontSize:28,marginBottom:4}}>🔍</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#0d0d0d"}}>Logga mat</div>
+                <div style={{fontSize:10,color:"#0d0d0d",opacity:0.7,fontWeight:500,marginTop:2}}>Skanna · Sök · Senaste</div>
+              </button>
+              
+              {/* Mina rätter-knapp */}
+              <button onClick={()=>setShowMyMeals(true)} className="press-feedback" style={{
+                background:`linear-gradient(135deg,${T.green},#4aaa4a)`,
+                border:"none",
+                borderRadius:14,
+                padding:"14px 12px",
+                cursor:"pointer",
+                fontFamily:"inherit",
+                textAlign:"left",
+                boxShadow:`0 4px 16px ${T.green}55`
+              }}>
+                <div style={{fontSize:28,marginBottom:4}}>🍳</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#0d0d0d"}}>Mina rätter{myMeals.length > 0 ? ` (${myMeals.length})` : ""}</div>
+                <div style={{fontSize:10,color:"#0d0d0d",opacity:0.7,fontWeight:500,marginTop:2}}>Skapa egna måltider</div>
+              </button>
+            </div>
 
             {/* VATTENSPÅRNING + STREAK */}
             <div style={{display:"grid",gridTemplateColumns:streakCount > 0 ? "1fr 1fr" : "1fr",gap:10,marginBottom:18}}>
@@ -3675,19 +4230,494 @@ function App() {
         </div>
       )}
 
-      {/* STRECKKODS-SKANNER MODAL */}
+      {/* MINA RÄTTER MODAL - listvy */}
+      {showMyMeals && (
+        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:340,background:T.bg,overflowY:"auto"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <button onClick={()=>setShowMyMeals(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:18,fontWeight:700,color:T.green}}>🍳 Mina rätter</div>
+              <div style={{width:36}}></div>
+            </div>
+
+            {/* Måltidstyp-väljare */}
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8,fontWeight:700}}>📔 Logga till:</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6}}>
+                {[
+                  {id:"frukost",emoji:"🌅",label:"Frukost",color:T.yellow},
+                  {id:"lunch",emoji:"☀️",label:"Lunch",color:T.blue},
+                  {id:"middag",emoji:"🍽",label:"Middag",color:T.accent},
+                  {id:"mellanmal",emoji:"🥜",label:"Mellanmål",color:T.green}
+                ].map(mt=>(
+                  <button key={mt.id} onClick={()=>setSelectedMealType(mt.id)} className="press-feedback" style={{
+                    padding:"10px 4px",
+                    background:selectedMealType===mt.id ? mt.color+"22" : T.bg3,
+                    border:`1px solid ${selectedMealType===mt.id ? mt.color : T.border}`,
+                    borderRadius:10,
+                    cursor:"pointer",
+                    fontFamily:"inherit",
+                    textAlign:"center"
+                  }}>
+                    <div style={{fontSize:20,marginBottom:2}}>{mt.emoji}</div>
+                    <div style={{fontSize:9,fontWeight:700,color:selectedMealType===mt.id ? mt.color : T.textDim}}>{mt.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Skapa-ny-knapp */}
+            <button onClick={startMealBuilder} className="press-feedback" style={{
+              width:"100%",
+              background:`linear-gradient(135deg,${T.green},#4aaa4a)`,
+              border:"none",
+              borderRadius:14,
+              padding:"16px",
+              cursor:"pointer",
+              fontFamily:"inherit",
+              marginBottom:16,
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:10,
+              boxShadow:`0 4px 16px ${T.green}55`
+            }}>
+              <span style={{fontSize:24}}>➕</span>
+              <span style={{fontSize:15,fontWeight:700,color:"#0d0d0d"}}>Skapa ny måltid</span>
+            </button>
+
+            {/* Lista av egna måltider */}
+            {myMeals.length === 0 ? (
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px 18px",textAlign:"center"}}>
+                <div style={{fontSize:48,marginBottom:14}}>🍽</div>
+                <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:6}}>Inga egna måltider än</div>
+                <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>Bygg din första måltid genom att kombinera ingredienser från matdatabasen!</div>
+              </div>
+            ) : (
+              <>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Mina måltider ({myMeals.length})</div>
+                {myMeals.map((meal, i) => (
+                  <div key={meal.id} className="stagger-item" style={{
+                    background:T.bg2,
+                    border:`1px solid ${T.border}`,
+                    borderRadius:14,
+                    padding:"14px",
+                    marginBottom:10,
+                    animationDelay:`${i*0.05}s`
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+                      <div style={{fontSize:32}}>{meal.emoji}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:15,fontWeight:700,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{meal.name}</div>
+                        <div style={{fontSize:11,color:T.textFaint,marginTop:2}}>
+                          {meal.ingredients.length} ingredienser
+                        </div>
+                      </div>
+                      <div style={{textAlign:"right"}}>
+                        <div style={{fontSize:18,fontWeight:700,color:T.accent}}>{meal.kcal}</div>
+                        <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>kcal</div>
+                      </div>
+                    </div>
+                    
+                    {/* Makros */}
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:12}}>
+                      <div style={{textAlign:"center",background:T.bg3,borderRadius:8,padding:"5px"}}>
+                        <div style={{fontSize:11,fontWeight:700,color:T.green}}>{meal.protein}g</div>
+                        <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase"}}>Protein</div>
+                      </div>
+                      <div style={{textAlign:"center",background:T.bg3,borderRadius:8,padding:"5px"}}>
+                        <div style={{fontSize:11,fontWeight:700,color:T.blue}}>{meal.carbs}g</div>
+                        <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase"}}>Kolh</div>
+                      </div>
+                      <div style={{textAlign:"center",background:T.bg3,borderRadius:8,padding:"5px"}}>
+                        <div style={{fontSize:11,fontWeight:700,color:T.yellow}}>{meal.fat}g</div>
+                        <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase"}}>Fett</div>
+                      </div>
+                    </div>
+                    
+                    {/* Knappar */}
+                    <div style={{display:"grid",gridTemplateColumns:"1fr auto auto",gap:6}}>
+                      <button onClick={()=>logMyMeal(meal, selectedMealType)} className="press-feedback" style={{
+                        background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                        color:"#0d0d0d",
+                        border:"none",
+                        borderRadius:99,
+                        padding:"10px",
+                        fontSize:12,
+                        fontWeight:700,
+                        cursor:"pointer",
+                        fontFamily:"inherit"
+                      }}>✅ Logga</button>
+                      <button onClick={()=>editMyMeal(meal)} style={{
+                        background:T.bg3,
+                        border:`1px solid ${T.border2}`,
+                        color:T.text,
+                        borderRadius:99,
+                        padding:"10px 14px",
+                        fontSize:12,
+                        cursor:"pointer",
+                        fontFamily:"inherit",
+                        fontWeight:600
+                      }}>✏️</button>
+                      <button onClick={()=>deleteMyMeal(meal.id)} style={{
+                        background:T.bg3,
+                        border:`1px solid ${T.red}44`,
+                        color:T.red,
+                        borderRadius:99,
+                        padding:"10px 14px",
+                        fontSize:12,
+                        cursor:"pointer",
+                        fontFamily:"inherit"
+                      }}>🗑</button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MEAL BUILDER MODAL - skapa/redigera måltid */}
+      {mealBuilderOpen && mealBuilder && (
+        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:345,background:T.bg,overflowY:"auto"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <button onClick={()=>{setMealBuilderOpen(false);setMealBuilder(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:18,fontWeight:700,color:T.green}}>{editingMealId ? "✏️ Redigera" : "➕ Ny måltid"}</div>
+              <div style={{width:36}}></div>
+            </div>
+
+            {/* Namn + emoji */}
+            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+              <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Namn & ikon</div>
+              <div style={{display:"flex",gap:10}}>
+                {/* Emoji-väljare */}
+                <select 
+                  value={mealBuilder.emoji} 
+                  onChange={e=>setMealBuilder({...mealBuilder, emoji:e.target.value})}
+                  style={{
+                    background:T.bg3,
+                    border:`1px solid ${T.border2}`,
+                    borderRadius:10,
+                    padding:"12px",
+                    fontSize:24,
+                    color:T.text,
+                    cursor:"pointer",
+                    fontFamily:"inherit",
+                    outline:"none",
+                    width:80,
+                    textAlign:"center"
+                  }}>
+                  {["🍽","🍳","🥗","🍝","🍜","🥘","🍛","🍲","🥪","🌮","🌯","🍱","🍕","🍔","🥞","🍰","🥑","🍌","🥜","💪","🔥","⭐","❤️"].map(e=>(
+                    <option key={e} value={e}>{e}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="T.ex. Min Power-frukost"
+                  value={mealBuilder.name}
+                  onChange={e=>setMealBuilder({...mealBuilder, name:e.target.value})}
+                  style={{
+                    flex:1,
+                    background:T.bg3,
+                    border:`1px solid ${T.border2}`,
+                    borderRadius:10,
+                    padding:"12px 14px",
+                    fontSize:15,
+                    color:T.text,
+                    fontFamily:"inherit",
+                    outline:"none"
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Ingredienser */}
+            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Ingredienser ({mealBuilder.ingredients.length})</div>
+                <button onClick={()=>setShowAddIngredient(true)} className="press-feedback" style={{
+                  background:T.green+"22",
+                  border:`1px solid ${T.green}`,
+                  color:T.green,
+                  borderRadius:99,
+                  padding:"6px 14px",
+                  fontSize:12,
+                  fontWeight:700,
+                  cursor:"pointer",
+                  fontFamily:"inherit"
+                }}>+ Lägg till</button>
+              </div>
+              
+              {mealBuilder.ingredients.length === 0 ? (
+                <div style={{padding:"20px",textAlign:"center",color:T.textFaint,fontSize:13}}>
+                  Inga ingredienser än<br/>
+                  <span style={{fontSize:11}}>Tryck "+ Lägg till" för att börja</span>
+                </div>
+              ) : (
+                mealBuilder.ingredients.map((ing, i) => {
+                  const f = ing.grams / 100;
+                  const ingKcal = Math.round((ing.product.kcal_100g || 0) * f);
+                  return (
+                    <div key={i} style={{
+                      display:"flex",
+                      alignItems:"center",
+                      gap:10,
+                      padding:"10px 0",
+                      borderTop:i > 0 ? `1px solid ${T.border}` : "none"
+                    }}>
+                      {ing.product.image ? (
+                        <div style={{width:36,height:36,borderRadius:8,overflow:"hidden",background:T.bg3,flexShrink:0}}>
+                          <img src={ing.product.image} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                        </div>
+                      ) : (
+                        <div style={{width:36,height:36,borderRadius:8,background:T.bg3,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🍽</div>
+                      )}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:13,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ing.product.name}</div>
+                        <div style={{fontSize:11,color:T.textFaint}}>{ing.grams}g · {ingKcal} kcal</div>
+                      </div>
+                      <button onClick={()=>removeIngredientFromBuilder(i)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:16,padding:"4px 8px"}}>✕</button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Totaler */}
+            {mealBuilder.ingredients.length > 0 && (() => {
+              const totals = calcMealTotals(mealBuilder.ingredients);
+              return (
+                <div style={{background:`linear-gradient(135deg,${T.green}22,${T.green}11)`,border:`1px solid ${T.green}44`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                  <div style={{fontSize:11,color:T.green,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Total näringsvärde</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8}}>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:T.red}}>{totals.kcal}</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>kcal</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:T.green}}>{totals.protein}g</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>Protein</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:T.blue}}>{totals.carbs}g</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>Kolh</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:T.yellow}}>{totals.fat}g</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>Fett</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Spara/Avbryt */}
+            <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:10}}>
+              <button onClick={()=>{setMealBuilderOpen(false);setMealBuilder(null);}} style={{
+                background:T.bg3,
+                border:`1px solid ${T.border2}`,
+                color:T.text,
+                padding:"14px 20px",
+                borderRadius:99,
+                fontSize:13,
+                cursor:"pointer",
+                fontFamily:"inherit",
+                fontWeight:600
+              }}>Avbryt</button>
+              <button onClick={saveMyMeal} className="press-feedback" style={{
+                background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                color:"#0d0d0d",
+                border:"none",
+                borderRadius:99,
+                padding:"14px",
+                fontSize:14,
+                fontWeight:700,
+                cursor:"pointer",
+                fontFamily:"inherit",
+                boxShadow:`0 4px 16px ${T.green}66`
+              }}>{editingMealId ? "💾 Spara ändringar" : "💾 Spara måltid"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LÄGG TILL INGREDIENS MODAL - sökruta för att hitta produkt */}
+      {showAddIngredient && mealBuilder && (
+        <AddIngredientModal 
+          T={T}
+          searchFoods={searchFoods}
+          onClose={()=>setShowAddIngredient(false)}
+          onAdd={addIngredientToBuilder}
+          recentFoods={recentFoods}
+          favoriteFoods={favoriteFoods}
+          isFavoriteFood={isFavoriteFood}
+          toggleFavoriteFood={toggleFavoriteFood}
+        />
+      )}
+
+      {/* MAT-DATABAS MODAL (med skanner + sök + senaste + favoriter) */}
       {showScanner && (
         <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:340,background:T.bg,overflowY:"auto"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
               <button onClick={closeScannerModal} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:18,fontWeight:700,color:T.accent}}>📷 Skanna mat</div>
+              <div style={{fontSize:18,fontWeight:700,color:T.accent}}>🍽 Logga måltid</div>
               <div style={{width:36}}></div>
             </div>
+
+            {/* Måltidstyp-väljare (visas alltid när inte scannerProduct är aktiv) */}
+            {!scannerProduct && (
+              <div style={{marginBottom:16}}>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8,fontWeight:700}}>📔 Lägg till i:</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6}}>
+                  {[
+                    {id:"frukost",emoji:"🌅",label:"Frukost",color:T.yellow},
+                    {id:"lunch",emoji:"☀️",label:"Lunch",color:T.blue},
+                    {id:"middag",emoji:"🍽",label:"Middag",color:T.accent},
+                    {id:"mellanmal",emoji:"🥜",label:"Mellanmål",color:T.green}
+                  ].map(mt=>(
+                    <button key={mt.id} onClick={()=>setSelectedMealType(mt.id)} className="press-feedback" style={{
+                      padding:"10px 4px",
+                      background:selectedMealType===mt.id ? mt.color+"22" : T.bg3,
+                      border:`1px solid ${selectedMealType===mt.id ? mt.color : T.border}`,
+                      borderRadius:10,
+                      cursor:"pointer",
+                      fontFamily:"inherit",
+                      textAlign:"center"
+                    }}>
+                      <div style={{fontSize:22,marginBottom:2}}>{mt.emoji}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:selectedMealType===mt.id ? mt.color : T.textDim}}>{mt.label}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tabbar (sök / senaste / favoriter / streckkod) */}
+            {!scannerProduct && (
+              <div style={{display:"flex",gap:4,marginBottom:16,background:T.bg2,padding:4,borderRadius:99,border:`1px solid ${T.border}`}}>
+                {[
+                  {id:"search",label:"🔍 Sök"},
+                  {id:"recents",label:`🕒 Senaste${recentFoods.length>0?` (${recentFoods.length})`:""}`},
+                  {id:"favorites",label:`❤️ Fav${favoriteFoods.length>0?` (${favoriteFoods.length})`:""}`},
+                  {id:"barcode",label:"📷 Skanna"}
+                ].map(t=>(
+                  <button key={t.id} onClick={()=>setScannerTab(t.id)} style={{
+                    flex:1,
+                    padding:"8px 4px",
+                    background:scannerTab===t.id ? T.accent+"33" : "transparent",
+                    border:"none",
+                    borderRadius:99,
+                    fontSize:11,
+                    fontWeight:scannerTab===t.id?700:500,
+                    color:scannerTab===t.id ? T.accent : T.textDim,
+                    cursor:"pointer",
+                    fontFamily:"inherit",
+                    transition:"all 0.2s"
+                  }}>{t.label}</button>
+                ))}
+              </div>
+            )}
 
             {/* Steg 1: Skriv in / skanna kod */}
             {!scannerProduct && (
               <>
+                {/* TAB: SÖK */}
+                {scannerTab === "search" && (
+                  <>
+                    <div style={{marginBottom:14}}>
+                      <input
+                        type="text"
+                        placeholder="Sök produkt — t.ex. banan, havregryn, kvarg..."
+                        value={searchQuery}
+                        onChange={e=>{
+                          setSearchQuery(e.target.value);
+                          // Debounce: vänta 400ms innan sökning
+                          clearTimeout(window.__searchTimeout);
+                          window.__searchTimeout = setTimeout(()=>searchFoods(e.target.value), 400);
+                        }}
+                        style={{width:"100%",background:T.bg2,border:`1px solid ${T.border2}`,borderRadius:12,padding:"14px 16px",fontSize:15,color:T.text,fontFamily:"inherit",outline:"none"}}
+                      />
+                    </div>
+                    
+                    {searchLoading && (
+                      <div style={{textAlign:"center",padding:"30px",color:T.textFaint}}>
+                        <div style={{fontSize:24,marginBottom:8}}>⏳</div>
+                        <div style={{fontSize:13}}>Söker...</div>
+                      </div>
+                    )}
+                    
+                    {!searchLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
+                      <div style={{textAlign:"center",padding:"30px",color:T.textFaint,fontSize:13,lineHeight:1.5}}>
+                        🤷 Inga produkter hittades<br/>
+                        <span style={{fontSize:11}}>Prova en annan söksträng eller skanna streckkoden istället</span>
+                      </div>
+                    )}
+                    
+                    {!searchLoading && searchQuery.length < 2 && (
+                      <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"24px 18px",textAlign:"center"}}>
+                        <div style={{fontSize:48,marginBottom:14}}>🔍</div>
+                        <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:6}}>Sök i 3+ miljoner produkter</div>
+                        <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>Skriv minst 2 bokstäver för att börja söka.<br/>Funkar på svenska & engelska!</div>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginTop:14}}>
+                          {["banan","havregryn","kyckling","kvarg","bröd"].map(s=>(
+                            <button key={s} onClick={()=>{setSearchQuery(s);searchFoods(s);}} style={{background:T.bg3,border:`1px solid ${T.border2}`,color:T.textDim,padding:"5px 11px",borderRadius:99,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{s}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {searchResults.length > 0 && searchResults.map((p,i) => (
+                      <FoodItemRow key={p.barcode} product={p} isFavorite={isFavoriteFood(p.barcode)} onSelect={()=>{setScannerProduct(p);setScannerPortion(100);}} onToggleFav={()=>toggleFavoriteFood(p)} T={T} index={i}/>
+                    ))}
+                  </>
+                )}
+
+                {/* TAB: SENASTE */}
+                {scannerTab === "recents" && (
+                  <>
+                    {recentFoods.length === 0 ? (
+                      <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px 18px",textAlign:"center"}}>
+                        <div style={{fontSize:48,marginBottom:14}}>🕒</div>
+                        <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:6}}>Inga senaste än</div>
+                        <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>Produkter du loggar dyker upp här för snabb åtkomst</div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Senast loggade</div>
+                        {recentFoods.map((p,i) => (
+                          <FoodItemRow key={p.barcode+"_"+i} product={p} isFavorite={isFavoriteFood(p.barcode)} onSelect={()=>{setScannerProduct(p);setScannerPortion(100);}} onToggleFav={()=>toggleFavoriteFood(p)} T={T} index={i}/>
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {/* TAB: FAVORITER */}
+                {scannerTab === "favorites" && (
+                  <>
+                    {favoriteFoods.length === 0 ? (
+                      <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px 18px",textAlign:"center"}}>
+                        <div style={{fontSize:48,marginBottom:14}}>❤️</div>
+                        <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:6}}>Inga favoriter än</div>
+                        <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>Tryck på ❤️ bredvid en produkt för att spara den här</div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Mina favoriter</div>
+                        {favoriteFoods.map((p,i) => (
+                          <FoodItemRow key={p.barcode+"_fav_"+i} product={p} isFavorite={true} onSelect={()=>{setScannerProduct(p);setScannerPortion(100);}} onToggleFav={()=>toggleFavoriteFood(p)} T={T} index={i}/>
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {/* TAB: STRECKKOD */}
+                {scannerTab === "barcode" && (
+                  <>
                 {/* Stor skanna-knapp för kameran */}
                 <div style={{background:T.bg2,border:`1px dashed ${T.accent}`,borderRadius:16,padding:"32px 20px",marginBottom:16,textAlign:"center"}}>
                   <div style={{fontSize:60,marginBottom:12}}>📷</div>
@@ -3748,6 +4778,8 @@ function App() {
                     </button>
                   ))}
                 </div>
+                </>
+                )}
               </>
             )}
 
@@ -3834,7 +4866,7 @@ function App() {
                 <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:10}}>
                   <button onClick={()=>{setScannerProduct(null);setScannerInput("");}} style={{background:T.bg3,border:`1px solid ${T.border2}`,color:T.text,padding:"14px 20px",borderRadius:99,fontSize:13,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>← Annan</button>
                   <button onClick={addScannedToTracker} className="press-feedback" style={{background:`linear-gradient(135deg,${T.green},${T.green}cc)`,color:"#0d0d0d",border:"none",borderRadius:99,padding:"14px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${T.green}66`}}>
-                    ✅ Lägg till i dagens tracker
+                    ✅ Lägg till i {selectedMealType === "frukost" ? "🌅 Frukost" : selectedMealType === "lunch" ? "☀️ Lunch" : selectedMealType === "middag" ? "🍽 Middag" : "🥜 Mellanmål"}
                   </button>
                 </div>
               </>
