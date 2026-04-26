@@ -3539,60 +3539,64 @@ function App() {
               );
             })()}
 
-            {showCategoryPicker && (
-              <div className="modal-enter">
-                {/* Stäng-knapp */}
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,paddingTop:6}}>
-                  <button onClick={()=>setShowCategoryPicker(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-                  <div style={{fontSize:12,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>🔥 Swipea recept</div>
-                  <div style={{width:36}}></div>
-                </div>
+          </div>
+        )}
 
-                <h2 style={{fontSize:"clamp(18px,4vw,28px)",fontWeight:700,lineHeight:1.1,marginBottom:6,
-                  background:isDark?"linear-gradient(135deg,#f0f0e0,#e8c97a 55%,#6dcc6d)":"linear-gradient(135deg,#2a2a1a,#b8942a 55%,#4aaa4a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
-                  Välj kategori.<br/>Bläddra & välj.
-                </h2>
-                <p style={{fontSize:13,color:T.textFaint,marginBottom:14}}>Swipa höger på det du vill laga. ❤ = sparas som favorit.</p>
-                
-                {favorites.length > 0 && (
-                  <button onClick={()=>setShowFavorites(true)} style={{width:"100%",background:isDark?"linear-gradient(135deg,#cc7a7a22,#e8c97a22)":"linear-gradient(135deg,#f8e8e8,#faf0d8)",border:`1px solid ${T.red}44`,borderRadius:12,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:20}}>💖</span>
-                      <div style={{textAlign:"left"}}>
-                        <div style={{fontSize:13,fontWeight:600,color:T.text}}>Mina favoriter</div>
-                        <div style={{fontSize:10,color:T.textFaint}}>{favorites.length} sparade recept</div>
-                      </div>
-                    </div>
-                    <span style={{fontSize:14,color:T.textDim}}>→</span>
-                  </button>
-                )}
+        {/* KATEGORI-VÄLJARE (fullskärmsmodal när 🔥 trycks) */}
+        {showCategoryPicker && (
+          <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:330,background:T.bg,overflowY:"auto",paddingBottom:90}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+              {/* Stäng-knapp */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                <button onClick={()=>setShowCategoryPicker(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <div style={{fontSize:14,fontWeight:700,color:"#ff3366"}}>🔥 Swipea recept</div>
+                <div style={{width:36}}></div>
+              </div>
 
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:18}}>
-                  {CATEGORIES.map((cat,idx)=>(
-                    <button key={cat.id} className="cat-btn stagger-item press-feedback" onClick={()=>handleSpin(cat.id)}
-                      style={{background:T.bg2,border:`1px solid ${T.border}`,
-                        borderRadius:16,padding:"18px 12px",cursor:"pointer",textAlign:"center",fontFamily:"inherit"}}>
-                      <div style={{fontSize:34,marginBottom:7}}>{cat.emoji}</div>
-                      <div style={{fontSize:14,fontWeight:700,color:cat.color,marginBottom:3}}>{cat.label}</div>
-                      <div style={{fontSize:10,color:T.textFaint}}>{cat.desc}</div>
-                      <div style={{marginTop:9,fontSize:10,color:cat.color,opacity:0.6}}>Bläddra →</div>
-                    </button>
-                  ))}
-                </div>
-
-                {!isPremium && (
-                  <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"13px 15px"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-                      <span style={{fontSize:12,color:T.textFaint}}>Gratis-plan</span>
-                      <span style={{fontSize:11,color:freeLeft>0?T.green:T.red}}>{freeLeft>0?`${freeLeft} kvar`:"Uppgradera"}</span>
-                    </div>
-                    <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden"}}>
-                      <div style={{height:"100%",borderRadius:99,background:T.green,width:`${(freeUsed/FREE_LIMIT)*100}%`,transition:"width 0.4s"}}/>
+              <h2 style={{fontSize:"clamp(20px,4.5vw,28px)",fontWeight:700,lineHeight:1.1,marginBottom:6,
+                background:isDark?"linear-gradient(135deg,#ff6b35,#ff3366 55%,#e8c97a)":"linear-gradient(135deg,#c4402b,#ff3366 55%,#b8942a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
+                Välj kategori.<br/>Bläddra & välj.
+              </h2>
+              <p style={{fontSize:13,color:T.textFaint,marginBottom:18}}>Swipa höger på det du vill laga. ❤ = sparas som favorit.</p>
+              
+              {favorites.length > 0 && (
+                <button onClick={()=>{setShowFavorites(true);setShowCategoryPicker(false);}} style={{width:"100%",background:isDark?"linear-gradient(135deg,#cc7a7a22,#e8c97a22)":"linear-gradient(135deg,#f8e8e8,#faf0d8)",border:`1px solid ${T.red}44`,borderRadius:12,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontSize:20}}>💖</span>
+                    <div style={{textAlign:"left"}}>
+                      <div style={{fontSize:13,fontWeight:600,color:T.text}}>Mina favoriter</div>
+                      <div style={{fontSize:10,color:T.textFaint}}>{favorites.length} sparade recept</div>
                     </div>
                   </div>
-                )}
+                  <span style={{fontSize:14,color:T.textDim}}>→</span>
+                </button>
+              )}
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:18}}>
+                {CATEGORIES.map((cat,idx)=>(
+                  <button key={cat.id} className="cat-btn stagger-item press-feedback" onClick={()=>{setShowCategoryPicker(false);handleSpin(cat.id);}}
+                    style={{background:T.bg2,border:`1px solid ${T.border}`,
+                      borderRadius:16,padding:"18px 12px",cursor:"pointer",textAlign:"center",fontFamily:"inherit"}}>
+                    <div style={{fontSize:34,marginBottom:7}}>{cat.emoji}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:cat.color,marginBottom:3}}>{cat.label}</div>
+                    <div style={{fontSize:10,color:T.textFaint}}>{cat.desc}</div>
+                    <div style={{marginTop:9,fontSize:10,color:cat.color,opacity:0.6}}>Bläddra →</div>
+                  </button>
+                ))}
               </div>
-            )}
+
+              {!isPremium && (
+                <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"13px 15px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
+                    <span style={{fontSize:12,color:T.textFaint}}>Gratis-plan</span>
+                    <span style={{fontSize:11,color:freeLeft>0?T.green:T.red}}>{freeLeft>0?`${freeLeft} kvar`:"Uppgradera"}</span>
+                  </div>
+                  <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden"}}>
+                    <div style={{height:"100%",borderRadius:99,background:T.green,width:`${(freeUsed/FREE_LIMIT)*100}%`,transition:"width 0.4s"}}/>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -3812,13 +3816,13 @@ function App() {
           {/* MITTEN: Stor swipe-knapp som sticker upp */}
           <div style={{flex:1,display:"flex",justifyContent:"center",position:"relative"}}>
             <button onClick={()=>{
-              setScreen("home");
               setShowCategoryPicker(true);
+              setScreen("home");
               // Scrolla upp så användaren ser kategori-väljaren
               setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}), 100);
             }} className="press-feedback" style={{
               position:"absolute",
-              top:-56,
+              top:-72,
               width:64,
               height:64,
               borderRadius:"50%",
@@ -4846,34 +4850,73 @@ function App() {
         results = results.slice(0, 50);
         
         return (
-          <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:330,background:T.bg,overflowY:"auto"}}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 90px"}}>
+          <div style={{
+            position:"fixed",
+            top:0,
+            left:0,
+            right:0,
+            minHeight:"100vh",
+            zIndex:330,
+            background:T.bg,
+            overflowY:"auto",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 200px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-                <button onClick={()=>setShowRecipeSearch(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <button onClick={()=>{setShowRecipeSearch(false);setRecipeSearchQuery("");}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:17,fontWeight:700,color:T.accent}}>🍽 Sök recept</div>
                 <div style={{width:36}}></div>
               </div>
 
               {/* Sökruta */}
-              <div style={{marginBottom:14}}>
+              <div style={{marginBottom:14,position:"relative"}}>
                 <input
                   type="text"
+                  inputMode="search"
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   placeholder="Sök på rätt, ingrediens eller kategori..."
                   value={recipeSearchQuery}
                   onChange={e=>setRecipeSearchQuery(e.target.value)}
-                  autoFocus
                   style={{
                     width:"100%",
                     background:T.bg2,
                     border:`1px solid ${T.border2}`,
                     borderRadius:14,
-                    padding:"14px 18px",
-                    fontSize:15,
+                    padding:"14px 44px 14px 18px",
+                    fontSize:16,
                     color:T.text,
                     fontFamily:"inherit",
-                    outline:"none"
+                    outline:"none",
+                    WebkitAppearance:"none",
+                    appearance:"none",
+                    boxSizing:"border-box",
+                    WebkitUserSelect:"text"
                   }}
                 />
+                {recipeSearchQuery && (
+                  <button onClick={()=>setRecipeSearchQuery("")} style={{
+                    position:"absolute",
+                    right:8,
+                    top:"50%",
+                    transform:"translateY(-50%)",
+                    background:T.bg3,
+                    border:"none",
+                    color:T.textDim,
+                    width:28,
+                    height:28,
+                    borderRadius:"50%",
+                    cursor:"pointer",
+                    fontSize:14,
+                    display:"flex",
+                    alignItems:"center",
+                    justifyContent:"center"
+                  }}>✕</button>
+                )}
               </div>
 
               {/* Snabba kategori-knappar */}
