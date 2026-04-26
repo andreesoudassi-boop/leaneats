@@ -1795,6 +1795,13 @@ function App() {
   const [clientIds, setClientIds] = useState([]); // om denna user är coach → lista av klient-uids
   const [showCoach, setShowCoach] = useState(false);
   const [coachClients, setCoachClients] = useState([]); // detaljer om varje klient
+  const [viewingClientDiary, setViewingClientDiary] = useState(null); // klient vars dagbok visas
+  
+  // Coach kommentarer på måltider
+  const [commentingMeal, setCommentingMeal] = useState(null); // {clientUid, mealId, mealName, currentComment}
+  const [commentText, setCommentText] = useState("");
+  const [showMealComment, setShowMealComment] = useState(null); // för klient: visa kommentar på en måltid
+  const [mealComments, setMealComments] = useState({}); // klientens egna mealComments från Firebase
   const [coachLoading, setCoachLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState(""); // genererad kod för att bjuda in klient
   const [redeemCode, setRedeemCode] = useState(""); // för klient som vill ansluta sig
@@ -1947,6 +1954,9 @@ function App() {
             
             // Ladda egna måltider
             setMyMeals(data.myMeals || []);
+            
+            // Ladda måltidskommentarer (från coach)
+            setMealComments(data.mealComments || {});
             
             // Ladda admin-status + tier
             setIsAdmin(data.isAdmin === true);
@@ -2377,6 +2387,9 @@ function App() {
               email: d.profile?.email || "",
               streak: d.streakCount || 0,
               todayKcal: d.todayKcal || 0,
+              todayProtein: d.todayProtein || 0,
+              todayCarbs: d.todayCarbs || 0,
+              todayFat: d.todayFat || 0,
               dailyKcal: d.dailyKcal || 2000,
               goal: d.fitnessGoal || "deffa",
               customProtein: d.customProtein || 0,
@@ -2387,7 +2400,15 @@ function App() {
               strengthSessions: d.profile?.strengthSessions || 0,
               weight: d.profile?.weight || "",
               height: d.profile?.height || "",
-              age: d.profile?.age || ""
+              age: d.profile?.age || "",
+              // Måltidsdagbok + historik (för coach-vy)
+              todayMeals: d.todayMeals || [],
+              todayWater: d.todayWater || 0,
+              todayDate: d.todayDate || "",
+              mealHistory: d.mealHistory || [],
+              weightLog: d.weightLog || [],
+              mealComments: d.mealComments || {},
+              lastActive: d.todayDate || ""
             });
           }
         } catch(e) { console.log("Client load error:", e); }
@@ -2484,6 +2505,46 @@ function App() {
       await fb.db.collection("users").doc(clientUid).set({coachId: "", coachName: "", userTier: "free"}, {merge: true});
     } catch(e) { console.log("Remove client error:", e); }
     await loadCoachClients();
+  };
+  
+  // Coach sparar kommentar på en klients måltid
+  const saveMealComment = async () => {
+    if (!commentingMeal) return;
+    const { clientUid, mealId, currentComments } = commentingMeal;
+    const newComments = {...(currentComments || {})};
+    if (commentText.trim()) {
+      newComments[mealId] = {
+        text: commentText.trim(),
+        coachName: coachName || profile.name || "Din coach",
+        date: new Date().toISOString()
+      };
+    } else {
+      delete newComments[mealId];
+    }
+    try {
+      await fb.db.collection("users").doc(clientUid).set({mealComments: newComments}, {merge: true});
+      // Uppdatera lokalt om vi tittar på den klienten
+      if (viewingClientDiary && viewingClientDiary.uid === clientUid) {
+        setViewingClientDiary({...viewingClientDiary, mealComments: newComments});
+      }
+      // Uppdatera även coachClients-listan
+      setCoachClients(coachClients.map(c => c.uid === clientUid ? {...c, mealComments: newComments} : c));
+    } catch(e) { console.log("Save comment error:", e); alert("Kunde inte spara kommentaren"); }
+    setCommentingMeal(null);
+    setCommentText("");
+  };
+  
+  // Öppna kommentar-modal för coach
+  const openMealComment = (clientUid, meal, currentComments) => {
+    setCommentingMeal({
+      clientUid,
+      mealId: meal.id || meal.time || "meal_"+Math.random(),
+      mealName: meal.name,
+      mealEmoji: meal.emoji,
+      currentComments: currentComments || {}
+    });
+    const existing = (currentComments || {})[meal.id || meal.time];
+    setCommentText(existing ? existing.text : "");
   };
 
   // ── STRECKKODS-SKANNER ──
@@ -3414,6 +3475,8 @@ function App() {
                           <div>
                             {mealsInThis.map((meal, mealIdx) => {
                               const realIdx = todayMeals.findIndex(m => m === meal);
+                              const mealKey = meal.id || meal.time;
+                              const coachComment = mealComments[mealKey];
                               return (
                                 <div key={mealIdx} style={{
                                   display:"flex",
@@ -3427,6 +3490,20 @@ function App() {
                                     <div style={{color:T.text,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                                       {meal.emoji && <span style={{marginRight:6}}>{meal.emoji}</span>}
                                       {meal.name}
+                                      {coachComment && (
+                                        <button onClick={()=>setShowMealComment({...coachComment, mealName:meal.name, mealEmoji:meal.emoji})} style={{
+                                          background:T.green+"33",
+                                          border:`1px solid ${T.green}`,
+                                          borderRadius:99,
+                                          padding:"1px 6px",
+                                          fontSize:9,
+                                          color:T.green,
+                                          marginLeft:6,
+                                          cursor:"pointer",
+                                          fontFamily:"inherit",
+                                          fontWeight:700
+                                        }}>💬 Coach</button>
+                                      )}
                                     </div>
                                     <div style={{color:T.textFaint,fontSize:10,marginTop:2}}>
                                       P: {Math.round(meal.protein||0)}g · K: {Math.round(meal.carbs||0)}g · F: {Math.round(meal.fat||0)}g
@@ -4083,6 +4160,420 @@ function App() {
             </div>
 
             <div style={{textAlign:"center",fontSize:10,color:T.textVeryFaint,marginTop:20}}>LeanEats · v1.0</div>
+          </div>
+        </div>
+      )}
+
+      {/* COACH-KOMMENTAR PÅ MÅLTID MODAL */}
+      {commentingMeal && (
+        <div style={{position:"fixed",inset:0,zIndex:360,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+          <div className="modal-enter" style={{background:T.bg2,border:`1px solid ${T.green}66`,borderRadius:18,padding:"22px",maxWidth:440,width:"100%",boxShadow:`0 8px 32px ${T.green}33`}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+              <span style={{fontSize:32}}>{commentingMeal.mealEmoji || "💬"}</span>
+              <div>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",fontWeight:700}}>Kommentar till</div>
+                <div style={{fontSize:15,fontWeight:700,color:T.text}}>{commentingMeal.mealName}</div>
+              </div>
+            </div>
+            
+            <textarea
+              value={commentText}
+              onChange={e=>setCommentText(e.target.value)}
+              placeholder="T.ex. 'Bra protein-val!' / 'Lägg till mer grönsaker nästa gång'"
+              maxLength={300}
+              autoFocus
+              style={{
+                width:"100%",
+                minHeight:100,
+                background:T.bg3,
+                border:`1px solid ${T.border2}`,
+                borderRadius:12,
+                padding:"12px 14px",
+                fontSize:14,
+                color:T.text,
+                fontFamily:"inherit",
+                outline:"none",
+                resize:"vertical",
+                marginBottom:8
+              }}
+            />
+            <div style={{fontSize:10,color:T.textFaint,textAlign:"right",marginBottom:14}}>
+              {commentText.length}/300 tecken
+            </div>
+            
+            {/* Snabba förslag */}
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:700}}>⚡ Snabba förslag</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {[
+                  "💪 Bra protein-val!",
+                  "✅ Perfekt!",
+                  "🥗 Mer grönsaker nästa gång",
+                  "⚠️ För mycket fett",
+                  "👀 Försök minska sockret",
+                  "🔥 Fortsätt så!"
+                ].map(s=>(
+                  <button key={s} onClick={()=>setCommentText(s)} style={{
+                    background:T.bg3,
+                    border:`1px solid ${T.border2}`,
+                    color:T.textDim,
+                    padding:"5px 10px",
+                    borderRadius:99,
+                    fontSize:11,
+                    cursor:"pointer",
+                    fontFamily:"inherit"
+                  }}>{s}</button>
+                ))}
+              </div>
+            </div>
+            
+            <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:10}}>
+              <button onClick={()=>{setCommentingMeal(null);setCommentText("");}} style={{
+                background:T.bg3,
+                border:`1px solid ${T.border2}`,
+                color:T.text,
+                padding:"12px 18px",
+                borderRadius:99,
+                fontSize:13,
+                cursor:"pointer",
+                fontFamily:"inherit",
+                fontWeight:600
+              }}>Avbryt</button>
+              <button onClick={saveMealComment} className="press-feedback" style={{
+                background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                color:"#0d0d0d",
+                border:"none",
+                borderRadius:99,
+                padding:"12px",
+                fontSize:14,
+                fontWeight:700,
+                cursor:"pointer",
+                fontFamily:"inherit",
+                boxShadow:`0 4px 16px ${T.green}66`
+              }}>{commentText.trim() ? "💾 Spara kommentar" : "🗑 Ta bort kommentar"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* KLIENT SER COACH-KOMMENTAR */}
+      {showMealComment && (
+        <div onClick={()=>setShowMealComment(null)} style={{position:"fixed",inset:0,zIndex:360,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+          <div onClick={e=>e.stopPropagation()} className="modal-enter" style={{background:T.bg2,border:`1px solid ${T.green}66`,borderRadius:18,padding:"24px",maxWidth:440,width:"100%",boxShadow:`0 8px 32px ${T.green}33`}}>
+            <div style={{textAlign:"center",marginBottom:16}}>
+              <div style={{fontSize:48,marginBottom:8}}>💬</div>
+              <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Från {showMealComment.coachName}</div>
+              <div style={{fontSize:14,color:T.text,fontWeight:600,marginTop:4}}>Om: {showMealComment.mealEmoji} {showMealComment.mealName}</div>
+            </div>
+            
+            <div style={{
+              background:T.green+"11",
+              border:`1px solid ${T.green}44`,
+              borderLeft:`4px solid ${T.green}`,
+              borderRadius:12,
+              padding:"16px",
+              marginBottom:16,
+              fontSize:14,
+              color:T.text,
+              lineHeight:1.5,
+              fontStyle:"italic"
+            }}>
+              "{showMealComment.text}"
+            </div>
+            
+            <div style={{fontSize:10,color:T.textFaint,textAlign:"center",marginBottom:14}}>
+              {new Date(showMealComment.date).toLocaleString("sv-SE")}
+            </div>
+            
+            <button onClick={()=>setShowMealComment(null)} className="press-feedback" style={{
+              width:"100%",
+              background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+              color:"#0d0d0d",
+              border:"none",
+              borderRadius:99,
+              padding:"12px",
+              fontSize:13,
+              fontWeight:700,
+              cursor:"pointer",
+              fontFamily:"inherit"
+            }}>Tack! 💚</button>
+          </div>
+        </div>
+      )}
+
+      {/* COACH SER KLIENTENS DAGBOK */}
+      {viewingClientDiary && (
+        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:335,background:T.bg,overflowY:"auto"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <button onClick={()=>setViewingClientDiary(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:17,fontWeight:700,color:T.green}}>📊 {viewingClientDiary.name}</div>
+              <button onClick={async()=>{
+                const c = viewingClientDiary;
+                await loadCoachClients();
+                // Hitta uppdaterad klient och återinitiera vyn
+                const updated = coachClients.find(x => x.uid === c.uid);
+                if (updated) setViewingClientDiary(updated);
+              }} style={{background:T.bg2,border:"none",color:T.textDim,padding:"6px 12px",borderRadius:99,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>↻</button>
+            </div>
+
+            {/* TOPP-KORT: Dagens översikt */}
+            <div style={{background:`linear-gradient(135deg,${T.bg2},${T.bg3})`,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px",marginBottom:14}}>
+              <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:12,fontWeight:700}}>📅 Idag</div>
+              
+              {/* Stort kalori-tal */}
+              <div style={{textAlign:"center",marginBottom:14}}>
+                <div style={{fontSize:36,fontWeight:700,color:viewingClientDiary.todayKcal >= viewingClientDiary.dailyKcal*0.95 ? T.green : viewingClientDiary.todayKcal >= viewingClientDiary.dailyKcal*0.5 ? T.accent : T.textDim,lineHeight:1}}>
+                  {Math.round(viewingClientDiary.todayKcal)}
+                  <span style={{fontSize:18,color:T.textFaint,fontWeight:500}}> / {viewingClientDiary.dailyKcal}</span>
+                </div>
+                <div style={{fontSize:11,color:T.textFaint,marginTop:4,textTransform:"uppercase",letterSpacing:"0.1em"}}>
+                  {Math.round((viewingClientDiary.todayKcal/viewingClientDiary.dailyKcal)*100)}% av målet
+                </div>
+              </div>
+              
+              {/* Progress bar */}
+              <div style={{height:8,background:T.bg3,borderRadius:99,overflow:"hidden",marginBottom:14}}>
+                <div style={{
+                  height:"100%",
+                  width:`${Math.min(100,(viewingClientDiary.todayKcal/viewingClientDiary.dailyKcal)*100)}%`,
+                  background:`linear-gradient(90deg,${T.green},${T.accent})`,
+                  borderRadius:99,
+                  transition:"width 0.5s"
+                }}/>
+              </div>
+              
+              {/* Makros */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                <div style={{textAlign:"center",background:T.bg3,borderRadius:10,padding:"8px"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:T.green}}>{Math.round(viewingClientDiary.todayProtein || 0)}g</div>
+                  <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>Protein</div>
+                  {viewingClientDiary.customProtein > 0 && <div style={{fontSize:8,color:T.textFaint,marginTop:2}}>mål: {viewingClientDiary.customProtein}g</div>}
+                </div>
+                <div style={{textAlign:"center",background:T.bg3,borderRadius:10,padding:"8px"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:T.blue}}>{Math.round(viewingClientDiary.todayCarbs || 0)}g</div>
+                  <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>Kolh</div>
+                  {viewingClientDiary.customCarbs > 0 && <div style={{fontSize:8,color:T.textFaint,marginTop:2}}>mål: {viewingClientDiary.customCarbs}g</div>}
+                </div>
+                <div style={{textAlign:"center",background:T.bg3,borderRadius:10,padding:"8px"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:T.yellow}}>{Math.round(viewingClientDiary.todayFat || 0)}g</div>
+                  <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>Fett</div>
+                  {viewingClientDiary.customFat > 0 && <div style={{fontSize:8,color:T.textFaint,marginTop:2}}>mål: {viewingClientDiary.customFat}g</div>}
+                </div>
+              </div>
+            </div>
+
+            {/* VATTEN + STREAK */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              <div style={{background:T.bg2,border:`1px solid ${T.blue}33`,borderRadius:12,padding:"12px"}}>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>💧 Vatten</div>
+                <div style={{fontSize:20,fontWeight:700,color:T.blue}}>{viewingClientDiary.todayWater || 0}<span style={{fontSize:11,color:T.textFaint,fontWeight:500}}> / 8 glas</span></div>
+              </div>
+              <div style={{background:T.bg2,border:`1px solid ${T.accent}33`,borderRadius:12,padding:"12px"}}>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>🔥 Streak</div>
+                <div style={{fontSize:20,fontWeight:700,color:T.accent}}>{viewingClientDiary.streak}<span style={{fontSize:11,color:T.textFaint,fontWeight:500}}> dagar</span></div>
+              </div>
+            </div>
+
+            {/* DAGBOK - 4 MÅLTIDSBOXAR */}
+            <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>📔 Dagens dagbok</div>
+            
+            {(() => {
+              const meals = viewingClientDiary.todayMeals || [];
+              const mealTypes = [
+                {id:"frukost",emoji:"🌅",label:"Frukost",color:T.yellow},
+                {id:"lunch",emoji:"☀️",label:"Lunch",color:T.blue},
+                {id:"middag",emoji:"🍽",label:"Middag",color:T.accent},
+                {id:"mellanmal",emoji:"🥜",label:"Mellanmål",color:T.green}
+              ];
+              return mealTypes.map(mt => {
+                const mtMeals = meals.filter(m => m.mealType === mt.id);
+                const totalKcal = mtMeals.reduce((s,m)=>s+(m.kcal||0),0);
+                return (
+                  <div key={mt.id} style={{
+                    background:T.bg2,
+                    border:`1px solid ${T.border}`,
+                    borderRadius:12,
+                    padding:"12px",
+                    marginBottom:8,
+                    opacity:mtMeals.length === 0 ? 0.5 : 1
+                  }}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:mtMeals.length > 0 ? 10 : 0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10}}>
+                        <span style={{fontSize:24}}>{mt.emoji}</span>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:700,color:mt.color}}>{mt.label}</div>
+                          <div style={{fontSize:10,color:T.textFaint}}>{mtMeals.length} {mtMeals.length === 1 ? "måltid" : "måltider"}</div>
+                        </div>
+                      </div>
+                      <div style={{textAlign:"right"}}>
+                        <div style={{fontSize:16,fontWeight:700,color:T.text}}>{totalKcal}</div>
+                        <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>kcal</div>
+                      </div>
+                    </div>
+                    
+                    {mtMeals.length === 0 ? (
+                      <div style={{fontSize:11,color:T.textFaint,fontStyle:"italic",paddingLeft:34}}>Inget loggat</div>
+                    ) : (
+                      mtMeals.map((m,i) => {
+                        const mealKey = m.id || m.time;
+                        const comments = viewingClientDiary.mealComments || {};
+                        const hasComment = !!comments[mealKey];
+                        return (
+                          <div key={i} style={{
+                            padding:"8px 0",
+                            borderTop:i > 0 ? `1px solid ${T.border}` : "none",
+                            paddingLeft:34
+                          }}>
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:12,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                                  {m.emoji} {m.name} {hasComment && <span style={{color:T.green,fontSize:11,marginLeft:4}}>💬</span>}
+                                </div>
+                                <div style={{fontSize:9,color:T.textFaint,marginTop:1}}>
+                                  P:{Math.round(m.protein||0)}g · K:{Math.round(m.carbs||0)}g · F:{Math.round(m.fat||0)}g
+                                </div>
+                              </div>
+                              <div style={{fontSize:12,fontWeight:600,color:mt.color,marginLeft:10,marginRight:8}}>{m.kcal}</div>
+                              <button onClick={()=>openMealComment(viewingClientDiary.uid, m, comments)} className="press-feedback" style={{
+                                background:hasComment ? T.green+"33" : T.bg3,
+                                border:`1px solid ${hasComment ? T.green : T.border2}`,
+                                color:hasComment ? T.green : T.textDim,
+                                borderRadius:99,
+                                padding:"4px 8px",
+                                fontSize:11,
+                                cursor:"pointer",
+                                fontFamily:"inherit",
+                                fontWeight:600,
+                                flexShrink:0
+                              }}>{hasComment ? "💬 ✓" : "💬"}</button>
+                            </div>
+                            {hasComment && (
+                              <div style={{
+                                fontSize:10,
+                                color:T.textDim,
+                                fontStyle:"italic",
+                                marginTop:4,
+                                padding:"6px 8px",
+                                background:T.green+"11",
+                                borderLeft:`2px solid ${T.green}`,
+                                borderRadius:"0 6px 6px 0"
+                              }}>"{comments[mealKey].text}"</div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                );
+              });
+            })()}
+
+            {/* VECKOSTATISTIK */}
+            {viewingClientDiary.mealHistory && viewingClientDiary.mealHistory.length > 0 && (() => {
+              const last7 = viewingClientDiary.mealHistory.slice(-7);
+              const avgKcal = Math.round(last7.reduce((s,d)=>s+(d.kcal||0),0)/last7.length);
+              const daysReached = last7.filter(d=>d.kcal >= (d.goal||viewingClientDiary.dailyKcal)*0.9).length;
+              const maxKcal = Math.max(...last7.map(d=>d.kcal||0), viewingClientDiary.dailyKcal);
+              
+              return (
+                <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginTop:14,marginBottom:14}}>
+                  <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:12,fontWeight:700}}>📈 Senaste 7 dagarna</div>
+                  
+                  {/* Stat-rad */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                    <div style={{background:T.bg3,borderRadius:10,padding:"10px",textAlign:"center"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:T.accent}}>{avgKcal}</div>
+                      <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase"}}>Snitt kcal</div>
+                    </div>
+                    <div style={{background:T.bg3,borderRadius:10,padding:"10px",textAlign:"center"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:T.green}}>{daysReached}/{last7.length}</div>
+                      <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase"}}>Mål nått</div>
+                    </div>
+                  </div>
+                  
+                  {/* Stapel-graf */}
+                  <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",gap:4,height:80,marginBottom:8}}>
+                    {last7.map((d,i) => {
+                      const h = Math.max(8, (d.kcal/maxKcal)*70);
+                      const reached = d.kcal >= (d.goal||viewingClientDiary.dailyKcal)*0.9;
+                      return (
+                        <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                          <div style={{
+                            width:"100%",
+                            maxWidth:30,
+                            height:`${h}px`,
+                            background:reached ? `linear-gradient(180deg,${T.green},${T.green}99)` : `linear-gradient(180deg,${T.accent},${T.accent}99)`,
+                            borderRadius:"4px 4px 0 0"
+                          }}/>
+                          <div style={{fontSize:8,color:T.textFaint}}>{d.kcal}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:T.textFaint}}>
+                    {last7.map((d,i) => {
+                      const dt = new Date(d.date);
+                      return <span key={i}>{["S","M","T","O","T","F","L"][dt.getDay()]}</span>;
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* VIKT (om finns) */}
+            {viewingClientDiary.weightLog && viewingClientDiary.weightLog.length > 0 && (() => {
+              const log = viewingClientDiary.weightLog;
+              const current = log[log.length-1];
+              const start = log[0];
+              const diff = current.weight - start.weight;
+              return (
+                <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                  <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:12,fontWeight:700}}>⚖️ Vikt-utveckling</div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:24,fontWeight:700,color:T.text}}>{current.weight}<span style={{fontSize:14,color:T.textFaint,marginLeft:4}}>kg</span></div>
+                      <div style={{fontSize:10,color:T.textFaint}}>Senast: {new Date(current.date).toLocaleDateString("sv-SE")}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontSize:18,fontWeight:700,color:diff < 0 ? T.green : diff > 0 ? T.red : T.textFaint}}>
+                        {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
+                      </div>
+                      <div style={{fontSize:10,color:T.textFaint}}>Sedan start</div>
+                    </div>
+                  </div>
+                  <div style={{fontSize:10,color:T.textFaint}}>{log.length} mätningar loggade</div>
+                </div>
+              );
+            })()}
+
+            {/* "Redigera plan"-knapp i botten för snabbåtkomst */}
+            <button onClick={()=>{
+              const c = viewingClientDiary;
+              setEditingClient(c);
+              setClientEdits({
+                kcal: c.dailyKcal || 2000,
+                protein: c.customProtein || 0,
+                carbs: c.customCarbs || 0,
+                fat: c.customFat || 0,
+                goal: c.goal || "deffa",
+                note: c.coachNote || ""
+              });
+              setViewingClientDiary(null);
+            }} className="press-feedback" style={{
+              width:"100%",
+              background:`linear-gradient(135deg,${T.blue},${T.blue}cc)`,
+              color:"#fff",
+              border:"none",
+              borderRadius:99,
+              padding:"14px",
+              fontSize:14,
+              fontWeight:700,
+              cursor:"pointer",
+              fontFamily:"inherit",
+              marginBottom:8,
+              boxShadow:`0 4px 16px ${T.blue}66`
+            }}>✏️ Redigera plan för {viewingClientDiary.name.split(" ")[0]}</button>
           </div>
         </div>
       )}
@@ -4948,38 +5439,56 @@ function App() {
                     </div>
                   ) : (
                     coachClients.map((c,i) => (
-                      <div key={c.uid} className="stagger-item" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",borderBottom:i < coachClients.length-1 ? `1px solid ${T.border}` : "none",gap:8}}>
-                        <button onClick={()=>{
-                          setEditingClient(c);
-                          setClientEdits({
-                            kcal: c.dailyKcal || 2000,
-                            protein: c.customProtein || 0,
-                            carbs: c.customCarbs || 0,
-                            fat: c.customFat || 0,
-                            goal: c.goal || "deffa",
-                            note: c.coachNote || ""
-                          });
-                        }} style={{flex:1,minWidth:0,background:"transparent",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",padding:0}}>
-                          <div style={{fontSize:13,color:T.text,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
-                          <div style={{fontSize:11,color:T.textFaint,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                            {c.goal === "deffa" ? "🔥 Deffa" : "💪 Bulka"} · {c.dailyKcal} kcal · 🔥 {c.streak} dagar
+                      <div key={c.uid} className="stagger-item" style={{padding:"12px 0",borderBottom:i < coachClients.length-1 ? `1px solid ${T.border}` : "none"}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:8}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:13,color:T.text,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
+                            <div style={{fontSize:11,color:T.textFaint,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                              {c.goal === "deffa" ? "🔥 Deffa" : "💪 Bulka"} · {c.dailyKcal} kcal · 🔥 {c.streak} dagar
+                            </div>
+                            <div style={{fontSize:10,color:c.todayKcal > 0 ? T.green : T.textFaint,marginTop:2}}>
+                              Idag: {Math.round(c.todayKcal)}/{c.dailyKcal} kcal
+                              {c.todayMeals && c.todayMeals.length > 0 && <span style={{marginLeft:6,color:T.blue}}>· {c.todayMeals.length} måltider</span>}
+                            </div>
                           </div>
-                          <div style={{fontSize:10,color:c.todayKcal > 0 ? T.green : T.textFaint,marginTop:2}}>
-                            Idag: {Math.round(c.todayKcal)}/{c.dailyKcal} kcal
-                          </div>
-                        </button>
-                        <button onClick={()=>{
-                          setEditingClient(c);
-                          setClientEdits({
-                            kcal: c.dailyKcal || 2000,
-                            protein: c.customProtein || 0,
-                            carbs: c.customCarbs || 0,
-                            fat: c.customFat || 0,
-                            goal: c.goal || "deffa",
-                            note: c.coachNote || ""
-                          });
-                        }} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.blue}66`,color:T.blue,padding:"6px 10px",borderRadius:99,fontSize:11,cursor:"pointer",fontFamily:"inherit",fontWeight:600,flexShrink:0}}>✏️ Redigera</button>
-                        <button onClick={()=>removeClient(c.uid)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:16,padding:"4px 6px",flexShrink:0}}>✕</button>
+                          <button onClick={()=>removeClient(c.uid)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:16,padding:"4px 6px",flexShrink:0}}>✕</button>
+                        </div>
+                        
+                        {/* Tre knappar för coach: Dagbok / Statistik / Redigera */}
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                          <button onClick={()=>setViewingClientDiary(c)} className="press-feedback" style={{
+                            background:`linear-gradient(135deg,${T.green}33,${T.green}22)`,
+                            border:`1px solid ${T.green}66`,
+                            color:T.green,
+                            padding:"8px 10px",
+                            borderRadius:99,
+                            fontSize:11,
+                            cursor:"pointer",
+                            fontFamily:"inherit",
+                            fontWeight:700
+                          }}>📊 Se dagbok</button>
+                          <button onClick={()=>{
+                            setEditingClient(c);
+                            setClientEdits({
+                              kcal: c.dailyKcal || 2000,
+                              protein: c.customProtein || 0,
+                              carbs: c.customCarbs || 0,
+                              fat: c.customFat || 0,
+                              goal: c.goal || "deffa",
+                              note: c.coachNote || ""
+                            });
+                          }} className="press-feedback" style={{
+                            background:`linear-gradient(135deg,${T.blue}33,${T.blue}22)`,
+                            border:`1px solid ${T.blue}66`,
+                            color:T.blue,
+                            padding:"8px 10px",
+                            borderRadius:99,
+                            fontSize:11,
+                            cursor:"pointer",
+                            fontFamily:"inherit",
+                            fontWeight:700
+                          }}>✏️ Redigera plan</button>
+                        </div>
                       </div>
                     ))
                   )}
