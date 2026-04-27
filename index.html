@@ -1583,7 +1583,7 @@ function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favor
   };
   
   return (
-    <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:350,background:T.bg,overflowY:"auto"}}>
+    <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:350,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
       <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
           <button onClick={onClose} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -3914,8 +3914,19 @@ function App() {
 
         {/* KATEGORI-VÄLJARE (fullskärmsmodal när 🔥 trycks) */}
         {showCategoryPicker && (
-          <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:330,background:T.bg,overflowY:"auto",paddingBottom:90}}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{
+            position:"fixed",
+            top:0,
+            left:0,
+            right:0,
+            minHeight:"100vh",
+            zIndex:330,
+            background:T.bg,
+            overflowY:"auto",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 120px"}}>
               {/* Stäng-knapp */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
                 <button onClick={()=>setShowCategoryPicker(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -4465,7 +4476,7 @@ function App() {
 
       {/* FAVORITES VIEW */}
       {showFavorites && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:280,background:"#0e0e0c",overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:280,background:"#0e0e0c",overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>setShowFavorites(false)} style={{background:"#1a1a18",border:"none",color:"#888",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -4502,7 +4513,7 @@ function App() {
 
       {/* SETTINGS MODAL */}
       {showSettings && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:310,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:310,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 18px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
               <button onClick={()=>setShowSettings(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -4759,7 +4770,7 @@ function App() {
 
       {/* COACH SER KLIENTENS DAGBOK */}
       {viewingClientDiary && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:335,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:335,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
               <button onClick={()=>setViewingClientDiary(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -5036,7 +5047,7 @@ function App() {
 
       {/* COACH-KLIENT EDIT MODAL */}
       {editingClient && isCoach && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:350,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:350,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>setEditingClient(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -5411,7 +5422,7 @@ function App() {
 
       {/* MINA RÄTTER MODAL - listvy */}
       {showMyMeals && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:340,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:340,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <button onClick={()=>setShowMyMeals(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -5559,7 +5570,7 @@ function App() {
 
       {/* MEAL BUILDER MODAL - skapa/redigera måltid */}
       {mealBuilderOpen && mealBuilder && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:345,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:345,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <button onClick={()=>{setMealBuilderOpen(false);setMealBuilder(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -5855,7 +5866,7 @@ function App() {
 
       {/* MAT-DATABAS MODAL (med skanner + sök + senaste + favoriter) */}
       {showScanner && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:340,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:340,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
               <button onClick={closeScannerModal} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -6166,7 +6177,7 @@ function App() {
 
       {/* COACH-modal */}
       {showCoach && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:330,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:330,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>setShowCoach(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -6428,7 +6439,7 @@ function App() {
         const range = Math.max(2, maxW - minW);
         
         return (
-          <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:330,background:T.bg,overflowY:"auto"}}>
+          <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:330,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
             <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowWeightLog(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -6533,7 +6544,7 @@ function App() {
         const maxKcal = Math.max(...last7.map(h=>h.kcal), dailyKcal);
         
         return (
-          <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:330,background:T.bg,overflowY:"auto"}}>
+          <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:330,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
             <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowHistory(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -6745,7 +6756,7 @@ function App() {
 
       {/* ADMIN PANEL */}
       {showAdmin && isAdmin && (
-        <div className="modal-enter" style={{position:"fixed",inset:0,zIndex:320,background:T.bg,overflowY:"auto"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,minHeight:"100vh",zIndex:320,background:T.bg,overflowY:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.2s ease-out"}}>
           <div style={{maxWidth:640,margin:"0 auto",padding:"44px 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>{setShowAdmin(false);setSelectedUser(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
