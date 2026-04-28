@@ -1713,7 +1713,7 @@ function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favor
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-      <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+      <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
           <button onClick={onClose} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
           <div style={{fontSize:17,fontWeight:700,color:T.green}}>➕ Lägg till ingrediens</div>
@@ -4007,7 +4007,11 @@ function App() {
 
       {/* TOP NAV */}
       <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"13px 18px",borderBottom:`1px solid ${T.border}`,background:T.navBg,backdropFilter:"blur(16px)"}}>
+        padding:"13px 18px",
+        paddingTop:"max(13px, env(safe-area-inset-top))",
+        paddingLeft:"max(18px, env(safe-area-inset-left))",
+        paddingRight:"max(18px, env(safe-area-inset-right))",
+        borderBottom:`1px solid ${T.border}`,background:T.navBg,backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
           {/* LE-ikon */}
           <div style={{
@@ -4046,7 +4050,7 @@ function App() {
 
         {/* HOME */}
         {screen==="home" && (
-          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"28px 16px 20px"}}>
+          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"calc(28px + env(safe-area-inset-top)) 16px 20px"}}>
             {/* Goal Setup Modal */}
             {showGoalSetup && <GoalSetup onSave={saveGoal} T={T} isDark={isDark}/>}
 
@@ -4367,7 +4371,7 @@ function App() {
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"
           }}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 120px"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
               {/* Stäng-knapp */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
                 <button onClick={()=>setShowCategoryPicker(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
@@ -4424,7 +4428,7 @@ function App() {
 
         {/* PROFILE */}
         {screen==="profile" && (
-          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"22px 16px"}}>
+          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"calc(22px + env(safe-area-inset-top)) 16px 22px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
               <h2 style={{fontSize:20,color:T.accent,fontWeight:700}}>Min Profil</h2>
               {!editMode
@@ -5399,7 +5403,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
               <button onClick={()=>setViewingClientDiary(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:17,fontWeight:700,color:T.green}}>📊 {viewingClientDiary.name}</div>
@@ -5685,7 +5689,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>setEditingClient(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:18,fontWeight:700,color:T.blue}}>✏️ Redigera klient</div>
@@ -5892,7 +5896,7 @@ function App() {
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"
           }}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 200px",minHeight:"calc(100vh + 1px)"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 200px",minHeight:"calc(100vh + 1px)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
                 <button onClick={()=>{setShowRecipeSearch(false);setRecipeSearchQuery("");}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:17,fontWeight:700,color:T.accent}}>🍽 Sök recept</div>
@@ -6071,7 +6075,7 @@ function App() {
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"
           }}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 120px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
               <button onClick={()=>setShowShoppingList(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:17,fontWeight:700,color:T.accent}}>🛒 Inköpslista</div>
@@ -6258,7 +6262,7 @@ function App() {
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"
           }}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 120px"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
                 <button onClick={()=>setShowFocusEdit(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:17,fontWeight:700,color:T.accent}}>🎯 Mitt fokus</div>
@@ -6376,7 +6380,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <button onClick={()=>setShowMyMeals(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:18,fontWeight:700,color:T.green}}>🍳 Mina rätter</div>
@@ -6533,7 +6537,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <button onClick={()=>{setMealBuilderOpen(false);setMealBuilder(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:18,fontWeight:700,color:T.green}}>{editingMealId ? "✏️ Redigera" : "➕ Ny måltid"}</div>
@@ -6838,7 +6842,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
               <button onClick={closeScannerModal} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:18,fontWeight:700,color:T.accent}}>🍽 Logga måltid</div>
@@ -7158,7 +7162,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>setShowCoach(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:18,fontWeight:700,color:T.blue}}>🏋️ Coach</div>
@@ -7448,7 +7452,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowWeightLog(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:18,fontWeight:700,color:T.blue}}>⚖️ Viktlogg</div>
@@ -7562,7 +7566,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-            <div style={{maxWidth:540,margin:"0 auto",padding:"44px 16px 40px"}}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowHistory(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
                 <div style={{fontSize:18,fontWeight:700,color:T.green}}>📊 Historik</div>
@@ -7783,7 +7787,7 @@ function App() {
             overflowY:"scroll",
             WebkitOverflowScrolling:"touch",
             animation:"fadeIn 0.2s ease-out"}}>
-          <div style={{maxWidth:640,margin:"0 auto",padding:"44px 16px 40px"}}>
+          <div style={{maxWidth:640,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
               <button onClick={()=>{setShowAdmin(false);setSelectedUser(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
               <div style={{fontSize:18,fontWeight:700,color:T.red}}>🛡 Admin-panel</div>
@@ -8349,7 +8353,7 @@ function App() {
       {/* RECIPE MODAL */}
       {modalOpen && currentRecipe && (
         <div onClick={()=>setModalOpen(false)} style={{position:"fixed",inset:0,zIndex:200,background:"#0e0e0c",animation:"fadeIn 0.2s ease-out",overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#0e0e0c",width:"100%",maxWidth:580,minHeight:"100vh",margin:"0 auto",padding:"44px 16px 100px",boxSizing:"border-box"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#0e0e0c",width:"100%",maxWidth:580,minHeight:"100vh",margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 100px",boxSizing:"border-box"}}>
             <div style={{width:40,height:4,background:"#333",borderRadius:99,margin:"0 auto 14px"}}/>
             
             {/* Stor bild */}
