@@ -2,10 +2,13 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-<title>LeanEats – Kalorisnål Träningsmat</title>
-<meta name="description" content="Svenskans bästa kalori-app med 200+ recept anpassade efter dina mål"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<title>LeanEats – Smart kalori- & receptapp för svenska coacher</title>
+<meta name="description" content="Sveriges modernaste kalori-app. 200+ recept, streckkods-skanner, måltidsdagbok & coach-funktion. Bygg muskler, deffa eller behåll vikten — vi har planen."/>
+<meta name="keywords" content="kaloriräknare, kostschema, makros, deffa, bulka, träningsmat, coach-app, kostapp, sverige"/>
 <meta name="theme-color" content="#ff6b35"/>
+<meta name="author" content="LeanEats"/>
+<meta name="robots" content="index, follow"/>
 
 <!-- Favicon (syns i webbläsar-fliken) - SVG med eld-tema -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23ff6b35'/><stop offset='50%25' stop-color='%23ff3366'/><stop offset='100%25' stop-color='%23c4402b'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='68' font-family='Georgia,serif' font-weight='700' font-size='48' text-anchor='middle' fill='white' letter-spacing='-2'>LE</text></svg>"/>
@@ -25,10 +28,17 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 
 <!-- Open Graph (för delning på sociala medier) -->
-<meta property="og:title" content="LeanEats — Sveriges bästa kalori-app"/>
-<meta property="og:description" content="200+ recept anpassade efter dina mål. Deffa eller bulka — vi har receptet."/>
+<meta property="og:title" content="LeanEats — Sveriges modernaste kalori-app"/>
+<meta property="og:description" content="200+ recept, streckkods-skanner, måltidsdagbok & coach-funktion. Bygg muskler, deffa eller behåll vikten."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://leaneats.se"/>
+<meta property="og:locale" content="sv_SE"/>
+<meta property="og:site_name" content="LeanEats"/>
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="LeanEats — Sveriges modernaste kalori-app"/>
+<meta name="twitter:description" content="200+ recept, streckkods-skanner, coach-funktion. Bygg muskler, deffa eller behåll."/>
 
 <!-- React -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -154,7 +164,20 @@
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <!-- Pre-render loading screen (visas innan React/Babel laddar) -->
+  <div id="initial-loader" style="min-height:100vh;background:linear-gradient(135deg,#0a0a08 0%,#1a1108 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:Georgia,serif;">
+    <div style="font-size:64px;animation:initialPulse 1.8s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(255,107,53,0.4));">🔥</div>
+    <div style="font-size:24px;font-weight:700;background:linear-gradient(135deg,#ff6b35,#ff3366,#e8c97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.02em;">LeanEats</div>
+    <div style="font-size:12px;color:#666;letter-spacing:0.1em;text-transform:uppercase;">Startar...</div>
+  </div>
+  <style>
+    @keyframes initialPulse {
+      0%,100% { transform:scale(1); opacity:1; }
+      50% { transform:scale(1.1); opacity:0.8; }
+    }
+  </style>
+</div>
 
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
@@ -3937,6 +3960,39 @@ function App() {
             }
           </div>
         </div>
+        
+        {/* FEATURES SHOWCASE */}
+        <div style={{marginTop:28,padding:"0 4px"}}>
+          <div style={{textAlign:"center",fontSize:10,color:"#444",textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:16,fontWeight:600}}>✨ Allt du behöver i en app</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {[
+              {emoji:"🔥", label:"200+ recept"},
+              {emoji:"📷", label:"Streckkods-skanner"},
+              {emoji:"🥗", label:"Måltidsdagbok"},
+              {emoji:"💪", label:"Coach-funktion"},
+              {emoji:"📊", label:"Statistik & graf"},
+              {emoji:"🛒", label:"Inköpslista"}
+            ].map((f,i) => (
+              <div key={i} style={{
+                background:"#0e0e0c",
+                border:"1px solid #1a1a14",
+                borderRadius:10,
+                padding:"10px 12px",
+                display:"flex",
+                alignItems:"center",
+                gap:8
+              }}>
+                <span style={{fontSize:18}}>{f.emoji}</span>
+                <span style={{fontSize:11,color:"#888",fontWeight:500}}>{f.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div style={{textAlign:"center",marginTop:18,fontSize:10,color:"#333",lineHeight:1.6}}>
+          🇸🇪 Sveriges modernaste kalori-app<br/>
+          <span style={{color:"#222"}}>leaneats.se · Av träningsentusiaster</span>
+        </div>
       </div>
     </div>
   );
@@ -7177,11 +7233,30 @@ function App() {
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{fontSize:13,color:T.text,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
                             <div style={{fontSize:11,color:T.textFaint,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                              {c.goal === "deffa" ? "🔥 Deffa" : "💪 Bulka"} · {c.dailyKcal} kcal · 🔥 {c.streak} dagar
+                              {c.goal === "deffa" ? "🔥 Deffa" : c.goal === "bulka" ? "💪 Bulka" : "⚖️ Underhåll"} · {c.dailyKcal} kcal · 🔥 {c.streak} dagar
                             </div>
-                            <div style={{fontSize:10,color:c.todayKcal > 0 ? T.green : T.textFaint,marginTop:2}}>
-                              Idag: {Math.round(c.todayKcal)}/{c.dailyKcal} kcal
-                              {c.todayMeals && c.todayMeals.length > 0 && <span style={{marginLeft:6,color:T.blue}}>· {c.todayMeals.length} måltider</span>}
+                            <div style={{fontSize:10,marginTop:2,display:"flex",alignItems:"center",gap:6}}>
+                              {(() => {
+                                const today = new Date().toISOString().split('T')[0];
+                                const isActiveToday = c.todayDate === today && (c.todayKcal > 0 || (c.todayMeals && c.todayMeals.length > 0));
+                                if (isActiveToday) {
+                                  return (
+                                    <>
+                                      <span style={{color:T.green}}>● Aktiv idag</span>
+                                      <span style={{color:T.textDim}}>{Math.round(c.todayKcal)}/{c.dailyKcal} kcal</span>
+                                      {c.todayMeals && c.todayMeals.length > 0 && <span style={{color:T.blue}}>· {c.todayMeals.length} måltider</span>}
+                                    </>
+                                  );
+                                } else if (c.todayDate) {
+                                  // Räkna dagar sedan senaste loggning
+                                  const lastDate = new Date(c.todayDate);
+                                  const daysSince = Math.floor((Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+                                  if (daysSince === 1) return <span style={{color:T.yellow}}>● Loggade igår</span>;
+                                  if (daysSince <= 3) return <span style={{color:T.yellow}}>● Loggade för {daysSince} dagar sedan</span>;
+                                  return <span style={{color:T.red}}>● Inte aktiv på {daysSince} dagar</span>;
+                                }
+                                return <span style={{color:T.textFaint}}>○ Har inte börjat logga än</span>;
+                              })()}
                             </div>
                           </div>
                           <button onClick={()=>removeClient(c.uid)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:16,padding:"4px 6px",flexShrink:0}}>✕</button>
@@ -8424,10 +8499,22 @@ function Root() {
   );
   
   if (!fbReady) return (
-    <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
-      <div style={{fontSize:48,animation:"pulse 1.5s ease-in-out infinite"}}>🔥</div>
-      <div style={{fontSize:14,color:"#444",fontFamily:"Georgia,serif"}}>Ansluter till molnet...</div>
-      <div style={{fontSize:11,color:"#333",fontFamily:"Georgia,serif"}}>leaneats.netlify.app</div>
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0a0a08 0%,#1a1108 100%)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:20}}>
+      <div style={{
+        fontSize:64,
+        animation:"pulse 1.8s ease-in-out infinite",
+        filter:"drop-shadow(0 0 30px rgba(255,107,53,0.4))"
+      }}>🔥</div>
+      <div style={{
+        fontSize:24,
+        fontWeight:700,
+        background:"linear-gradient(135deg,#ff6b35,#ff3366,#e8c97a)",
+        WebkitBackgroundClip:"text",
+        WebkitTextFillColor:"transparent",
+        fontFamily:"Georgia,serif",
+        letterSpacing:"0.02em"
+      }}>LeanEats</div>
+      <div style={{fontSize:12,color:"#666",fontFamily:"Georgia,serif",letterSpacing:"0.1em",textTransform:"uppercase"}}>Laddar...</div>
     </div>
   );
   return <App/>;
