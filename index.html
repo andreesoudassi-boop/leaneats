@@ -101,6 +101,7 @@
   
   /* ANIMATIONER */
   @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:0.8}}
+  @keyframes exerciseBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.05)}}
   @keyframes scannerLine{0%{top:0}50%{top:calc(100% - 2px)}100%{top:0}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -444,6 +445,164 @@ function classifyRecipe(recipe, catId) {
 
 // ─── SVENSK MATDATABAS (snabbåtkomst) ──────────────────────────────────
 // Värden per 100g om inget annat anges. Format: {name, brand, kcal, protein, carbs, fat, category, emoji, unit?}
+// ─── TRÄNINGSDATABAS ──────────────────────────────────────────────────────
+// 30+ övningar i 6 muskelgrupper. SVG-animationer simuleras med CSS-keyframes.
+// Format: {id, name, category, mainMuscles, equipment, difficulty, instructions, tips, animationFrames}
+
+const TRAINING_CATEGORIES = [
+  { id:"chest",    label:"Bröst",    emoji:"💪", color:"#cc3344" },
+  { id:"back",     label:"Rygg",     emoji:"🔙", color:"#3a8acc" },
+  { id:"legs",     label:"Ben",      emoji:"🦵", color:"#4aaa4a" },
+  { id:"shoulders",label:"Axlar",    emoji:"🤲", color:"#cc8a3a" },
+  { id:"arms",     label:"Armar",    emoji:"💪", color:"#a85aaa" },
+  { id:"core",     label:"Mage",     emoji:"🎯", color:"#cc7a44" },
+  { id:"cardio",   label:"Kondition",emoji:"🏃", color:"#cc3a3a" },
+];
+
+const EXERCISES = [
+  // === BRÖST ===
+  { id:"bench_press", name:"Bänkpress", category:"chest", mainMuscles:["Bröst","Triceps","Axlar"], equipment:"Skivstång + Bänk", difficulty:"medium",
+    instructions:"Ligg på bänken med fötterna stadigt i golvet. Greppa stången axelbrett. Sänk stången kontrollerat till bröstet, pressa upp.",
+    tips:"Andas in på vägen ner, ut på vägen upp. Håll skulderbladen sammanpressade.",
+    animationFrames:["chest_down","chest_up"] },
+  { id:"dumbbell_press", name:"Hantelpress", category:"chest", mainMuscles:["Bröst","Triceps"], equipment:"Hantlar + Bänk", difficulty:"easy",
+    instructions:"Ligg på bänk med en hantel i varje hand. Pressa upp tills armarna är raka, sänk kontrollerat.",
+    tips:"Bättre rörelseomfång än skivstång. Håll handlederna raka.",
+    animationFrames:["press_down","press_up"] },
+  { id:"push_up", name:"Armhävning", category:"chest", mainMuscles:["Bröst","Triceps","Mage"], equipment:"Ingen", difficulty:"easy",
+    instructions:"Plankposition, händer axelbrett. Sänk dig kontrollerat tills bröstet nästan rör golvet, pressa upp.",
+    tips:"Håll kroppen rak som en planka. Spänn magen hela tiden.",
+    animationFrames:["pushup_down","pushup_up"] },
+  { id:"chest_fly", name:"Flyes", category:"chest", mainMuscles:["Bröst"], equipment:"Hantlar", difficulty:"medium",
+    instructions:"Ligg på bänk, hantlar rakt över bröstet med lätt böjda armar. Sänk hantlarna ut åt sidorna i en bågrörelse.",
+    tips:"Känn sträckningen i bröstet. Tryck inte stången med trickeps.",
+    animationFrames:["fly_open","fly_close"] },
+  { id:"dips", name:"Dips", category:"chest", mainMuscles:["Bröst","Triceps"], equipment:"Dippställning", difficulty:"hard",
+    instructions:"Häng i parallella stänger. Sänk dig genom att böja armbågarna, pressa upp till utgångsläge.",
+    tips:"Luta överkroppen lätt framåt för bröstfokus, rakt upp för triceps.",
+    animationFrames:["dip_down","dip_up"] },
+  
+  // === RYGG ===
+  { id:"deadlift", name:"Marklyft", category:"back", mainMuscles:["Rygg","Bakbra","Sätesmuskel"], equipment:"Skivstång", difficulty:"hard",
+    instructions:"Ställ dig framför stången, fötter höftbrett. Böj i höft & knän, greppa stången. Lyft genom att räta ut benen och sträcka i höften.",
+    tips:"Håll ryggen rak hela tiden. Stången ska gå längs benen.",
+    animationFrames:["dl_down","dl_up"] },
+  { id:"barbell_row", name:"Skivstångsrodd", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Skivstång", difficulty:"medium",
+    instructions:"Stå böjd över stången, ryggen rak. Dra stången mot magen, sänk kontrollerat.",
+    tips:"Klämm ihop skulderbladen i toppen. Använd ryggen, inte armarna.",
+    animationFrames:["row_down","row_up"] },
+  { id:"pull_up", name:"Pull-up", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Räck", difficulty:"hard",
+    instructions:"Häng från räcket med övergrepp. Dra dig upp tills hakan är över räcket, sänk kontrollerat.",
+    tips:"Spänn magen för att inte gunga. Fokus på rygg, inte armar.",
+    animationFrames:["pullup_down","pullup_up"] },
+  { id:"lat_pulldown", name:"Latsdrag", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Kabelmaskin", difficulty:"easy",
+    instructions:"Sitt vid maskinen, greppa stången. Dra ner mot bröstet, kontrollerat tillbaka.",
+    tips:"Dra med armbågarna, inte händerna. Klämm ihop skulderbladen.",
+    animationFrames:["lat_up","lat_down"] },
+  { id:"seated_row", name:"Sittande Rodd", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Kabelmaskin", difficulty:"easy",
+    instructions:"Sitt vid maskinen, greppa handtaget. Dra mot magen, släpp kontrollerat.",
+    tips:"Håll ryggen rak. Klämm ihop skulderbladen i slutet.",
+    animationFrames:["row_back","row_forward"] },
+  
+  // === BEN ===
+  { id:"squat", name:"Knäböj", category:"legs", mainMuscles:["Lår","Sätesmuskel","Mage"], equipment:"Skivstång", difficulty:"hard",
+    instructions:"Stång på axlarna, fötter axelbrett. Böj i höft & knän som om du sätter dig på stol. Pressa upp.",
+    tips:"Knän åt samma håll som tårna. Håll bröstet uppe.",
+    animationFrames:["squat_up","squat_down"] },
+  { id:"front_squat", name:"Frontknäböj", category:"legs", mainMuscles:["Lår","Mage"], equipment:"Skivstång", difficulty:"hard",
+    instructions:"Stång på framsidan av axlar. Knäböj rakt ner, pressa upp.",
+    tips:"Mer fokus på framsida lår. Håll armbågarna höga.",
+    animationFrames:["fsq_up","fsq_down"] },
+  { id:"lunges", name:"Utfall", category:"legs", mainMuscles:["Lår","Sätesmuskel"], equipment:"Hantlar", difficulty:"medium",
+    instructions:"Stå rak, ta ett stort kliv framåt och böj båda knäna till 90°. Pressa tillbaka.",
+    tips:"Knäet ska inte gå förbi tårna. Växla ben.",
+    animationFrames:["lunge_up","lunge_down"] },
+  { id:"leg_press", name:"Benpress", category:"legs", mainMuscles:["Lår","Sätesmuskel"], equipment:"Maskin", difficulty:"easy",
+    instructions:"Sitt i maskinen, fötterna axelbrett på plattan. Pressa upp, sänk kontrollerat.",
+    tips:"Lås inte knäna i toppen. Sänk så långt du klarar.",
+    animationFrames:["lp_up","lp_down"] },
+  { id:"romanian_dl", name:"Rumänsk Marklyft", category:"legs", mainMuscles:["Bakbra","Sätesmuskel"], equipment:"Skivstång", difficulty:"medium",
+    instructions:"Stå med stången framför kroppen. Skjut höften bakåt med bara lätt böj i knäna. Sänk stången till knänivå, kom upp.",
+    tips:"Känn sträckningen i bakbra. Stången nära kroppen.",
+    animationFrames:["rdl_up","rdl_down"] },
+  { id:"calf_raise", name:"Vadlyft", category:"legs", mainMuscles:["Vader"], equipment:"Maskin/Hantlar", difficulty:"easy",
+    instructions:"Stå på fotbollen, lyft hälarna så högt du kan, sänk kontrollerat.",
+    tips:"Pausa 1 sekund i toppen. Gör 15-20 reps.",
+    animationFrames:["calf_up","calf_down"] },
+  
+  // === AXLAR ===
+  { id:"shoulder_press", name:"Axelpress", category:"shoulders", mainMuscles:["Axlar","Triceps"], equipment:"Hantlar/Skivstång", difficulty:"medium",
+    instructions:"Sitt eller stå med hantlar i axelhöjd. Pressa upp tills armarna är raka, sänk kontrollerat.",
+    tips:"Spänn magen, lås inte armbågarna.",
+    animationFrames:["sp_down","sp_up"] },
+  { id:"lateral_raise", name:"Sidolyft", category:"shoulders", mainMuscles:["Sidodelta"], equipment:"Hantlar", difficulty:"easy",
+    instructions:"Stå med hantlar längs sidorna, lätt böjda armar. Lyft hantlarna ut åt sidorna till axelhöjd, sänk kontrollerat.",
+    tips:"Led med armbågarna. Inga gungrörelser.",
+    animationFrames:["lr_down","lr_up"] },
+  { id:"front_raise", name:"Framlyft", category:"shoulders", mainMuscles:["Främre Delta"], equipment:"Hantlar", difficulty:"easy",
+    instructions:"Stå med hantlar framför låren. Lyft rakt fram till axelhöjd, sänk kontrollerat.",
+    tips:"Använd inte ryggen. Kontrollerade rörelser.",
+    animationFrames:["fr_down","fr_up"] },
+  { id:"face_pull", name:"Face Pull", category:"shoulders", mainMuscles:["Bakre Delta","Övre Rygg"], equipment:"Kabelmaskin", difficulty:"easy",
+    instructions:"Greppa repet i ansiktshöjd, dra mot ansiktet och sprid armarna utåt.",
+    tips:"Bra för axelhälsa. Klämm ihop skulderbladen.",
+    animationFrames:["fp_back","fp_forward"] },
+  
+  // === ARMAR ===
+  { id:"bicep_curl", name:"Bicepscurl", category:"arms", mainMuscles:["Biceps"], equipment:"Hantlar/Skivstång", difficulty:"easy",
+    instructions:"Stå med hantlar längs sidorna, handflatorna framåt. Böj armarna upp till axlarna, sänk kontrollerat.",
+    tips:"Inga gungrörelser. Spänn biceps i toppen.",
+    animationFrames:["bc_down","bc_up"] },
+  { id:"hammer_curl", name:"Hammerkurl", category:"arms", mainMuscles:["Biceps","Underarm"], equipment:"Hantlar", difficulty:"easy",
+    instructions:"Hantlar längs sidorna, handflatorna mot kroppen. Böj armarna upp.",
+    tips:"Bra för underarm. Spänn i toppen.",
+    animationFrames:["hc_down","hc_up"] },
+  { id:"tricep_extension", name:"Tricepspress", category:"arms", mainMuscles:["Triceps"], equipment:"Hantel", difficulty:"medium",
+    instructions:"Håll hantel rakt över huvudet. Sänk bakom huvudet genom att böja armbågarna, pressa upp.",
+    tips:"Håll armbågarna nära öronen. Spänn triceps.",
+    animationFrames:["te_down","te_up"] },
+  { id:"tricep_pushdown", name:"Tricepspress Kabel", category:"arms", mainMuscles:["Triceps"], equipment:"Kabelmaskin", difficulty:"easy",
+    instructions:"Stå framför kabelmaskinen, greppa repet i bröstnivå. Pressa ner tills armarna är raka.",
+    tips:"Håll armbågarna nära kroppen. Spänn triceps.",
+    animationFrames:["tp_up","tp_down"] },
+  
+  // === MAGE ===
+  { id:"plank", name:"Planka", category:"core", mainMuscles:["Mage","Skuldror"], equipment:"Ingen", difficulty:"easy",
+    instructions:"Lägg dig på underarmar och tår. Håll kroppen rak som en planka. Spänn magen.",
+    tips:"Andas normalt. Sikta på 30-60 sek.",
+    animationFrames:["plank_hold"] },
+  { id:"sit_up", name:"Sit-up", category:"core", mainMuscles:["Mage"], equipment:"Ingen", difficulty:"easy",
+    instructions:"Ligg på rygg med böjda knän. Lyft överkroppen upp till knäna, sänk kontrollerat.",
+    tips:"Använd inte armarna att dra dig upp.",
+    animationFrames:["su_down","su_up"] },
+  { id:"leg_raise", name:"Knävyft", category:"core", mainMuscles:["Nedre Mage"], equipment:"Ingen", difficulty:"medium",
+    instructions:"Ligg på rygg med raka ben. Lyft benen rakt upp tills 90°, sänk kontrollerat.",
+    tips:"Pressa nedre ryggen mot golvet. Långsam rörelse.",
+    animationFrames:["lr_down","lr_up"] },
+  { id:"russian_twist", name:"Ryska Vridningar", category:"core", mainMuscles:["Sneda Mage"], equipment:"Vikt (valfri)", difficulty:"medium",
+    instructions:"Sitt med böjda knän, luta dig bakåt. Vrid överkroppen från sida till sida.",
+    tips:"Lyft fötterna för svårare. Håll magen spänd.",
+    animationFrames:["rt_left","rt_right"] },
+  
+  // === KONDITION ===
+  { id:"running", name:"Löpning", category:"cardio", mainMuscles:["Hela kroppen"], equipment:"Ingen", difficulty:"easy",
+    instructions:"Spring i jämnt tempo. Justera farten efter vad du klarar.",
+    tips:"Andas regelbundet. Värm upp först.",
+    animationFrames:["run1","run2"] },
+  { id:"cycling", name:"Cykling", category:"cardio", mainMuscles:["Ben","Mage"], equipment:"Cykel", difficulty:"easy",
+    instructions:"Cykla i jämnt tempo eller intervaller.",
+    tips:"Justera sadelhöjd. Drick vatten.",
+    animationFrames:["cycle1","cycle2"] },
+  { id:"jump_rope", name:"Hopprep", category:"cardio", mainMuscles:["Vader","Axlar"], equipment:"Hopprep", difficulty:"medium",
+    instructions:"Hoppa över repet i jämnt tempo. Små hopp.",
+    tips:"Mjuka knäböjer. Andas regelbundet.",
+    animationFrames:["jump1","jump2"] },
+  { id:"burpees", name:"Burpees", category:"cardio", mainMuscles:["Hela kroppen"], equipment:"Ingen", difficulty:"hard",
+    instructions:"Kombination: Squat → planka → push-up → squat → hopp.",
+    tips:"Tufft! Bra HIIT-övning.",
+    animationFrames:["burpee1","burpee2","burpee3"] },
+];
+
 const SVENSK_MAT = [
   // === MEJERI - MJÖLK ===
   {name:"Standardmjölk 3%", brand:"Arla", kcal:60, protein:3.4, carbs:4.8, fat:3, category:"mejeri", emoji:"🥛"},
@@ -1901,6 +2060,39 @@ function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favor
 }
 
 // ─── Food Item Row (för matsökning, senaste, favoriter) ─────────────────
+// ─── Exercise Animation Component ───────────────────────────────────────
+// Animerade SVG-figurer som visar övningsrörelser
+function ExerciseAnimation({ category, size = 60, color = "#e8c97a", T }) {
+  const cat = category || "chest";
+  const emojis = {
+    chest: "💪",
+    back: "🔙",
+    legs: "🦵",
+    shoulders: "🤲",
+    arms: "💪",
+    core: "🎯",
+    cardio: "🏃"
+  };
+  
+  return (
+    <div style={{
+      width:size,height:size,
+      borderRadius:12,
+      background:`linear-gradient(135deg, ${color}33 0%, ${color}11 100%)`,
+      border:`1px solid ${color}44`,
+      display:"flex",alignItems:"center",justifyContent:"center",
+      flexShrink:0,
+      position:"relative",
+      overflow:"hidden"
+    }}>
+      <div style={{
+        fontSize:size * 0.5,
+        animation:"exerciseBounce 2s ease-in-out infinite"
+      }}>{emojis[cat] || "💪"}</div>
+    </div>
+  );
+}
+
 function FoodItemRow({ product, isFavorite, onSelect, onToggleFav, T, index }) {
   return (
     <div className="stagger-item" style={{
@@ -2140,6 +2332,29 @@ function App() {
   const [showShoppingList, setShowShoppingList] = useState(false);
   const [shoppingItems, setShoppingItems] = useState([]); // {item, recipeNames, checked}
   const [shoppingSelectedRecipes, setShoppingSelectedRecipes] = useState([]); // recipe IDs valda
+  
+  // ── TRÄNING ──
+  const [showTraining, setShowTraining] = useState(false); // huvud-träningsvy
+  const [trainingTab, setTrainingTab] = useState("home"); // home|library|programs|history
+  const [selectedExercise, setSelectedExercise] = useState(null); // visa övningsdetaljer
+  const [selectedCategory, setSelectedCategory] = useState("all"); // filter för library
+  
+  // Egna pass (workouts)
+  const [myWorkouts, setMyWorkouts] = useState([]); // [{id, name, emoji, exercises:[{exerciseId, sets, reps, weight}], createdAt}]
+  const [workoutBuilder, setWorkoutBuilder] = useState(null); // pass under skapande
+  const [workoutBuilderOpen, setWorkoutBuilderOpen] = useState(false);
+  const [editingWorkoutId, setEditingWorkoutId] = useState(null);
+  
+  // Veckoschema
+  const [weeklySchedule, setWeeklySchedule] = useState({}); // {monday: workoutId, tuesday: ...}
+  const [showSchedule, setShowSchedule] = useState(false);
+  
+  // Aktivt pass (när du tränar nu)
+  const [activeWorkout, setActiveWorkout] = useState(null); // {workoutId, currentExercise, currentSet, sets:[]}
+  const [workoutHistory, setWorkoutHistory] = useState([]); // [{date, workoutId, exercises, duration, notes}]
+  
+  // Coach: schema till klient
+  const [showCoachSchedule, setShowCoachSchedule] = useState(null); // klient-uid om coach lägger schema
   const [showFavorites, setShowFavorites] = useState(false);
   
 
@@ -2406,6 +2621,11 @@ function App() {
             // Ladda inköpslista
             setShoppingItems(data.shoppingItems || []);
             setShoppingSelectedRecipes(data.shoppingSelectedRecipes || []);
+            
+            // Ladda träning
+            setMyWorkouts(data.myWorkouts || []);
+            setWeeklySchedule(data.weeklySchedule || {});
+            setWorkoutHistory(data.workoutHistory || []);
             
             // Ladda notif-preferenser
             setNotificationsEnabled(data.notificationsEnabled || false);
@@ -2890,6 +3110,63 @@ function App() {
       await loadCoachClients();
     } catch(e) { 
       console.log("Save client error:", e); 
+      alert("Något gick fel: " + e.message);
+    }
+  };
+  
+  // Coach: kopiera ett av sina egna pass till klient
+  const copyWorkoutToClient = async (clientUid, workoutId) => {
+    if (!isCoach) return;
+    const workout = myWorkouts.find(w => w.id === workoutId);
+    if (!workout) return;
+    
+    try {
+      // Hämta klientens befintliga workouts
+      const clientRef = fb.db.collection("users").doc(clientUid);
+      const snap = await clientRef.get();
+      const clientData = snap.data() || {};
+      const clientWorkouts = clientData.myWorkouts || [];
+      
+      // Skapa ny workout med ny ID + märke "från coach"
+      const newWorkout = {
+        ...workout,
+        id: "coach_workout_" + Date.now(),
+        fromCoach: true,
+        coachName: profile?.name || "Din coach",
+        copiedAt: new Date().toISOString()
+      };
+      
+      // Spara till klientens lista (lägg överst)
+      await clientRef.set({myWorkouts: [newWorkout, ...clientWorkouts]}, {merge: true});
+      alert(`✅ Pass "${workout.name}" skickat till klienten!`);
+    } catch(e) {
+      console.log("Copy workout error:", e);
+      alert("Något gick fel: " + e.message);
+    }
+  };
+  
+  // Coach: schemalägg klientens pass på en dag
+  const scheduleWorkoutForClient = async (clientUid, day, workoutId) => {
+    if (!isCoach) return;
+    try {
+      const clientRef = fb.db.collection("users").doc(clientUid);
+      const snap = await clientRef.get();
+      const clientData = snap.data() || {};
+      const clientSchedule = clientData.weeklySchedule || {};
+      
+      if (workoutId) {
+        clientSchedule[day] = workoutId;
+      } else {
+        delete clientSchedule[day];
+      }
+      
+      await clientRef.set({weeklySchedule: clientSchedule}, {merge: true});
+      // Uppdatera lokala visningen om vi har klienten laddad
+      setCoachClients(prev => prev.map(c => 
+        c.uid === clientUid ? {...c, weeklySchedule: clientSchedule} : c
+      ));
+    } catch(e) {
+      console.log("Schedule error:", e);
       alert("Något gick fel: " + e.message);
     }
   };
@@ -3449,6 +3726,179 @@ function App() {
     setNotifPrefs(newPrefs);
     await saveToCloud({notifPrefs: newPrefs});
     if (notificationsEnabled) scheduleNotifications();
+  };
+
+  // ── TRÄNING ──
+  
+  // Hjälpare: hitta övning med ID
+  const getExerciseById = (id) => EXERCISES.find(e => e.id === id);
+  
+  // Starta nytt workout-bygge
+  const startWorkoutBuilder = () => {
+    setWorkoutBuilder({
+      id: "workout_" + Date.now(),
+      name: "",
+      emoji: "💪",
+      category: "chest",
+      exercises: [],
+      duration: 45
+    });
+    setEditingWorkoutId(null);
+    setWorkoutBuilderOpen(true);
+  };
+  
+  // Redigera befintligt pass
+  const editWorkout = (workout) => {
+    setWorkoutBuilder({...workout});
+    setEditingWorkoutId(workout.id);
+    setWorkoutBuilderOpen(true);
+  };
+  
+  // Lägg till övning i workout
+  const addExerciseToWorkout = (exerciseId, sets = 3, reps = 10, weight = "") => {
+    if (!workoutBuilder) return;
+    setWorkoutBuilder({
+      ...workoutBuilder,
+      exercises: [...workoutBuilder.exercises, { exerciseId, sets, reps, weight, restSeconds: 90 }]
+    });
+  };
+  
+  // Ta bort övning
+  const removeExerciseFromWorkout = (idx) => {
+    if (!workoutBuilder) return;
+    setWorkoutBuilder({
+      ...workoutBuilder,
+      exercises: workoutBuilder.exercises.filter((_, i) => i !== idx)
+    });
+  };
+  
+  // Uppdatera övnings-detaljer
+  const updateWorkoutExercise = (idx, field, value) => {
+    if (!workoutBuilder) return;
+    const newExercises = [...workoutBuilder.exercises];
+    newExercises[idx] = { ...newExercises[idx], [field]: value };
+    setWorkoutBuilder({ ...workoutBuilder, exercises: newExercises });
+  };
+  
+  // Spara workout
+  const saveWorkout = async () => {
+    if (!workoutBuilder) return;
+    if (!workoutBuilder.name || workoutBuilder.name.trim().length < 2) {
+      alert("Ange ett namn på passet (minst 2 bokstäver)");
+      return;
+    }
+    if (workoutBuilder.exercises.length === 0) {
+      alert("Lägg till minst en övning");
+      return;
+    }
+    const newWorkout = {
+      ...workoutBuilder,
+      createdAt: new Date().toISOString()
+    };
+    let newWorkouts;
+    if (editingWorkoutId) {
+      newWorkouts = myWorkouts.map(w => w.id === editingWorkoutId ? newWorkout : w);
+    } else {
+      newWorkouts = [newWorkout, ...myWorkouts];
+    }
+    setMyWorkouts(newWorkouts);
+    await saveToCloud({myWorkouts: newWorkouts});
+    setWorkoutBuilderOpen(false);
+    setWorkoutBuilder(null);
+    setEditingWorkoutId(null);
+  };
+  
+  // Ta bort workout
+  const deleteWorkout = async (id) => {
+    if (!confirm("Ta bort detta pass?")) return;
+    const newWorkouts = myWorkouts.filter(w => w.id !== id);
+    setMyWorkouts(newWorkouts);
+    
+    // Ta även bort från schema
+    const newSchedule = {...weeklySchedule};
+    Object.keys(newSchedule).forEach(day => {
+      if (newSchedule[day] === id) delete newSchedule[day];
+    });
+    setWeeklySchedule(newSchedule);
+    
+    await saveToCloud({myWorkouts: newWorkouts, weeklySchedule: newSchedule});
+  };
+  
+  // Schemalägg pass på dag
+  const scheduleWorkoutOnDay = async (day, workoutId) => {
+    const newSchedule = {...weeklySchedule};
+    if (workoutId) {
+      newSchedule[day] = workoutId;
+    } else {
+      delete newSchedule[day];
+    }
+    setWeeklySchedule(newSchedule);
+    await saveToCloud({weeklySchedule: newSchedule});
+  };
+  
+  // Hämta dagens pass
+  const getTodayWorkout = () => {
+    const dayMap = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    const today = dayMap[new Date().getDay()];
+    const workoutId = weeklySchedule[today];
+    if (!workoutId) return null;
+    return myWorkouts.find(w => w.id === workoutId);
+  };
+  
+  // Starta aktivt pass
+  const startWorkout = (workout) => {
+    setActiveWorkout({
+      workoutId: workout.id,
+      workoutName: workout.name,
+      workoutEmoji: workout.emoji,
+      startTime: Date.now(),
+      currentExerciseIdx: 0,
+      currentSetIdx: 0,
+      completedSets: workout.exercises.map(ex => 
+        Array(ex.sets).fill(null).map(() => ({ done: false, weight: ex.weight, reps: ex.reps }))
+      ),
+      exercises: workout.exercises
+    });
+  };
+  
+  // Avsluta aktivt pass och spara historik
+  const finishWorkout = async (notes = "") => {
+    if (!activeWorkout) return;
+    const duration = Math.round((Date.now() - activeWorkout.startTime) / 60000); // minuter
+    const historyEntry = {
+      id: "session_" + Date.now(),
+      date: new Date().toISOString(),
+      workoutId: activeWorkout.workoutId,
+      workoutName: activeWorkout.workoutName,
+      workoutEmoji: activeWorkout.workoutEmoji,
+      exercises: activeWorkout.exercises,
+      completedSets: activeWorkout.completedSets,
+      duration,
+      notes
+    };
+    const newHistory = [historyEntry, ...workoutHistory].slice(0, 100); // max 100 senaste
+    setWorkoutHistory(newHistory);
+    await saveToCloud({workoutHistory: newHistory});
+    setActiveWorkout(null);
+    return historyEntry;
+  };
+  
+  // Toggla en set som klar
+  const toggleSet = (exIdx, setIdx) => {
+    if (!activeWorkout) return;
+    const newSets = [...activeWorkout.completedSets];
+    newSets[exIdx] = [...newSets[exIdx]];
+    newSets[exIdx][setIdx] = { ...newSets[exIdx][setIdx], done: !newSets[exIdx][setIdx].done };
+    setActiveWorkout({ ...activeWorkout, completedSets: newSets });
+  };
+  
+  // Uppdatera vikt/reps på en specifik set
+  const updateSet = (exIdx, setIdx, field, value) => {
+    if (!activeWorkout) return;
+    const newSets = [...activeWorkout.completedSets];
+    newSets[exIdx] = [...newSets[exIdx]];
+    newSets[exIdx][setIdx] = { ...newSets[exIdx][setIdx], [field]: value };
+    setActiveWorkout({ ...activeWorkout, completedSets: newSets });
   };
 
   // ── INKÖPSLISTA ──
@@ -4878,15 +5328,15 @@ function App() {
           {/* Hem */}
           {navBtn("home","🏠","Hem")}
           
-          {/* Dagbok (Min Resa) */}
-          <button onClick={()=>setShowWeightLog(true)} style={{
+          {/* Träning */}
+          <button onClick={()=>setShowTraining(true)} style={{
             flex:1,padding:"10px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
             fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
             borderTop:"2px solid transparent",
             display:"flex",flexDirection:"column",alignItems:"center",gap:4
           }}>
-            <span style={{fontSize:18}}>📔</span>Dagbok
+            <span style={{fontSize:18}}>💪</span>Träning
           </button>
           
           {/* MITTEN: Stor swipe-knapp som sticker upp */}
@@ -6206,6 +6656,774 @@ function App() {
         );
       })()}
 
+      {/* COACH: TRÄNINGSSCHEMA FÖR KLIENT */}
+      {showCoachSchedule && isCoach && (() => {
+        const client = coachClients.find(c => c.uid === showCoachSchedule);
+        if (!client) return null;
+        const clientSchedule = client.weeklySchedule || {};
+        const clientWorkouts = client.myWorkouts || [];
+        return (
+          <div style={{
+              position:"fixed",
+              top:0,left:0,right:0,bottom:0,
+              zIndex:355,
+              background:T.bg,
+              overflowY:"scroll",
+              WebkitOverflowScrolling:"touch",
+              animation:"fadeIn 0.2s ease-out"
+            }}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                <button onClick={()=>setShowCoachSchedule(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <div style={{fontSize:14,fontWeight:700,color:T.accent,textAlign:"center"}}>
+                  💪 Träning för<br/>
+                  <span style={{fontSize:13,color:T.text}}>{client.profile?.name || client.email}</span>
+                </div>
+                <div style={{width:36}}></div>
+              </div>
+              
+              <p style={{fontSize:12,color:T.textFaint,marginBottom:20,lineHeight:1.5,textAlign:"center"}}>
+                Skicka pass från ditt bibliotek och schemalägg klientens vecka.
+              </p>
+              
+              {/* DEL 1: Skicka mina pass till klient */}
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                <div style={{fontSize:11,color:T.green,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>📤 Skicka pass till klient</div>
+                {myWorkouts.length === 0 ? (
+                  <div style={{padding:"16px",textAlign:"center",color:T.textFaint,fontSize:12}}>
+                    Du har inga pass ännu. Skapa pass i din egen träning först.
+                  </div>
+                ) : (
+                  myWorkouts.map(w => (
+                    <div key={w.id} style={{
+                      display:"flex",alignItems:"center",gap:10,padding:"10px",
+                      background:T.bg3,borderRadius:10,marginBottom:6
+                    }}>
+                      <div style={{fontSize:24}}>{w.emoji}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:13,fontWeight:600,color:T.text}}>{w.name}</div>
+                        <div style={{fontSize:10,color:T.textFaint,marginTop:1}}>{w.exercises.length} övningar</div>
+                      </div>
+                      <button onClick={()=>copyWorkoutToClient(client.uid, w.id)} className="press-feedback" style={{
+                        background:T.green+"22",border:`1px solid ${T.green}`,color:T.green,
+                        borderRadius:99,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"
+                      }}>+ Skicka</button>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {/* DEL 2: Klientens befintliga pass */}
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>📋 Klientens pass ({clientWorkouts.length})</div>
+                {clientWorkouts.length === 0 ? (
+                  <div style={{padding:"16px",textAlign:"center",color:T.textFaint,fontSize:12}}>
+                    Klienten har inga pass ännu. Skicka något ovan!
+                  </div>
+                ) : (
+                  clientWorkouts.map(w => (
+                    <div key={w.id} style={{
+                      display:"flex",alignItems:"center",gap:10,padding:"8px 10px",
+                      background:T.bg3,borderRadius:10,marginBottom:6,
+                      borderLeft:w.fromCoach ? `3px solid ${T.green}` : "none"
+                    }}>
+                      <div style={{fontSize:22}}>{w.emoji}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:12,fontWeight:600,color:T.text}}>
+                          {w.name}
+                          {w.fromCoach && <span style={{fontSize:9,color:T.green,marginLeft:6,fontWeight:600}}>👨‍🏫 Från dig</span>}
+                        </div>
+                        <div style={{fontSize:10,color:T.textFaint,marginTop:1}}>{w.exercises.length} övningar</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {/* DEL 3: Schemalägg klientens vecka */}
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                <div style={{fontSize:11,color:T.blue,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>📅 Schemalägg veckan</div>
+                {[
+                  {id:"monday",label:"Måndag"},
+                  {id:"tuesday",label:"Tisdag"},
+                  {id:"wednesday",label:"Onsdag"},
+                  {id:"thursday",label:"Torsdag"},
+                  {id:"friday",label:"Fredag"},
+                  {id:"saturday",label:"Lördag"},
+                  {id:"sunday",label:"Söndag"}
+                ].map(day => {
+                  const wid = clientSchedule[day.id];
+                  const w = wid ? clientWorkouts.find(x => x.id === wid) : null;
+                  return (
+                    <div key={day.id} style={{
+                      display:"flex",alignItems:"center",gap:10,padding:"6px 0",
+                      borderTop:day.id !== "monday" ? `1px solid ${T.border}` : "none"
+                    }}>
+                      <div style={{width:70,fontSize:12,fontWeight:600,color:w?T.accent:T.textDim}}>{day.label}</div>
+                      <select value={wid || ""} onChange={e=>scheduleWorkoutForClient(client.uid, day.id, e.target.value || null)} style={{
+                        flex:1,background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                        padding:"8px",fontSize:12,color:T.text,fontFamily:"inherit",outline:"none",
+                        WebkitAppearance:"none",boxSizing:"border-box"
+                      }}>
+                        <option value="">— Vilodag —</option>
+                        {clientWorkouts.map(w => (
+                          <option key={w.id} value={w.id}>{w.emoji} {w.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div style={{padding:"12px 14px",background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,fontSize:11,color:T.textDim,lineHeight:1.5,textAlign:"center"}}>
+                💡 Klienten ser direkt sina pass och schemat i sin app.<br/>
+                Pass märkta med "👨‍🏫 Från dig" är skickade av dig.
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* COACH: TRÄNINGSSCHEMA FÖR KLIENT slut */}
+      {/* WORKOUT-BUILDER MODAL (skapa/redigera pass) */}
+      {workoutBuilderOpen && workoutBuilder && !selectedExercise && (
+        <div style={{
+            position:"fixed",
+            top:0,left:0,right:0,bottom:0,
+            zIndex:343,
+            background:T.bg,
+            overflowY:"scroll",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <button onClick={()=>{setWorkoutBuilderOpen(false);setWorkoutBuilder(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:17,fontWeight:700,color:T.green}}>{editingWorkoutId ? "✏️ Redigera pass" : "➕ Nytt pass"}</div>
+              <div style={{width:36}}></div>
+            </div>
+            
+            {/* Namn + emoji */}
+            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+              <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Namn & ikon</div>
+              <div style={{display:"flex",gap:10}}>
+                <select value={workoutBuilder.emoji} onChange={e=>setWorkoutBuilder({...workoutBuilder, emoji:e.target.value})} style={{
+                  background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:10,padding:"12px",
+                  fontSize:24,color:T.text,cursor:"pointer",fontFamily:"inherit",outline:"none",width:80,textAlign:"center"
+                }}>
+                  {["💪","🏋️","🔥","💯","⚡","🦵","🤲","🎯","🏃","🚴","🤸","🧘"].map(e=>(<option key={e} value={e}>{e}</option>))}
+                </select>
+                <input type="text" placeholder="T.ex. Push-pass måndag" value={workoutBuilder.name} onChange={e=>setWorkoutBuilder({...workoutBuilder, name:e.target.value})} style={{
+                  flex:1,background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:10,
+                  padding:"12px 14px",fontSize:15,color:T.text,fontFamily:"inherit",outline:"none",
+                  WebkitAppearance:"none",boxSizing:"border-box"
+                }}/>
+              </div>
+            </div>
+            
+            {/* Övningar */}
+            <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Övningar ({workoutBuilder.exercises.length})</div>
+                <button onClick={()=>{setTrainingTab("library");setShowTraining(true);}} className="press-feedback" style={{
+                  background:T.green+"22",border:`1px solid ${T.green}`,color:T.green,
+                  borderRadius:99,padding:"6px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"
+                }}>+ Lägg till</button>
+              </div>
+              
+              {workoutBuilder.exercises.length === 0 ? (
+                <div style={{padding:"20px",textAlign:"center",color:T.textFaint,fontSize:13}}>
+                  Inga övningar än<br/>
+                  <span style={{fontSize:11}}>Tryck "+ Lägg till" för att börja</span>
+                </div>
+              ) : (
+                workoutBuilder.exercises.map((ex, i) => {
+                  const exercise = getExerciseById(ex.exerciseId);
+                  if (!exercise) return null;
+                  const cat = TRAINING_CATEGORIES.find(c => c.id === exercise.category);
+                  return (
+                    <div key={i} style={{
+                      padding:"10px 0",borderTop:i > 0 ? `1px solid ${T.border}` : "none"
+                    }}>
+                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                        <ExerciseAnimation category={exercise.category} size={36} color={cat?.color || T.accent} T={T}/>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:13,fontWeight:600,color:T.text}}>{exercise.name}</div>
+                        </div>
+                        <button onClick={()=>removeExerciseFromWorkout(i)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:16,padding:"4px 8px"}}>✕</button>
+                      </div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+                        <div>
+                          <div style={{fontSize:9,color:T.textFaint,marginBottom:3,textTransform:"uppercase"}}>Sets</div>
+                          <input type="number" value={ex.sets} onChange={e=>updateWorkoutExercise(i,"sets",parseInt(e.target.value)||0)} style={{
+                            width:"100%",background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                            padding:"8px",fontSize:13,color:T.text,fontFamily:"inherit",outline:"none",textAlign:"center",
+                            WebkitAppearance:"none",boxSizing:"border-box"
+                          }}/>
+                        </div>
+                        <div>
+                          <div style={{fontSize:9,color:T.textFaint,marginBottom:3,textTransform:"uppercase"}}>Reps</div>
+                          <input type="number" value={ex.reps} onChange={e=>updateWorkoutExercise(i,"reps",parseInt(e.target.value)||0)} style={{
+                            width:"100%",background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                            padding:"8px",fontSize:13,color:T.text,fontFamily:"inherit",outline:"none",textAlign:"center",
+                            WebkitAppearance:"none",boxSizing:"border-box"
+                          }}/>
+                        </div>
+                        <div>
+                          <div style={{fontSize:9,color:T.textFaint,marginBottom:3,textTransform:"uppercase"}}>Vikt (kg)</div>
+                          <input type="text" placeholder="-" value={ex.weight} onChange={e=>updateWorkoutExercise(i,"weight",e.target.value)} style={{
+                            width:"100%",background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                            padding:"8px",fontSize:13,color:T.text,fontFamily:"inherit",outline:"none",textAlign:"center",
+                            WebkitAppearance:"none",boxSizing:"border-box"
+                          }}/>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            
+            {/* Spara/Avbryt */}
+            <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:10}}>
+              <button onClick={()=>{setWorkoutBuilderOpen(false);setWorkoutBuilder(null);}} style={{
+                background:T.bg3,border:`1px solid ${T.border2}`,color:T.text,
+                padding:"14px 20px",borderRadius:99,fontSize:13,cursor:"pointer",fontFamily:"inherit",fontWeight:600
+              }}>Avbryt</button>
+              <button onClick={saveWorkout} className="press-feedback" style={{
+                background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                color:"#0d0d0d",border:"none",borderRadius:99,padding:"14px",
+                fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+                boxShadow:`0 4px 16px ${T.green}66`
+              }}>{editingWorkoutId ? "💾 Spara ändringar" : "💾 Spara pass"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* AKTIVT PASS MODAL (när du tränar) */}
+      {activeWorkout && (
+        <div style={{
+            position:"fixed",
+            top:0,left:0,right:0,bottom:0,
+            zIndex:350,
+            background:T.bg,
+            overflowY:"scroll",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <button onClick={()=>{if(confirm("Avbryta passet? Inga framsteg sparas."))setActiveWorkout(null);}} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>✕</button>
+              <div style={{fontSize:17,fontWeight:700,color:T.accent}}>{activeWorkout.workoutEmoji} {activeWorkout.workoutName}</div>
+              <div style={{width:36}}></div>
+            </div>
+            
+            {/* Övningar med set-tracking */}
+            {activeWorkout.exercises.map((ex, exIdx) => {
+              const exercise = getExerciseById(ex.exerciseId);
+              if (!exercise) return null;
+              const cat = TRAINING_CATEGORIES.find(c => c.id === exercise.category);
+              const sets = activeWorkout.completedSets[exIdx] || [];
+              const completedCount = sets.filter(s => s.done).length;
+              const allDone = completedCount === ex.sets;
+              return (
+                <div key={exIdx} style={{
+                  background:`linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
+                  border:`1px solid ${allDone ? T.green : cat?.color+"33" || T.border}`,
+                  borderRadius:14,padding:"14px",marginBottom:10,
+                  boxShadow:allDone ? `0 0 12px ${T.green}33` : "none"
+                }}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                    <ExerciseAnimation category={exercise.category} size={44} color={cat?.color || T.accent} T={T}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:14,fontWeight:700,color:T.text}}>{exercise.name}</div>
+                      <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>{completedCount}/{ex.sets} sets klara</div>
+                    </div>
+                    <button onClick={()=>setSelectedExercise(exercise)} style={{background:T.bg3,border:`1px solid ${T.border2}`,color:T.textDim,borderRadius:99,padding:"5px 10px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>ℹ️</button>
+                  </div>
+                  
+                  {/* Set-rader */}
+                  {sets.map((set, setIdx) => (
+                    <div key={setIdx} style={{
+                      display:"grid",gridTemplateColumns:"auto 1fr 1fr auto",gap:8,
+                      alignItems:"center",
+                      padding:"8px 0",
+                      borderTop:setIdx > 0 ? `1px solid ${T.border}` : "none",
+                      opacity:set.done ? 0.6 : 1
+                    }}>
+                      <div style={{fontSize:11,color:T.textFaint,fontWeight:600,minWidth:30}}>Set {setIdx+1}</div>
+                      <input type="text" placeholder="vikt" value={set.weight || ""} onChange={e=>updateSet(exIdx,setIdx,"weight",e.target.value)} style={{
+                        background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                        padding:"8px",fontSize:13,color:T.text,fontFamily:"inherit",outline:"none",textAlign:"center",
+                        WebkitAppearance:"none",boxSizing:"border-box"
+                      }}/>
+                      <input type="number" placeholder="reps" value={set.reps || ""} onChange={e=>updateSet(exIdx,setIdx,"reps",parseInt(e.target.value)||0)} style={{
+                        background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                        padding:"8px",fontSize:13,color:T.text,fontFamily:"inherit",outline:"none",textAlign:"center",
+                        WebkitAppearance:"none",boxSizing:"border-box"
+                      }}/>
+                      <button onClick={()=>toggleSet(exIdx,setIdx)} className="press-feedback" style={{
+                        background:set.done ? T.green : T.bg3,
+                        border:`1px solid ${set.done ? T.green : T.border2}`,
+                        color:set.done ? "#0d0d0d" : T.textDim,
+                        borderRadius:8,padding:"8px 14px",fontSize:14,fontWeight:700,
+                        cursor:"pointer",fontFamily:"inherit",minWidth:44
+                      }}>{set.done ? "✓" : "○"}</button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+            
+            {/* Avsluta-knapp */}
+            <button onClick={async()=>{
+              const notes = prompt("Anteckningar om passet (valfritt):") || "";
+              await finishWorkout(notes);
+              alert("🎉 Bra jobbat! Passet är sparat i historiken.");
+            }} className="press-feedback" style={{
+              width:"100%",
+              background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+              color:"#0d0d0d",border:"none",borderRadius:99,padding:"16px",
+              fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+              boxShadow:`0 6px 20px ${T.green}66`
+            }}>✅ Avsluta passet</button>
+          </div>
+        </div>
+      )}
+      
+      {/* VECKOSCHEMA MODAL */}
+      {showSchedule && (
+        <div style={{
+            position:"fixed",
+            top:0,left:0,right:0,bottom:0,
+            zIndex:341,
+            background:T.bg,
+            overflowY:"scroll",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <button onClick={()=>setShowSchedule(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:17,fontWeight:700,color:T.blue}}>📅 Veckoschema</div>
+              <div style={{width:36}}></div>
+            </div>
+            
+            <p style={{fontSize:13,color:T.textFaint,marginBottom:20,lineHeight:1.5}}>Tilldela ett pass till varje träningsdag. Vilodagar lämnas tomma.</p>
+            
+            {[
+              {id:"monday",label:"Måndag"},
+              {id:"tuesday",label:"Tisdag"},
+              {id:"wednesday",label:"Onsdag"},
+              {id:"thursday",label:"Torsdag"},
+              {id:"friday",label:"Fredag"},
+              {id:"saturday",label:"Lördag"},
+              {id:"sunday",label:"Söndag"}
+            ].map(day => {
+              const workoutId = weeklySchedule[day.id];
+              const workout = workoutId ? myWorkouts.find(w => w.id === workoutId) : null;
+              return (
+                <div key={day.id} style={{
+                  background:T.bg2,border:`1px solid ${workout ? T.accent+"44" : T.border}`,
+                  borderRadius:12,padding:"12px 14px",marginBottom:8,
+                  display:"flex",alignItems:"center",gap:12
+                }}>
+                  <div style={{width:80,fontSize:13,fontWeight:700,color:workout?T.accent:T.textDim}}>{day.label}</div>
+                  <div style={{flex:1}}>
+                    <select value={workoutId || ""} onChange={e=>scheduleWorkoutOnDay(day.id, e.target.value || null)} style={{
+                      width:"100%",background:T.bg3,border:`1px solid ${T.border2}`,borderRadius:8,
+                      padding:"10px",fontSize:13,color:T.text,fontFamily:"inherit",outline:"none",
+                      WebkitAppearance:"none",boxSizing:"border-box"
+                    }}>
+                      <option value="">— Vilodag —</option>
+                      {myWorkouts.map(w => (
+                        <option key={w.id} value={w.id}>{w.emoji} {w.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
+            
+            {myWorkouts.length === 0 && (
+              <div style={{background:T.bg2,border:`1px dashed ${T.border2}`,borderRadius:14,padding:"24px",textAlign:"center",marginTop:12}}>
+                <div style={{fontSize:32,marginBottom:8}}>🏋️</div>
+                <div style={{fontSize:13,color:T.text,fontWeight:600,marginBottom:4}}>Skapa pass först</div>
+                <div style={{fontSize:11,color:T.textDim}}>Du behöver skapa pass innan du kan schemalägga dem</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ÖVNINGSDETALJ MODAL */}
+      {selectedExercise && (() => {
+        const cat = TRAINING_CATEGORIES.find(c => c.id === selectedExercise.category);
+        return (
+          <div style={{
+            position:"fixed",
+            top:0,left:0,right:0,bottom:0,
+            zIndex:345,
+            background:T.bg,
+            overflowY:"scroll",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+            <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                <button onClick={()=>setSelectedExercise(null)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+                <div style={{fontSize:11,color:cat?.color,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>{cat?.emoji} {cat?.label}</div>
+                <div style={{width:36}}></div>
+              </div>
+              
+              {/* Stor animation */}
+              <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
+                <ExerciseAnimation category={selectedExercise.category} size={140} color={cat?.color || T.accent} T={T}/>
+              </div>
+              
+              {/* Titel */}
+              <h2 style={{fontSize:28,fontWeight:700,color:T.text,marginBottom:6,fontFamily:"'Fraunces', Georgia, serif",textAlign:"center"}}>{selectedExercise.name}</h2>
+              <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:24}}>
+                <span style={{
+                  fontSize:11,padding:"4px 10px",
+                  background:selectedExercise.difficulty==="easy"?T.green+"22":selectedExercise.difficulty==="medium"?T.yellow+"22":T.red+"22",
+                  color:selectedExercise.difficulty==="easy"?T.green:selectedExercise.difficulty==="medium"?T.yellow:T.red,
+                  borderRadius:99,fontWeight:600
+                }}>{selectedExercise.difficulty==="easy"?"⭐ Lätt":selectedExercise.difficulty==="medium"?"⭐⭐ Medel":"⭐⭐⭐ Svår"}</span>
+                <span style={{
+                  fontSize:11,padding:"4px 10px",
+                  background:T.bg3,color:T.textDim,
+                  borderRadius:99,fontWeight:500
+                }}>{selectedExercise.equipment}</span>
+              </div>
+              
+              {/* Muskelgrupper */}
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                <div style={{fontSize:11,color:cat?.color,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>💪 Muskelgrupper</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  {selectedExercise.mainMuscles.map(m => (
+                    <div key={m} style={{padding:"6px 12px",background:cat?.color+"22",border:`1px solid ${cat?.color}44`,borderRadius:99,fontSize:12,color:cat?.color,fontWeight:600}}>{m}</div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Instruktioner */}
+              <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>📝 Så gör du</div>
+                <p style={{fontSize:13,color:T.text,lineHeight:1.6}}>{selectedExercise.instructions}</p>
+              </div>
+              
+              {/* Tips */}
+              <div style={{background:`linear-gradient(135deg, ${T.green}22 0%, ${T.green}11 100%)`,border:`1px solid ${T.green}44`,borderRadius:14,padding:"16px",marginBottom:14}}>
+                <div style={{fontSize:11,color:T.green,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>💡 Tips</div>
+                <p style={{fontSize:13,color:T.text,lineHeight:1.6}}>{selectedExercise.tips}</p>
+              </div>
+              
+              {/* Lägg till i pass-knapp (om någon meal-builder är öppen) */}
+              {workoutBuilderOpen && (
+                <button onClick={()=>{addExerciseToWorkout(selectedExercise.id);setSelectedExercise(null);}} className="press-feedback" style={{
+                  width:"100%",
+                  background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                  color:"#0d0d0d",border:"none",borderRadius:99,padding:"14px",
+                  fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+                  boxShadow:`0 4px 16px ${T.green}55`
+                }}>➕ Lägg till i passet</button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* TRÄNING - HUVUDMODAL */}
+      {showTraining && (
+        <div style={{
+            position:"fixed",
+            top:0,left:0,right:0,bottom:0,
+            zIndex:340,
+            background:T.bg,
+            overflowY:"scroll",
+            WebkitOverflowScrolling:"touch",
+            animation:"fadeIn 0.2s ease-out"
+          }}>
+          <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <button onClick={()=>setShowTraining(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+              <div style={{fontSize:17,fontWeight:700,color:T.accent,fontFamily:"'Fraunces', Georgia, serif"}}>💪 Träning</div>
+              <div style={{width:36}}></div>
+            </div>
+            
+            {/* Tabbar */}
+            <div style={{display:"flex",gap:4,marginBottom:18,background:T.bg2,padding:4,borderRadius:99,border:`1px solid ${T.border}`}}>
+              {[
+                {id:"home",label:"🏠 Hem"},
+                {id:"library",label:"📚 Övningar"},
+                {id:"programs",label:`🏋️ Pass${myWorkouts.length > 0 ? ` (${myWorkouts.length})` : ""}`},
+                {id:"history",label:"📊 Historik"}
+              ].map(t=>(
+                <button key={t.id} onClick={()=>setTrainingTab(t.id)} style={{
+                  flex:1,
+                  padding:"8px 4px",
+                  background:trainingTab===t.id ? T.accent+"33" : "transparent",
+                  border:"none",
+                  borderRadius:99,
+                  fontSize:10,
+                  fontWeight:trainingTab===t.id?700:500,
+                  color:trainingTab===t.id ? T.accent : T.textDim,
+                  cursor:"pointer",
+                  fontFamily:"inherit"
+                }}>{t.label}</button>
+              ))}
+            </div>
+            
+            {/* TAB: HEM */}
+            {trainingTab === "home" && (() => {
+              const todayWorkout = getTodayWorkout();
+              const dayMap = ["Söndag","Måndag","Tisdag","Onsdag","Torsdag","Fredag","Lördag"];
+              const dayName = dayMap[new Date().getDay()];
+              return (
+                <>
+                  {/* Dagens pass */}
+                  {todayWorkout ? (
+                    <div style={{
+                      background:`linear-gradient(135deg, ${T.accent}33 0%, ${T.yellow}11 100%)`,
+                      border:`1px solid ${T.accent}66`,
+                      borderRadius:18,padding:"20px",marginBottom:16,
+                      boxShadow:`0 4px 16px ${T.accent}22`
+                    }}>
+                      <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:8,fontWeight:700}}>🔥 Idag är det {dayName}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
+                        <div style={{fontSize:48}}>{todayWorkout.emoji}</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:20,fontWeight:700,color:T.text,fontFamily:"'Fraunces', Georgia, serif"}}>{todayWorkout.name}</div>
+                          <div style={{fontSize:12,color:T.textDim,marginTop:3}}>{todayWorkout.exercises.length} övningar · ~{todayWorkout.duration} min</div>
+                        </div>
+                      </div>
+                      <button onClick={()=>{startWorkout(todayWorkout);setShowTraining(false);}} className="press-feedback" style={{
+                        width:"100%",
+                        background:`linear-gradient(135deg,${T.accent},${T.yellow})`,
+                        color:"#0d0d0d",border:"none",borderRadius:99,padding:"14px",
+                        fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+                        boxShadow:`0 4px 16px ${T.accent}55`
+                      }}>▶️ Starta passet →</button>
+                    </div>
+                  ) : (
+                    <div style={{background:T.bg2,border:`1px dashed ${T.border2}`,borderRadius:14,padding:"24px 16px",marginBottom:16,textAlign:"center"}}>
+                      <div style={{fontSize:32,marginBottom:10}}>😎</div>
+                      <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:4}}>Inget pass idag ({dayName})</div>
+                      <div style={{fontSize:12,color:T.textDim}}>Vilodag eller schemalägg ett pass</div>
+                    </div>
+                  )}
+                  
+                  {/* Snabbstats */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:18}}>
+                    <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px",textAlign:"center"}}>
+                      <div style={{fontSize:20,fontWeight:700,color:T.accent,fontFamily:"'Fraunces', Georgia, serif"}}>{myWorkouts.length}</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:3}}>Mina pass</div>
+                    </div>
+                    <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px",textAlign:"center"}}>
+                      <div style={{fontSize:20,fontWeight:700,color:T.green,fontFamily:"'Fraunces', Georgia, serif"}}>{workoutHistory.length}</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:3}}>Genomförda</div>
+                    </div>
+                    <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px",textAlign:"center"}}>
+                      <div style={{fontSize:20,fontWeight:700,color:T.blue,fontFamily:"'Fraunces', Georgia, serif"}}>{Object.keys(weeklySchedule).length}</div>
+                      <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:3}}>Schemalagda</div>
+                    </div>
+                  </div>
+                  
+                  {/* Snabba knappar */}
+                  <button onClick={startWorkoutBuilder} className="press-feedback" style={{
+                    width:"100%",
+                    background:`linear-gradient(135deg,${T.green},#4aaa4a)`,
+                    color:"#0d0d0d",border:"none",borderRadius:14,padding:"16px",
+                    fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+                    marginBottom:10,
+                    display:"flex",alignItems:"center",gap:12,
+                    boxShadow:`0 4px 16px ${T.green}55`
+                  }}>
+                    <span style={{fontSize:24}}>➕</span>
+                    <span style={{flex:1,textAlign:"left"}}>Skapa nytt pass</span>
+                    <span style={{fontSize:14}}>→</span>
+                  </button>
+                  
+                  <button onClick={()=>setShowSchedule(true)} className="press-feedback" style={{
+                    width:"100%",
+                    background:T.bg2,border:`1px solid ${T.blue}44`,
+                    color:T.text,borderRadius:14,padding:"16px",
+                    fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",
+                    display:"flex",alignItems:"center",gap:12
+                  }}>
+                    <span style={{fontSize:24}}>📅</span>
+                    <div style={{flex:1,textAlign:"left"}}>
+                      <div>Veckoschema</div>
+                      <div style={{fontSize:11,color:T.textFaint,marginTop:2,fontWeight:400}}>Planera dina träningsdagar</div>
+                    </div>
+                    <span style={{fontSize:14,color:T.textDim}}>→</span>
+                  </button>
+                </>
+              );
+            })()}
+            
+            {/* TAB: ÖVNINGSBIBLIOTEK */}
+            {trainingTab === "library" && (
+              <>
+                {/* Kategori-filter */}
+                <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:6}}>
+                  <button onClick={()=>setSelectedCategory("all")} style={{
+                    background:selectedCategory==="all"?T.accent+"33":T.bg2,
+                    border:`1px solid ${selectedCategory==="all"?T.accent:T.border}`,
+                    color:selectedCategory==="all"?T.accent:T.textDim,
+                    padding:"7px 14px",borderRadius:99,fontSize:12,fontWeight:600,
+                    cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0
+                  }}>Alla ({EXERCISES.length})</button>
+                  {TRAINING_CATEGORIES.map(cat => {
+                    const count = EXERCISES.filter(e => e.category === cat.id).length;
+                    const selected = selectedCategory === cat.id;
+                    return (
+                      <button key={cat.id} onClick={()=>setSelectedCategory(cat.id)} style={{
+                        background:selected?cat.color+"33":T.bg2,
+                        border:`1px solid ${selected?cat.color:T.border}`,
+                        color:selected?cat.color:T.textDim,
+                        padding:"7px 14px",borderRadius:99,fontSize:12,fontWeight:600,
+                        cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0
+                      }}>{cat.emoji} {cat.label} ({count})</button>
+                    );
+                  })}
+                </div>
+                
+                {/* Övningslista */}
+                {EXERCISES.filter(e => selectedCategory === "all" || e.category === selectedCategory).map((ex,i) => {
+                  const cat = TRAINING_CATEGORIES.find(c => c.id === ex.category);
+                  return (
+                    <button key={ex.id} onClick={()=>setSelectedExercise(ex)} className="stagger-item press-feedback" style={{
+                      display:"flex",alignItems:"center",gap:12,width:"100%",
+                      padding:"14px",
+                      background:`linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
+                      border:`1px solid ${cat?.color || T.border}33`,
+                      borderRadius:14,marginBottom:8,
+                      cursor:"pointer",fontFamily:"inherit",textAlign:"left",
+                      animationDelay:`${Math.min(i,10)*0.03}s`
+                    }}>
+                      <ExerciseAnimation category={ex.category} size={56} color={cat?.color || T.accent} T={T}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:3}}>{ex.name}</div>
+                        <div style={{display:"flex",gap:6,alignItems:"center",fontSize:10,color:T.textFaint,flexWrap:"wrap"}}>
+                          <span style={{color:cat?.color,fontWeight:600}}>{cat?.emoji} {cat?.label}</span>
+                          <span>·</span>
+                          <span>{ex.equipment}</span>
+                          <span>·</span>
+                          <span style={{color:ex.difficulty==="easy"?T.green:ex.difficulty==="medium"?T.yellow:T.red}}>
+                            {ex.difficulty==="easy"?"Lätt":ex.difficulty==="medium"?"Medel":"Svår"}
+                          </span>
+                        </div>
+                      </div>
+                      <span style={{fontSize:14,color:T.textFaint}}>→</span>
+                    </button>
+                  );
+                })}
+              </>
+            )}
+            
+            {/* TAB: MINA PASS */}
+            {trainingTab === "programs" && (
+              <>
+                <button onClick={startWorkoutBuilder} className="press-feedback" style={{
+                  width:"100%",
+                  background:`linear-gradient(135deg,${T.green},#4aaa4a)`,
+                  color:"#0d0d0d",border:"none",borderRadius:14,padding:"16px",
+                  fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+                  marginBottom:14,
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:10,
+                  boxShadow:`0 4px 16px ${T.green}55`
+                }}>
+                  <span style={{fontSize:22}}>➕</span>
+                  Skapa nytt pass
+                </button>
+                
+                {myWorkouts.length === 0 ? (
+                  <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px 18px",textAlign:"center"}}>
+                    <div style={{fontSize:48,marginBottom:14}}>🏋️</div>
+                    <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:6}}>Inga pass än</div>
+                    <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>Skapa ditt första pass genom att välja övningar från biblioteket!</div>
+                  </div>
+                ) : (
+                  myWorkouts.map((w,i) => (
+                    <div key={w.id} className="stagger-item" style={{
+                      background:`linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
+                      border:`1px solid ${T.border}`,
+                      borderRadius:14,padding:"14px",marginBottom:10,
+                      animationDelay:`${i*0.05}s`
+                    }}>
+                      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                        <div style={{fontSize:36}}>{w.emoji}</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:15,fontWeight:700,color:T.text,fontFamily:"'Fraunces', Georgia, serif"}}>{w.name}</div>
+                          <div style={{fontSize:11,color:T.textFaint,marginTop:2}}>{w.exercises.length} övningar · ~{w.duration} min</div>
+                        </div>
+                      </div>
+                      
+                      <div style={{display:"grid",gridTemplateColumns:"1fr auto auto",gap:6}}>
+                        <button onClick={()=>{startWorkout(w);setShowTraining(false);}} className="press-feedback" style={{
+                          background:`linear-gradient(135deg,${T.green},${T.green}cc)`,
+                          color:"#0d0d0d",border:"none",borderRadius:99,
+                          padding:"10px",fontSize:12,fontWeight:700,
+                          cursor:"pointer",fontFamily:"inherit"
+                        }}>▶️ Starta</button>
+                        <button onClick={()=>editWorkout(w)} style={{
+                          background:T.bg3,border:`1px solid ${T.border2}`,color:T.text,
+                          borderRadius:99,padding:"10px 14px",fontSize:12,
+                          cursor:"pointer",fontFamily:"inherit"
+                        }}>✏️</button>
+                        <button onClick={()=>deleteWorkout(w.id)} style={{
+                          background:T.bg3,border:`1px solid ${T.red}44`,color:T.red,
+                          borderRadius:99,padding:"10px 14px",fontSize:12,
+                          cursor:"pointer",fontFamily:"inherit"
+                        }}>🗑</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+            
+            {/* TAB: HISTORIK */}
+            {trainingTab === "history" && (
+              <>
+                {workoutHistory.length === 0 ? (
+                  <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px 18px",textAlign:"center"}}>
+                    <div style={{fontSize:48,marginBottom:14}}>📊</div>
+                    <div style={{fontSize:14,fontWeight:600,color:T.text,marginBottom:6}}>Ingen historik än</div>
+                    <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>Genomför ditt första pass så ser du historiken här!</div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Senaste {Math.min(workoutHistory.length, 30)} pass</div>
+                    {workoutHistory.slice(0, 30).map((h,i) => (
+                      <div key={h.id} className="stagger-item" style={{
+                        background:T.bg2,border:`1px solid ${T.border}`,
+                        borderRadius:12,padding:"12px",marginBottom:8,
+                        animationDelay:`${i*0.03}s`
+                      }}>
+                        <div style={{display:"flex",alignItems:"center",gap:12}}>
+                          <div style={{fontSize:24}}>{h.workoutEmoji}</div>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:13,fontWeight:600,color:T.text}}>{h.workoutName}</div>
+                            <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>
+                              {new Date(h.date).toLocaleDateString("sv-SE", {day:"numeric",month:"short",weekday:"short"})} · {h.duration} min · {h.exercises.length} övningar
+                            </div>
+                          </div>
+                          <div style={{fontSize:18}}>✅</div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* INKÖPSLISTA MODAL */}
       {showShoppingList && (
         <div style={{
@@ -7411,19 +8629,30 @@ function App() {
                           <button onClick={()=>removeClient(c.uid)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:16,padding:"4px 6px",flexShrink:0}}>✕</button>
                         </div>
                         
-                        {/* Tre knappar för coach: Dagbok / Statistik / Redigera */}
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                        {/* Tre knappar för coach: Dagbok / Träning / Redigera */}
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
                           <button onClick={()=>setViewingClientDiary(c)} className="press-feedback" style={{
                             background:`linear-gradient(135deg,${T.green}33,${T.green}22)`,
                             border:`1px solid ${T.green}66`,
                             color:T.green,
-                            padding:"8px 10px",
+                            padding:"8px 6px",
                             borderRadius:99,
-                            fontSize:11,
+                            fontSize:10,
                             cursor:"pointer",
                             fontFamily:"inherit",
                             fontWeight:700
-                          }}>📊 Se dagbok</button>
+                          }}>📊 Dagbok</button>
+                          <button onClick={()=>setShowCoachSchedule(c.uid)} className="press-feedback" style={{
+                            background:`linear-gradient(135deg,${T.accent}33,${T.yellow}22)`,
+                            border:`1px solid ${T.accent}66`,
+                            color:T.accent,
+                            padding:"8px 6px",
+                            borderRadius:99,
+                            fontSize:10,
+                            cursor:"pointer",
+                            fontFamily:"inherit",
+                            fontWeight:700
+                          }}>💪 Träning</button>
                           <button onClick={()=>{
                             setEditingClient(c);
                             setClientEdits({
@@ -7438,13 +8667,13 @@ function App() {
                             background:`linear-gradient(135deg,${T.blue}33,${T.blue}22)`,
                             border:`1px solid ${T.blue}66`,
                             color:T.blue,
-                            padding:"8px 10px",
+                            padding:"8px 6px",
                             borderRadius:99,
-                            fontSize:11,
+                            fontSize:10,
                             cursor:"pointer",
                             fontFamily:"inherit",
                             fontWeight:700
-                          }}>✏️ Redigera plan</button>
+                          }}>✏️ Plan</button>
                         </div>
                       </div>
                     ))
