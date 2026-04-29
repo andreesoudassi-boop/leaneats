@@ -10,6 +10,11 @@
 <meta name="author" content="LeanEats"/>
 <meta name="robots" content="index, follow"/>
 
+<!-- Google Fonts - Fraunces (för premium-typografi) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+
 <!-- Favicon (syns i webbläsar-fliken) - SVG med eld-tema -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23ff6b35'/><stop offset='50%25' stop-color='%23ff3366'/><stop offset='100%25' stop-color='%23c4402b'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='68' font-family='Georgia,serif' font-weight='700' font-size='48' text-anchor='middle' fill='white' letter-spacing='-2'>LE</text></svg>"/>
 
@@ -64,6 +69,9 @@
   firebase.initializeApp(firebaseConfig);
   const _auth = firebase.auth();
   const _db = firebase.firestore();
+  
+  // Sätt språk till svenska för Firebase-mejl (verifiering, lösenord etc)
+  _auth.languageCode = "sv";
 
   window._firebase = {
     auth: _auth,
@@ -4054,15 +4062,32 @@ function App() {
             {/* Goal Setup Modal */}
             {showGoalSetup && <GoalSetup onSave={saveGoal} T={T} isDark={isDark}/>}
 
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-              <div style={{width:42,height:42,borderRadius:"50%",overflow:"hidden",background:T.border,border:`1px solid ${T.border2}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18}}>
+              <div style={{
+                width:48,height:48,borderRadius:"50%",overflow:"hidden",
+                background:`linear-gradient(135deg, ${T.accent}33, ${T.yellow}22)`,
+                border:`2px solid ${T.accent}66`,
+                flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,
+                boxShadow:`0 2px 12px ${T.accent}33`
+              }}>
                 {profile.avatar ? <img src={profile.avatar} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : "👤"}
               </div>
-              <div>
-                <div style={{fontSize:12,color:T.textFaint}}>Hej,</div>
-                <div style={{fontSize:16,fontWeight:700,color:T.text}}>{profile.name||user.email} 👋</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",fontWeight:600}}>{(() => {
+                  const hour = new Date().getHours();
+                  if (hour < 5) return "God natt,";
+                  if (hour < 10) return "God morgon,";
+                  if (hour < 14) return "God dag,";
+                  if (hour < 18) return "God eftermiddag,";
+                  if (hour < 22) return "God kväll,";
+                  return "God natt,";
+                })()}</div>
+                <div style={{fontSize:18,fontWeight:700,color:T.text,marginTop:2,fontFamily:"'Fraunces', Georgia, serif"}}>{profile.name||user.email.split("@")[0]} 👋</div>
               </div>
-              <div style={{marginLeft:"auto",fontSize:10,color:T.green,background:isDark?"#0a160a":"#e8f5e8",border:`1px solid ${isDark?"#1a3a1a":"#b8dbb8"}`,borderRadius:99,padding:"3px 10px"}}>☁️ Synkad</div>
+              <div style={{fontSize:10,color:T.green,background:isDark?"#0a160a":"#e8f5e8",border:`1px solid ${isDark?"#1a3a1a":"#b8dbb8"}`,borderRadius:99,padding:"4px 11px",display:"flex",alignItems:"center",gap:4,fontWeight:600}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:T.green,display:"inline-block",animation:"pulse 2s ease-in-out infinite"}}></span>
+                Synkad
+              </div>
             </div>
 
             {/* Goal + Calorie Banner med TRACKER */}
@@ -4075,59 +4100,123 @@ function App() {
               const fatTarget = Math.round(dailyKcal*0.28/9);
               
               return (
-                <div style={{background:T.bg2,border:`1px solid ${fitnessGoal==="deffa"?T.green+"44":T.accent+"44"}`,borderRadius:14,padding:"14px 16px",marginBottom:18}}>
-                  {/* Överst: mål + ändra */}
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+                <div style={{
+                  background:`linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
+                  border:`1px solid ${fitnessGoal==="deffa"?T.green+"33":T.accent+"33"}`,
+                  borderRadius:20,
+                  padding:"20px",
+                  marginBottom:18,
+                  position:"relative",
+                  overflow:"hidden"
+                }}>
+                  {/* Subtil bakgrunds-gradient */}
+                  <div style={{
+                    position:"absolute",
+                    top:-50,right:-50,width:200,height:200,
+                    background:`radial-gradient(circle, ${fitnessGoal==="deffa"?T.green:T.accent}11 0%, transparent 70%)`,
+                    pointerEvents:"none"
+                  }}></div>
+                  
+                  {/* Header */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,position:"relative"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:24}}>{fitnessGoal==="deffa"?"🔥":"💪"}</span>
+                      <span style={{fontSize:22}}>{fitnessGoal==="deffa"?"🔥":fitnessGoal==="bulka"?"💪":"⚖️"}</span>
                       <div>
-                        <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?T.green:T.accent}}>{fitnessGoal==="deffa"?"Deffa":"Bulka"}</div>
-                        <div style={{fontSize:11,color:T.textFaint}}>
-                          <span style={{color:isOver?T.red:T.text,fontWeight:600}}>{Math.round(todayKcal).toLocaleString()}</span>
-                          <span style={{color:T.textFaint}}> / {dailyKcal.toLocaleString()} kcal</span>
+                        <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?T.green:T.accent,letterSpacing:"0.02em"}}>
+                          {fitnessGoal==="deffa"?"Deffa":fitnessGoal==="bulka"?"Bulka":"Underhåll"}
                         </div>
+                        <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginTop:2}}>Dagens mål</div>
                       </div>
                     </div>
-                    <button onClick={()=>setShowGoalSetup(true)} style={{fontSize:11,color:T.textDim,border:`1px solid ${T.border2}`,background:"transparent",borderRadius:99,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit"}}>Ändra →</button>
+                    <button onClick={()=>setShowGoalSetup(true)} style={{fontSize:11,color:T.textDim,border:`1px solid ${T.border2}`,background:"transparent",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontFamily:"inherit"}}>Ändra →</button>
                   </div>
                   
-                  {/* Progress bar */}
-                  <div className="progress-shimmer" style={{background:T.border,borderRadius:99,height:6,overflow:"hidden",marginBottom:10}}>
-                    <div style={{height:"100%",borderRadius:99,
-                      background:isOver?"linear-gradient(90deg,#6dcc6d,#e8c97a,#cc7a7a)":
-                                fitnessGoal==="deffa"?"linear-gradient(90deg,#6dcc6d,#4aaa4a)":"linear-gradient(90deg,#e8c97a,#c4a852)",
-                      width:`${kcalPct}%`,transition:"width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)"}}></div>
+                  {/* CIRKEL-PROGRESS (Apple Watch-style) */}
+                  <div style={{display:"flex",alignItems:"center",gap:18,marginBottom:18,position:"relative"}}>
+                    <div style={{position:"relative",width:130,height:130,flexShrink:0}}>
+                      <svg width="130" height="130" style={{transform:"rotate(-90deg)"}}>
+                        {/* Bakgrundscirkel */}
+                        <circle cx="65" cy="65" r="56" stroke={T.border} strokeWidth="10" fill="none"/>
+                        {/* Progress-cirkel */}
+                        <circle cx="65" cy="65" r="56"
+                          stroke={isOver?T.red:fitnessGoal==="deffa"?T.green:T.accent}
+                          strokeWidth="10" fill="none" strokeLinecap="round"
+                          strokeDasharray={`${2*Math.PI*56}`}
+                          strokeDashoffset={`${2*Math.PI*56*(1-Math.min(1,kcalPct/100))}`}
+                          style={{transition:"stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)",filter:`drop-shadow(0 0 6px ${isOver?T.red:fitnessGoal==="deffa"?T.green:T.accent}66)`}}/>
+                      </svg>
+                      {/* Centrerade siffror */}
+                      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+                        <div style={{fontSize:30,fontWeight:700,color:T.text,lineHeight:1,fontFamily:"'Fraunces', Georgia, serif"}}>
+                          {Math.round(todayKcal).toLocaleString()}
+                        </div>
+                        <div style={{fontSize:10,color:T.textFaint,marginTop:3,textTransform:"uppercase",letterSpacing:"0.08em"}}>
+                          av {dailyKcal.toLocaleString()}
+                        </div>
+                        <div style={{fontSize:9,color:T.textFaint,marginTop:2,textTransform:"uppercase"}}>kcal</div>
+                      </div>
+                    </div>
+                    
+                    {/* Status höger om cirkeln */}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{
+                        fontSize:11,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6,fontWeight:600
+                      }}>
+                        {isOver ? "⚠ Över mål" : Math.round(kcalLeft) > 0 ? "Kvar att äta" : "Mål nått! 🎉"}
+                      </div>
+                      <div style={{
+                        fontSize:28,fontWeight:700,
+                        color:isOver?T.red:Math.round(kcalLeft)<=0?T.green:T.text,
+                        lineHeight:1,
+                        fontFamily:"'Fraunces', Georgia, serif"
+                      }}>
+                        {isOver ? `+${Math.round(todayKcal - dailyKcal)}` : Math.round(kcalLeft).toLocaleString()}
+                      </div>
+                      <div style={{fontSize:11,color:T.textFaint,marginTop:3}}>kcal</div>
+                      
+                      {todayMeals.length > 0 && (
+                        <button onClick={undoLastMeal} className="press-feedback" style={{
+                          marginTop:12,
+                          fontSize:10,color:T.textDim,
+                          background:T.bg3,border:`1px solid ${T.border}`,
+                          borderRadius:99,padding:"5px 10px",
+                          cursor:"pointer",fontFamily:"inherit"
+                        }}>↶ Ångra senaste</button>
+                      )}
+                    </div>
                   </div>
                   
-                  {/* Status-text */}
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,fontSize:10}}>
-                    <span style={{color:isOver?T.red:T.green}}>
-                      {isOver ? `⚠ ${Math.round(todayKcal - dailyKcal)} över mål` : `${Math.round(kcalLeft)} kcal kvar`}
-                    </span>
-                    {todayMeals.length > 0 && (
-                      <button onClick={undoLastMeal} style={{fontSize:10,color:T.textDim,background:"transparent",border:`1px solid ${T.border2}`,borderRadius:99,padding:"3px 10px",cursor:"pointer",fontFamily:"inherit"}}>
-                        ↶ Ångra senaste
-                      </button>
-                    )}
-                  </div>
-                  
-                  {/* Macros med progress */}
-                  <div style={{display:"flex",gap:6}}>
+                  {/* Macros - 3 kort */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
                     {[
-                      ["Protein", todayProtein, proteinTarget, T.green],
-                      ["Kolhydr.", todayCarbs, carbsTarget, T.blue],
-                      ["Fett", todayFat, fatTarget, T.yellow],
-                    ].map(([l,v,t,c])=>{
+                      ["Protein", todayProtein, proteinTarget, T.green, "💪"],
+                      ["Kolhydrater", todayCarbs, carbsTarget, T.blue, "🍞"],
+                      ["Fett", todayFat, fatTarget, T.yellow, "🥑"],
+                    ].map(([l,v,t,c,emoji])=>{
                       const pct = Math.min(100, (v/t)*100);
                       return (
-                        <div key={l} style={{flex:1,background:T.bg3,borderRadius:8,padding:"7px 4px",textAlign:"center"}}>
-                          <div style={{fontSize:12,fontWeight:700,color:c,marginBottom:2}}>
-                            {Math.round(v)}<span style={{fontSize:9,color:T.textFaint,fontWeight:400}}>/{t}g</span>
+                        <div key={l} style={{
+                          background:T.bg3,
+                          border:`1px solid ${c}22`,
+                          borderRadius:12,
+                          padding:"10px 8px",
+                          textAlign:"center",
+                          position:"relative",
+                          overflow:"hidden"
+                        }}>
+                          <div style={{fontSize:14,marginBottom:4,opacity:0.8}}>{emoji}</div>
+                          <div style={{fontSize:14,fontWeight:700,color:c,lineHeight:1,fontFamily:"'Fraunces', Georgia, serif"}}>
+                            {Math.round(v)}<span style={{fontSize:9,color:T.textFaint,fontWeight:400,marginLeft:1}}>/{t}g</span>
                           </div>
-                          <div style={{background:T.border,borderRadius:99,height:2,overflow:"hidden",marginBottom:3}}>
-                            <div style={{height:"100%",borderRadius:99,background:c,width:`${pct}%`,transition:"width 0.4s"}}></div>
+                          <div style={{background:T.border,borderRadius:99,height:3,overflow:"hidden",marginTop:6}}>
+                            <div style={{
+                              height:"100%",borderRadius:99,background:`linear-gradient(90deg,${c}cc,${c})`,
+                              width:`${pct}%`,
+                              transition:"width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                              boxShadow:pct>0?`0 0 4px ${c}66`:"none"
+                            }}></div>
                           </div>
-                          <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase"}}>{l}</div>
+                          <div style={{fontSize:8,color:T.textFaint,textTransform:"uppercase",marginTop:4,letterSpacing:"0.08em"}}>{l}</div>
                         </div>
                       );
                     })}
@@ -4140,65 +4229,90 @@ function App() {
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
               {/* Skanner-knapp */}
               <button onClick={()=>{setShowScanner(true);setScannerProduct(null);setScannerInput("");setScannerError("");}} className="press-feedback" style={{
-                background:`linear-gradient(135deg,${T.accent},${T.yellow})`,
+                background:`linear-gradient(135deg,${T.accent} 0%,${T.yellow} 100%)`,
                 border:"none",
-                borderRadius:14,
-                padding:"14px 12px",
+                borderRadius:16,
+                padding:"16px 14px",
                 cursor:"pointer",
                 fontFamily:"inherit",
                 textAlign:"left",
-                boxShadow:`0 4px 16px ${T.accent}33`
+                boxShadow:`0 6px 20px ${T.accent}33, 0 2px 6px ${T.accent}22`,
+                position:"relative",
+                overflow:"hidden"
               }}>
-                <div style={{fontSize:28,marginBottom:4}}>🔍</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#0d0d0d"}}>Logga mat</div>
-                <div style={{fontSize:10,color:"#0d0d0d",opacity:0.7,fontWeight:500,marginTop:2}}>Skanna · Sök · Senaste</div>
+                <div style={{position:"absolute",top:-20,right:-20,fontSize:80,opacity:0.15}}>🔍</div>
+                <div style={{fontSize:30,marginBottom:8,position:"relative"}}>🔍</div>
+                <div style={{fontSize:14,fontWeight:700,color:"#0d0d0d",position:"relative"}}>Logga mat</div>
+                <div style={{fontSize:10,color:"#0d0d0d",opacity:0.65,fontWeight:500,marginTop:3,position:"relative"}}>Skanna · Sök · Senaste</div>
               </button>
               
               {/* Mina rätter-knapp */}
               <button onClick={()=>setShowMyMeals(true)} className="press-feedback" style={{
-                background:`linear-gradient(135deg,${T.green},#4aaa4a)`,
+                background:`linear-gradient(135deg,${T.green} 0%,#4aaa4a 100%)`,
                 border:"none",
-                borderRadius:14,
-                padding:"14px 12px",
+                borderRadius:16,
+                padding:"16px 14px",
                 cursor:"pointer",
                 fontFamily:"inherit",
                 textAlign:"left",
-                boxShadow:`0 4px 16px ${T.green}55`
+                boxShadow:`0 6px 20px ${T.green}55, 0 2px 6px ${T.green}33`,
+                position:"relative",
+                overflow:"hidden"
               }}>
-                <div style={{fontSize:28,marginBottom:4}}>🍳</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#0d0d0d"}}>Mina rätter{myMeals.length > 0 ? ` (${myMeals.length})` : ""}</div>
-                <div style={{fontSize:10,color:"#0d0d0d",opacity:0.7,fontWeight:500,marginTop:2}}>Skapa egna måltider</div>
+                <div style={{position:"absolute",top:-20,right:-20,fontSize:80,opacity:0.15}}>🍳</div>
+                <div style={{fontSize:30,marginBottom:8,position:"relative"}}>🍳</div>
+                <div style={{fontSize:14,fontWeight:700,color:"#0d0d0d",position:"relative"}}>Mina rätter{myMeals.length > 0 ? ` (${myMeals.length})` : ""}</div>
+                <div style={{fontSize:10,color:"#0d0d0d",opacity:0.65,fontWeight:500,marginTop:3,position:"relative"}}>Skapa egna måltider</div>
               </button>
             </div>
 
             {/* VATTENSPÅRNING + STREAK */}
             <div style={{display:"grid",gridTemplateColumns:streakCount > 0 ? "1fr 1fr" : "1fr",gap:10,marginBottom:18}}>
               {/* Vatten */}
-              <div style={{background:T.bg2,border:`1px solid ${T.blue}33`,borderRadius:14,padding:"12px 14px"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontSize:20}}>💧</span>
+              <div style={{
+                background:`linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
+                border:`1px solid ${T.blue}33`,
+                borderRadius:16,
+                padding:"14px 14px",
+                position:"relative",
+                overflow:"hidden",
+                boxShadow:`0 2px 12px ${T.blue}11`
+              }}>
+                <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,background:`radial-gradient(circle, ${T.blue}15 0%, transparent 70%)`,pointerEvents:"none"}}></div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,position:"relative"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{
+                      width:32,height:32,borderRadius:8,
+                      background:`${T.blue}22`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:18,
+                      border:`1px solid ${T.blue}44`
+                    }}>💧</div>
                     <div>
-                      <div style={{fontSize:12,fontWeight:700,color:T.blue}}>Vatten</div>
-                      <div style={{fontSize:10,color:T.textFaint}}>{todayWater}/{waterGoal} glas</div>
+                      <div style={{fontSize:13,fontWeight:700,color:T.blue,letterSpacing:"0.04em"}}>Vatten</div>
+                      <div style={{fontSize:11,color:T.textFaint,marginTop:1,fontWeight:500}}>
+                        <span style={{color:T.blue,fontWeight:700,fontSize:13,fontFamily:"'Fraunces', Georgia, serif"}}>{todayWater}</span>
+                        <span style={{fontSize:10}}>/{waterGoal} glas</span>
+                      </div>
                     </div>
                   </div>
                   <div style={{display:"flex",gap:4}}>
                     {todayWater > 0 && (
-                      <button onClick={removeWater} style={{background:T.bg3,border:`1px solid ${T.border}`,color:T.textDim,width:26,height:26,borderRadius:"50%",cursor:"pointer",fontSize:14,padding:0,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
+                      <button onClick={removeWater} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.border}`,color:T.textDim,width:28,height:28,borderRadius:"50%",cursor:"pointer",fontSize:14,padding:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>−</button>
                     )}
-                    <button onClick={addWater} disabled={todayWater>=12} style={{background:todayWater>=12?T.border:T.blue,border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:todayWater>=12?"not-allowed":"pointer",fontSize:14,padding:0,opacity:todayWater>=12?0.3:1,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>+</button>
+                    <button onClick={addWater} disabled={todayWater>=12} className="press-feedback" style={{background:todayWater>=12?T.border:`linear-gradient(135deg,${T.blue},#5a8cb8)`,border:"none",color:"#fff",width:28,height:28,borderRadius:"50%",cursor:todayWater>=12?"not-allowed":"pointer",fontSize:16,padding:0,opacity:todayWater>=12?0.3:1,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,boxShadow:todayWater<12?`0 2px 8px ${T.blue}55`:"none",fontFamily:"inherit"}}>+</button>
                   </div>
                 </div>
                 {/* Droppar visualisering */}
-                <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                <div style={{display:"flex",gap:3,flexWrap:"wrap",position:"relative"}}>
                   {[...Array(waterGoal)].map((_,i)=>(
                     <div key={i} className="water-drop" onClick={()=>{if(i+1>todayWater)addWater();else setTodayWater(i);}} style={{
                       fontSize:18,
                       opacity:i<todayWater?1:0.2,
                       cursor:"pointer",
                       filter:i<todayWater?"none":"grayscale(1)",
-                      animation: i === todayWater - 1 ? "waterFill 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)" : "none"
+                      animation: i === todayWater - 1 ? "waterFill 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
+                      transition:"all 0.3s"
                     }}>💧</div>
                   ))}
                   {todayWater > waterGoal && [...Array(Math.min(4, todayWater - waterGoal))].map((_,i)=>(
@@ -4209,17 +4323,29 @@ function App() {
               
               {/* Streak */}
               {streakCount > 0 && (
-                <div className={streakCount >= 7 ? "streak-milestone" : ""} style={{background:streakCount >= 7 ? (isDark?"linear-gradient(135deg,#2a1a08,#1a1a08)":"linear-gradient(135deg,#ffe8c4,#fff4d8)") : T.bg2,border:`1px solid ${T.accent}44`,borderRadius:14,padding:"12px 14px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center"}}>
-                  <div className="fire-dance" style={{fontSize:28,marginBottom:2,display:"inline-block"}}>🔥</div>
-                  <div style={{fontSize:20,fontWeight:700,color:T.accent,lineHeight:1}}>{streakCount}</div>
-                  <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginTop:2}}>
+                <div className={streakCount >= 7 ? "streak-milestone" : ""} style={{
+                  background:streakCount >= 7 
+                    ? (isDark?"linear-gradient(135deg,#2a1a08 0%,#1a1a08 100%)":"linear-gradient(135deg,#ffe8c4 0%,#fff4d8 100%)") 
+                    : `linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
+                  border:`1px solid ${T.accent}44`,
+                  borderRadius:16,
+                  padding:"14px 14px",
+                  display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center",
+                  position:"relative",
+                  overflow:"hidden",
+                  boxShadow:`0 2px 12px ${T.accent}22`
+                }}>
+                  <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,background:`radial-gradient(circle, ${T.accent}25 0%, transparent 70%)`,pointerEvents:"none"}}></div>
+                  <div className="fire-dance" style={{fontSize:32,marginBottom:4,display:"inline-block",position:"relative",filter:`drop-shadow(0 0 8px ${T.accent}55)`}}>🔥</div>
+                  <div style={{fontSize:24,fontWeight:700,color:T.accent,lineHeight:1,fontFamily:"'Fraunces', Georgia, serif",position:"relative"}}>{streakCount}</div>
+                  <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:3,position:"relative",fontWeight:600}}>
                     {streakCount === 1 ? "dag" : "dagar i rad"}
                   </div>
                   {streakCount >= 7 && (
-                    <div style={{fontSize:8,color:T.accent,marginTop:3,fontWeight:700}}>🏆 En vecka!</div>
+                    <div style={{fontSize:9,color:T.accent,marginTop:5,fontWeight:700,position:"relative"}}>🏆 En vecka!</div>
                   )}
                   {streakCount >= 30 && (
-                    <div style={{fontSize:8,color:T.accent,marginTop:3,fontWeight:700}}>💎 MÅNAD!</div>
+                    <div style={{fontSize:9,color:T.accent,marginTop:3,fontWeight:700,position:"relative"}}>💎 MÅNAD!</div>
                   )}
                 </div>
               )}
@@ -4257,20 +4383,39 @@ function App() {
                     
                     return (
                       <div key={mt.id} className="card-enter" style={{
-                        background:T.bg2,
+                        background:isEmpty ? T.bg2 : `linear-gradient(135deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
                         border:`1px solid ${isEmpty ? T.border : mt.color+"33"}`,
                         borderRadius:14,
                         padding:"14px 16px",
                         marginBottom:10,
-                        opacity:isEmpty ? 0.6 : 1
+                        opacity:isEmpty ? 0.65 : 1,
+                        boxShadow:isEmpty ? "none" : `0 2px 8px ${mt.color}11`,
+                        position:"relative",
+                        overflow:"hidden",
+                        transition:"all 0.3s"
                       }}>
+                        {/* Subtil färgglow i bakgrunden */}
+                        {!isEmpty && (
+                          <div style={{
+                            position:"absolute",
+                            top:-30,right:-30,width:120,height:120,
+                            background:`radial-gradient(circle, ${mt.color}15 0%, transparent 70%)`,
+                            pointerEvents:"none"
+                          }}></div>
+                        )}
                         {/* Header: meal type + total */}
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:isEmpty ? 0 : 10}}>
-                          <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            <span style={{fontSize:22}}>{mt.emoji}</span>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:isEmpty ? 0 : 10,position:"relative"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:12}}>
+                            <div style={{
+                              width:36,height:36,borderRadius:10,
+                              background:isEmpty ? T.bg3 : `${mt.color}22`,
+                              display:"flex",alignItems:"center",justifyContent:"center",
+                              fontSize:20,
+                              border:`1px solid ${isEmpty ? T.border : mt.color+"44"}`
+                            }}>{mt.emoji}</div>
                             <div>
-                              <div style={{fontSize:13,fontWeight:700,color:mt.color,letterSpacing:"0.05em"}}>{mt.label}</div>
-                              <div style={{fontSize:10,color:T.textFaint}}>
+                              <div style={{fontSize:13,fontWeight:700,color:mt.color,letterSpacing:"0.06em"}}>{mt.label}</div>
+                              <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>
                                 {mealsInThis.length === 0 ? "Inget loggat" : 
                                  mealsInThis.length === 1 ? "1 måltid" : 
                                  `${mealsInThis.length} måltider`}
@@ -4278,8 +4423,8 @@ function App() {
                             </div>
                           </div>
                           <div style={{textAlign:"right"}}>
-                            <div style={{fontSize:18,fontWeight:700,color:mt.color}}>{Math.round(mealKcal)}</div>
-                            <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase"}}>kcal</div>
+                            <div style={{fontSize:20,fontWeight:700,color:mt.color,fontFamily:"'Fraunces', Georgia, serif",lineHeight:1}}>{Math.round(mealKcal)}</div>
+                            <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",marginTop:3,letterSpacing:"0.08em"}}>kcal</div>
                           </div>
                         </div>
 
