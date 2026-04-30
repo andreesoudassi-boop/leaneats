@@ -4795,10 +4795,10 @@ function App() {
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           {!isPremium && <span style={{fontSize:11,color:T.textFaint}}>{freeLeft} kvar</span>}
           {isPremium
-            ? <span className="float-subtle" style={{fontSize:11,color:T.accent,background:isDark?"#1a1a08":"#f8f0d8",border:`1px solid ${isDark?"#3a3010":"#e0d0a0"}`,borderRadius:99,padding:"3px 10px"}}>✨ Premium</span>
+            ? <span className="float-subtle" style={{fontSize:11,color:T.accent,background:isDark?"#1a1a08":"#f8f0d8",border:`1px solid ${isDark?"#3a3010":"#e0d0a0"}`,borderRadius:99,padding:"3px 10px",display:"inline-flex",alignItems:"center",gap:4}}><Icon name="sparkles" size={11} color={T.accent} strokeWidth={2.2}/>Premium</span>
             : <button onClick={()=>setPricingOpen(true)} className="premium-glow press-feedback" style={{fontSize:11,color:"#0d0d0d",background:"linear-gradient(135deg,#e8c97a,#c4a852)",border:"none",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>100 kr/mån</button>
           }
-          <button onClick={()=>setShowSettings(true)} style={{background:T.border,border:`1px solid ${T.border2}`,width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14,color:T.textDim,display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>⚙</button>
+          <button onClick={()=>setShowSettings(true)} style={{background:T.border,border:`1px solid ${T.border2}`,width:32,height:32,borderRadius:"50%",cursor:"pointer",color:T.textDim,display:"flex",alignItems:"center",justifyContent:"center",padding:0}}><Icon name="settings" size={16} color={T.textDim} strokeWidth={2}/></button>
         </div>
       </nav>
 
@@ -5000,8 +5000,12 @@ function App() {
                 position:"relative",
                 overflow:"hidden"
               }}>
-                <div style={{position:"absolute",top:-20,right:-20,fontSize:80,opacity:0.15}}>🔍</div>
-                <div style={{fontSize:30,marginBottom:8,position:"relative"}}>🔍</div>
+                <div style={{position:"absolute",top:-20,right:-20,opacity:0.15}}>
+                  <Icon name="search" size={80} color="#0d0d0d" strokeWidth={2}/>
+                </div>
+                <div style={{marginBottom:8,position:"relative"}}>
+                  <Icon name="search" size={30} color="#0d0d0d" strokeWidth={2.2}/>
+                </div>
                 <div style={{fontSize:14,fontWeight:700,color:"#0d0d0d",position:"relative"}}>Logga mat</div>
                 <div style={{fontSize:10,color:"#0d0d0d",opacity:0.65,fontWeight:500,marginTop:3,position:"relative"}}>Skanna · Sök · Senaste</div>
               </button>
@@ -5019,8 +5023,12 @@ function App() {
                 position:"relative",
                 overflow:"hidden"
               }}>
-                <div style={{position:"absolute",top:-20,right:-20,fontSize:80,opacity:0.15}}>🍳</div>
-                <div style={{fontSize:30,marginBottom:8,position:"relative"}}>🍳</div>
+                <div style={{position:"absolute",top:-20,right:-20,opacity:0.15}}>
+                  <Icon name="chef_hat" size={80} color="#0d0d0d" strokeWidth={2}/>
+                </div>
+                <div style={{marginBottom:8,position:"relative"}}>
+                  <Icon name="chef_hat" size={30} color="#0d0d0d" strokeWidth={2.2}/>
+                </div>
                 <div style={{fontSize:14,fontWeight:700,color:"#0d0d0d",position:"relative"}}>Mina rätter{myMeals.length > 0 ? ` (${myMeals.length})` : ""}</div>
                 <div style={{fontSize:10,color:"#0d0d0d",opacity:0.65,fontWeight:500,marginTop:3,position:"relative"}}>Skapa egna måltider</div>
               </button>
@@ -5045,9 +5053,8 @@ function App() {
                       width:32,height:32,borderRadius:8,
                       background:`${T.blue}22`,
                       display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:18,
                       border:`1px solid ${T.blue}44`
-                    }}>💧</div>
+                    }}><Icon name="droplet" size={18} color={T.blue} strokeWidth={2}/></div>
                     <div>
                       <div style={{fontSize:13,fontWeight:700,color:T.blue,letterSpacing:"0.04em"}}>Vatten</div>
                       <div style={{fontSize:11,color:T.textFaint,marginTop:1,fontWeight:500}}>
@@ -6083,19 +6090,19 @@ function App() {
               </button>
               <button onClick={()=>{setShowSettings(false);setShowOnboarding(true);setOnboardStep(0);setOnbGender(profile.gender||"man");setOnbAge(profile.age||"");setOnbHeight(profile.height||"");setOnbWeight(profile.weight||"");setOnbActivity(profile.activity||"moderate");setOnbGoal(fitnessGoal||"deffa");}} style={{width:"100%",background:T.bg3,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <span style={{fontSize:20}}>🎯</span>
+                  <Icon name="target" size={22} color={T.accent} strokeWidth={2}/>
                   <div>
                     <div style={{fontSize:14,fontWeight:600}}>Uppdatera mål & kalorier</div>
                     <div style={{fontSize:11,color:T.textFaint}}>Beräkna om baserat på dina mått</div>
                   </div>
                 </div>
-                <span style={{color:T.textFaint}}>→</span>
+                <Icon name="chevron_right" size={16} color={T.textFaint} strokeWidth={2}/>
               </button>
             </div>
 
             {/* INSTALLERA APP - PWA */}
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>📱 Installera som app</div>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Installera som app</div>
               
               <div style={{
                 background:`linear-gradient(135deg,${T.accent}22,${T.yellow}11)`,
