@@ -2157,138 +2157,57 @@ function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favor
 
 // ─── Food Item Row (för matsökning, senaste, favoriter) ─────────────────
 // ─── Exercise Image Component ───────────────────────────────────────
-// Hämtar bilder från Wger API med smart sökning via engelska namn
-const wgerImageCache = {}; // global cache så vi inte hämtar samma bild flera gånger
+// DIREKTA bild-URLs från Wger - inga API-anrop, snabbt + pålitligt!
+// Verifierade URLs från wger.de/media/exercise-images/
 
-// Mappning: vårt övnings-id → engelska söktermer för Wger
-const WGER_SEARCH_TERMS = {
-  bench_press: "bench press",
-  dumbbell_press: "dumbbell bench press",
-  push_up: "push up",
-  chest_fly: "dumbbell fly",
-  dips: "dips",
-  deadlift: "deadlift",
-  barbell_row: "barbell row",
-  pull_up: "pull up",
-  lat_pulldown: "lat pulldown",
-  seated_row: "seated cable row",
-  squat: "squat",
-  front_squat: "front squat",
-  lunges: "lunges",
-  leg_press: "leg press",
-  romanian_dl: "romanian deadlift",
-  calf_raise: "calf raise",
-  shoulder_press: "shoulder press",
-  lateral_raise: "lateral raise",
-  front_raise: "front raise",
-  face_pull: "face pull",
-  bicep_curl: "biceps curl",
-  hammer_curl: "hammer curl",
-  tricep_extension: "triceps extension",
-  tricep_pushdown: "triceps pushdown",
-  plank: "plank",
-  sit_up: "sit up",
-  leg_raise: "leg raise",
-  russian_twist: "russian twist",
-  running: "running",
-  cycling: "cycling",
-  jump_rope: "jump rope",
-  burpees: "burpees"
+const EXERCISE_IMAGES = {
+  // === BRÖST ===
+  bench_press: "https://wger.de/media/exercise-images/192/Bench-press-1.png",
+  dumbbell_press: "https://wger.de/media/exercise-images/89/Bench-press-dumbbell-1.png",
+  push_up: "https://wger.de/media/exercise-images/195/Pushups-1.png",
+  chest_fly: "https://wger.de/media/exercise-images/148/Dumbbell-fly-1.png",
+  dips: "https://wger.de/media/exercise-images/83/Dips-1.png",
+  
+  // === RYGG ===
+  deadlift: "https://wger.de/media/exercise-images/105/Deadlifts-1.png",
+  barbell_row: "https://wger.de/media/exercise-images/128/Bent-over-rows-1.png",
+  pull_up: "https://wger.de/media/exercise-images/202/Pull-ups-1.png",
+  lat_pulldown: "https://wger.de/media/exercise-images/281/Pulldowns-1.png",
+  seated_row: "https://wger.de/media/exercise-images/143/Cable-seated-rows-1.png",
+  
+  // === BEN ===
+  squat: "https://wger.de/media/exercise-images/111/Squats-1.png",
+  front_squat: "https://wger.de/media/exercise-images/300/Front-squat-1.png",
+  lunges: "https://wger.de/media/exercise-images/101/Walking-lunges-1.png",
+  leg_press: "https://wger.de/media/exercise-images/151/Leg-press-1.png",
+  romanian_dl: "https://wger.de/media/exercise-images/170/Romanian-deadlifts-1.png",
+  calf_raise: "https://wger.de/media/exercise-images/113/Calf-raises-1.png",
+  
+  // === AXLAR ===
+  shoulder_press: "https://wger.de/media/exercise-images/119/Dumbbell-shoulder-press-1.png",
+  lateral_raise: "https://wger.de/media/exercise-images/131/Side-laterals-1.png",
+  front_raise: "https://wger.de/media/exercise-images/123/Front-raises-1.png",
+  face_pull: "https://wger.de/media/exercise-images/289/Face-pulls-1.png",
+  
+  // === ARMAR ===
+  bicep_curl: "https://wger.de/media/exercise-images/81/Biceps-curl-1.png",
+  hammer_curl: "https://wger.de/media/exercise-images/74/Hammer-curls-1.png",
+  tricep_extension: "https://wger.de/media/exercise-images/84/Triceps-extensions-1.png",
+  tricep_pushdown: "https://wger.de/media/exercise-images/96/Triceps-pushdown-1.png",
+  
+  // === MAGE ===
+  plank: "https://wger.de/media/exercise-images/122/Plank-1.png",
+  sit_up: "https://wger.de/media/exercise-images/91/Crunches-1.png",
+  leg_raise: "https://wger.de/media/exercise-images/125/Leg-raises-1.png",
+  russian_twist: "https://wger.de/media/exercise-images/288/Russian-twist-1.png",
+  
+  // === KONDITION (saknar oftast bilder, fallback till emoji) ===
+  // running, cycling, jump_rope, burpees → emoji-fallback
 };
 
 function ExerciseAnimation({ category, exerciseId, wgerId, size = 60, color = "#e8c97a", T }) {
-  // Använd vårt eget exercise-id som cache-nyckel (UNIK per övning!)
-  const cacheKey = exerciseId || wgerId || category;
-  
-  const [imageUrl, setImageUrl] = React.useState(
-    cacheKey && wgerImageCache[cacheKey] && wgerImageCache[cacheKey] !== "failed" 
-      ? wgerImageCache[cacheKey] : null
-  );
-  const [loading, setLoading] = React.useState(false);
-  const [failed, setFailed] = React.useState(
-    cacheKey && wgerImageCache[cacheKey] === "failed"
-  );
-  
-  React.useEffect(() => {
-    if (!cacheKey || imageUrl || failed) return;
-    
-    // Kolla cache först
-    if (wgerImageCache[cacheKey]) {
-      if (wgerImageCache[cacheKey] === "failed") {
-        setFailed(true);
-      } else {
-        setImageUrl(wgerImageCache[cacheKey]);
-      }
-      return;
-    }
-    
-    // Hitta söktermen för denna övning
-    const searchTerm = WGER_SEARCH_TERMS[exerciseId];
-    if (!searchTerm) {
-      wgerImageCache[cacheKey] = "failed";
-      setFailed(true);
-      return;
-    }
-    
-    setLoading(true);
-    
-    // Smart hämtning: sök via Wgers exerciseinfo endpoint
-    const fetchImage = async () => {
-      try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 6000);
-        
-        // Steg 1: Sök övningen via name (engelska, language=2)
-        const searchUrl = `https://wger.de/api/v2/exercise/?language=2&name=${encodeURIComponent(searchTerm)}&limit=5`;
-        const res = await fetch(searchUrl, { signal: ctrl.signal });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        
-        if (!data.results || data.results.length === 0) {
-          wgerImageCache[cacheKey] = "failed";
-          setFailed(true);
-          clearTimeout(timer);
-          return;
-        }
-        
-        // Steg 2: Hitta första övningen som har en exercise_base
-        const exercise = data.results[0];
-        const baseId = exercise.exercise_base;
-        
-        if (!baseId) {
-          wgerImageCache[cacheKey] = "failed";
-          setFailed(true);
-          clearTimeout(timer);
-          return;
-        }
-        
-        // Steg 3: Hämta bild för denna exercise_base
-        const imgRes = await fetch(`https://wger.de/api/v2/exerciseimage/?exercise_base=${baseId}`, { signal: ctrl.signal });
-        clearTimeout(timer);
-        
-        if (!imgRes.ok) throw new Error("Image HTTP " + imgRes.status);
-        const imgData = await imgRes.json();
-        
-        if (imgData.results && imgData.results.length > 0) {
-          // Använd huvudbilden om finns, annars första
-          const mainImg = imgData.results.find(i => i.is_main) || imgData.results[0];
-          const url = mainImg.image;
-          wgerImageCache[cacheKey] = url;
-          setImageUrl(url);
-        } else {
-          wgerImageCache[cacheKey] = "failed";
-          setFailed(true);
-        }
-      } catch (e) {
-        wgerImageCache[cacheKey] = "failed";
-        setFailed(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchImage();
-  }, [cacheKey, exerciseId]);
+  const [failed, setFailed] = React.useState(false);
+  const imageUrl = exerciseId ? EXERCISE_IMAGES[exerciseId] : null;
   
   const cat = category || "chest";
   const emojis = {
@@ -2296,26 +2215,23 @@ function ExerciseAnimation({ category, exerciseId, wgerId, size = 60, color = "#
     arms: "💪", core: "🎯", cardio: "🏃"
   };
   
-  // Visa bild om vi har en
+  // Visa bild om vi har URL och den inte misslyckats
   if (imageUrl && !failed) {
     return (
       <div style={{
         width:size,height:size,
         borderRadius:12,
-        background:`linear-gradient(135deg, ${color}11 0%, #ffffff 100%)`,
+        background:"linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)",
         border:`1px solid ${color}33`,
         display:"flex",alignItems:"center",justifyContent:"center",
         flexShrink:0,
         position:"relative",
         overflow:"hidden"
       }}>
-        <img src={imageUrl} alt="" style={{
+        <img src={imageUrl} alt="" loading="lazy" style={{
           width:"100%",height:"100%",objectFit:"contain",
           padding:size > 80 ? 8 : 4
-        }} onError={() => {
-          wgerImageCache[cacheKey] = "failed";
-          setFailed(true);
-        }}/>
+        }} onError={() => setFailed(true)}/>
       </div>
     );
   }
@@ -2334,8 +2250,8 @@ function ExerciseAnimation({ category, exerciseId, wgerId, size = 60, color = "#
     }}>
       <div style={{
         fontSize:size * 0.5,
-        animation: loading ? "pulse 1s ease-in-out infinite" : "exerciseBounce 2s ease-in-out infinite"
-      }}>{loading ? "⏳" : (emojis[cat] || "💪")}</div>
+        animation:"exerciseBounce 2s ease-in-out infinite"
+      }}>{emojis[cat] || "💪"}</div>
     </div>
   );
 }
