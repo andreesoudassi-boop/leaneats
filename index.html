@@ -2156,6 +2156,104 @@ function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favor
 }
 
 // ─── Food Item Row (för matsökning, senaste, favoriter) ─────────────────
+// ─── ICON COMPONENT (Lucide-style SVG ikoner) ─────────────────────
+// Premium-känsla med konsistenta SVG-ikoner istället för emoji
+// Stil: stroke-width 2, rounded line caps, samma som Linear/Notion/Vercel
+
+const ICON_PATHS = {
+  // Navigation
+  home: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10",
+  dumbbell: "M14.4 14.4 9.6 9.6 M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.768 1.768a2 2 0 1 1-2.828-2.829l6.364-6.364a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829zM21.5 21.5l-1.4-1.4 M3.9 3.9 2.5 2.5 M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z",
+  flame: "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z",
+  fork: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2 M7 2v20 M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7",
+  user: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 7a4 4 0 1 1 0 8 4 4 0 0 1 0-8z",
+  
+  // Common UI
+  search: "M11 17a6 6 0 1 0 0-12 6 6 0 0 0 0 12z M21 21l-4.3-4.3",
+  plus: "M5 12h14 M12 5v14",
+  minus: "M5 12h14",
+  check: "M20 6 9 17l-5-5",
+  close: "M18 6 6 18 M6 6l12 12",
+  arrow_right: "m9 18 6-6-6-6",
+  arrow_left: "m15 18-6-6 6-6",
+  chevron_right: "m9 18 6-6-6-6",
+  
+  // Activity & Health
+  droplet: "M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z",
+  scale: "m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z M7 21h10 M12 3v18 M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2",
+  trending_up: "m22 7-8.5 8.5-5-5L2 17 M16 7h6v6",
+  trending_down: "m22 17-8.5-8.5-5 5L2 7 M16 17h6v-6",
+  target: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  
+  // Time
+  sunrise: "M12 2v8 M5.2 11.2l1.4 1.4 M2 18h2 M20 18h2 M17.4 12.6l1.4-1.4 M22 22H2 M8 6 12 2l4 4 M16 18a4 4 0 0 0-8 0",
+  sun: "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z M12 1v2 M12 21v2 M4.22 4.22l1.42 1.42 M18.36 18.36l1.42 1.42 M1 12h2 M21 12h2 M4.22 19.78l1.42-1.42 M18.36 5.64l1.42-1.42",
+  moon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z",
+  cookie: "M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5 M8.5 8.5v.01 M16 15.5v.01 M12 12v.01 M11 17v.01 M7 14v.01",
+  clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2",
+  calendar: "M8 2v4 M16 2v4 M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8 M3 10h18 M17 14h6m-3-3v6",
+  
+  // Premium
+  crown: "M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14",
+  star: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  sparkles: "m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z M5 3v4 M19 17v4 M3 5h4 M17 19h4",
+  trophy: "M6 9H4.5a2.5 2.5 0 0 1 0-5H6 M18 9h1.5a2.5 2.5 0 0 0 0-5H18 M4 22h16 M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22 M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22 M18 2H6v7a6 6 0 0 0 12 0V2z",
+  
+  // Settings & Actions
+  settings: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  shopping_cart: "M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17",
+  bar_chart: "M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3",
+  bell: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9 M10.3 21a1.94 1.94 0 0 0 3.4 0",
+  
+  // Body & Fitness
+  heart: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z",
+  zap: "m13 2-3 7h7l-7 13 3-9H6l7-11z",
+  apple: "M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06z M10 2c1 .5 2 2 2 5",
+  
+  // Arrows  
+  external: "M15 3h6v6 M10 14L21 3 M21 14v7H3V3h7",
+  copy: "M16 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z M21 7l-3-3-9 9-3 9 9-3 9-9z M22 13H10",
+  edit: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z",
+  trash: "M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6",
+  share: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8 M16 6l-4-4-4 4 M12 2v13",
+  
+  // Other
+  camera: "M14.5 4l1.5-2h-8L9.5 4M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+  chef_hat: "M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z M6 17h12",
+  lock: "M5 11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z M7 11V7a5 5 0 0 1 10 0v4",
+  unlock: "M5 11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z M7 11V7a5 5 0 0 1 9.9-1",
+  cloud: "M17.5 19a4.5 4.5 0 1 0-1.7-8.7A6 6 0 1 0 5 14",
+  info: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01",
+  filter: "M22 3H2l8 9.46V19l4 2v-8.54z",
+  list: "M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01",
+  menu: "M3 12h18 M3 6h18 M3 18h18",
+  arrow_down: "M12 5v14 M19 12l-7 7-7-7"
+};
+
+function Icon({ name, size = 20, color = "currentColor", strokeWidth = 2, style = {} }) {
+  const path = ICON_PATHS[name];
+  if (!path) return <span style={{display:"inline-block",width:size,height:size}}/>;
+  
+  const paths = path.split(" M").map((p, i) => i === 0 ? p : "M" + p);
+  
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke={color}
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      style={{display:"inline-block",flexShrink:0,...style}}
+    >
+      {paths.map((p, i) => <path key={i} d={p}/>)}
+    </svg>
+  );
+}
+
 // ─── Exercise Image Component ───────────────────────────────────────
 // DIREKTA bild-URLs från Wger - inga API-anrop, snabbt + pålitligt!
 // Verifierade URLs från wger.de/media/exercise-images/
@@ -4545,7 +4643,7 @@ function App() {
   const formatCardNum = (v) => v.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim();
   const formatExp = (v) => { const d = v.replace(/\D/g,"").slice(0,4); return d.length>2?d.slice(0,2)+"/"+d.slice(2):d; };
 
-  const navBtn = (id, emoji, label) => (
+  const navBtn = (id, iconName, label) => (
     <button key={id} onClick={()=>{
       if (id === "diary") {
         setShowWeightLog(true);
@@ -4559,7 +4657,8 @@ function App() {
       borderTop:`2px solid ${screen===id?T.accent:"transparent"}`,
       transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:4
     }}>
-      <span style={{fontSize:18}}>{emoji}</span>{label}
+      <Icon name={iconName} size={22} strokeWidth={2}/>
+      {label}
     </button>
   );
 
@@ -5350,13 +5449,13 @@ function App() {
                 borderRadius:14,padding:"12px 14px",marginBottom:14,
                 display:"flex",alignItems:"center",gap:12
               }}>
-                <span style={{fontSize:24}}>{isCoachClient ? "💎" : "👑"}</span>
+                <Icon name={isCoachClient ? "sparkles" : "crown"} size={26} color={isCoachClient ? T.green : T.accent} strokeWidth={2}/>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:700,color:isCoachClient ? T.green : T.accent}}>
                     {isCoachClient ? "Premium via din coach" : userTier === "vip" ? "VIP-medlem" : userTier === "trial" ? "Premium Trial aktiv" : "Premium aktiv"}
                   </div>
                   <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>
-                    {isCoachClient ? "Alla funktioner upplåsta" : "Alla funktioner upplåsta · Tack! 💪"}
+                    {isCoachClient ? "Alla funktioner upplåsta" : "Alla funktioner upplåsta · Tack!"}
                   </div>
                 </div>
               </div>
@@ -5378,12 +5477,12 @@ function App() {
                   background:`radial-gradient(circle, ${T.accent}33 0%, transparent 70%)`,
                   pointerEvents:"none"
                 }}></div>
-                <span style={{fontSize:32,position:"relative"}}>👑</span>
+                <Icon name="crown" size={32} color={T.accent} strokeWidth={2} style={{position:"relative"}}/>
                 <div style={{flex:1,position:"relative"}}>
                   <div style={{fontSize:14,fontWeight:700,color:T.accent}}>Lås upp Premium</div>
                   <div style={{fontSize:11,color:T.textDim,marginTop:2}}>7 dagar gratis · Träning, statistik, inköpslista m.m.</div>
                 </div>
-                <span style={{fontSize:14,color:T.accent,position:"relative"}}>→</span>
+                <Icon name="chevron_right" size={16} color={T.accent} strokeWidth={2} style={{position:"relative"}}/>
               </button>
             )}
 
@@ -5476,20 +5575,20 @@ function App() {
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
                 <button onClick={()=>{ if(checkPremium("weightlog","Viktlogg")) setShowWeightLog(true); }} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.blue}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",position:"relative",overflow:"hidden"}}>
                   {!hasPremium && (
-                    <div style={{position:"absolute",top:8,right:8,fontSize:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}>👑</div>
+                    <Icon name="crown" size={14} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:8,right:8,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}/>
                   )}
                   <div style={{...lockedStyle(!hasPremium)}}>
-                    <div style={{fontSize:24,marginBottom:6}}>⚖️</div>
+                    <Icon name="scale" size={26} color={T.blue} strokeWidth={2} style={{marginBottom:6}}/>
                     <div style={{fontSize:14,fontWeight:700,color:T.blue}}>Viktlogg</div>
                     <div style={{fontSize:11,color:T.textDim,marginTop:3,fontWeight:500}}>{hasPremium ? `${weightLog.length} loggningar` : "Lås upp"}</div>
                   </div>
                 </button>
                 <button onClick={()=>{ if(checkPremium("history","Historik")) setShowHistory(true); }} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.green}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",position:"relative",overflow:"hidden"}}>
                   {!hasPremium && (
-                    <div style={{position:"absolute",top:8,right:8,fontSize:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}>👑</div>
+                    <Icon name="crown" size={14} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:8,right:8,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}/>
                   )}
                   <div style={{...lockedStyle(!hasPremium)}}>
-                    <div style={{fontSize:24,marginBottom:6}}>📊</div>
+                    <Icon name="bar_chart" size={26} color={T.green} strokeWidth={2} style={{marginBottom:6}}/>
                     <div style={{fontSize:14,fontWeight:700,color:T.green}}>Historik</div>
                     <div style={{fontSize:11,color:T.textDim,marginTop:3,fontWeight:500}}>{hasPremium ? `${mealHistory.length} dagar` : "Lås upp"}</div>
                   </div>
@@ -5512,10 +5611,10 @@ function App() {
                 overflow:"hidden"
               }}>
                 {!hasPremium && (
-                  <div style={{position:"absolute",top:8,right:14,fontSize:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}>👑</div>
+                  <Icon name="crown" size={14} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:8,right:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}/>
                 )}
                 <div style={{display:"flex",alignItems:"center",gap:12,flex:1,...lockedStyle(!hasPremium)}}>
-                  <span style={{fontSize:24}}>🛒</span>
+                  <Icon name="shopping_cart" size={26} color={T.accent} strokeWidth={2}/>
                   <div style={{flex:1}}>
                     <div style={{fontSize:14,fontWeight:700,color:T.accent}}>Inköpslista</div>
                     <div style={{fontSize:11,color:T.textDim,marginTop:2,fontWeight:500}}>
@@ -5524,7 +5623,7 @@ function App() {
                         : "Skapa lista från favoritrecept")}
                     </div>
                   </div>
-                  <span style={{fontSize:14,color:T.textDim}}>→</span>
+                  <Icon name="chevron_right" size={16} color={T.textDim} strokeWidth={2}/>
                 </div>
               </button>
             </div>
@@ -5604,7 +5703,7 @@ function App() {
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)",paddingBottom:"env(safe-area-inset-bottom)"}}>
         <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",position:"relative",height:64}}>
           {/* Hem */}
-          {navBtn("home","🏠","Hem")}
+          {navBtn("home","home","Hem")}
           
           {/* Träning */}
           <button onClick={()=>{ if(checkPremium("training","Träning")) setShowTraining(true); }} style={{
@@ -5615,12 +5714,12 @@ function App() {
             display:"flex",flexDirection:"column",alignItems:"center",gap:4,
             position:"relative"
           }}>
-            <span style={{fontSize:18,position:"relative"}}>
-              💪
+            <div style={{position:"relative"}}>
+              <Icon name="dumbbell" size={22} strokeWidth={2}/>
               {!hasPremium && (
-                <span style={{position:"absolute",top:-4,right:-10,fontSize:11,filter:"drop-shadow(0 0 2px rgba(0,0,0,0.5))"}}>👑</span>
+                <Icon name="crown" size={11} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:-4,right:-8,filter:"drop-shadow(0 0 3px rgba(0,0,0,0.5))"}}/>
               )}
-            </span>
+            </div>
             Träning
           </button>
           
@@ -5662,11 +5761,12 @@ function App() {
             borderTop:"2px solid transparent",
             display:"flex",flexDirection:"column",alignItems:"center",gap:4
           }}>
-            <span style={{fontSize:18}}>🍽</span>Recept
+            <Icon name="fork" size={22} strokeWidth={2}/>
+            Recept
           </button>
           
           {/* Profil */}
-          {navBtn("profile","👤","Profil")}
+          {navBtn("profile","user","Profil")}
         </div>
       </div>
 
@@ -7491,25 +7591,25 @@ function App() {
                 margin:"0 auto 16px",
                 boxShadow:"0 8px 32px rgba(255,107,53,0.4)"
               }}>
-                <span style={{fontSize:40}}>👑</span>
+                <Icon name="crown" size={42} color="#fff" strokeWidth={2}/>
               </div>
               <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.15em",fontWeight:700,marginBottom:8}}>LeanEats Premium</div>
               <h2 style={{fontSize:24,fontWeight:700,color:T.text,fontFamily:"'Fraunces', Georgia, serif",lineHeight:1.2}}>
                 {premiumModalReason ? `Lås upp ${premiumModalReason}` : "Lås upp full kraft"}
               </h2>
-              <p style={{fontSize:13,color:T.textDim,marginTop:8,lineHeight:1.5}}>Få tillgång till alla funktioner och nå dina mål snabbare 🔥</p>
+              <p style={{fontSize:13,color:T.textDim,marginTop:8,lineHeight:1.5}}>Få tillgång till alla funktioner och nå dina mål snabbare</p>
             </div>
             
             {/* PREMIUM-FÖRDELAR */}
             <div style={{marginBottom:24}}>
               {[
-                {icon:"💪",title:"Träningsbibliotek",desc:"30+ övningar med anatomiska bilder + veckoschema"},
-                {icon:"🛒",title:"Inköpslista",desc:"Skapa automatiskt från favoritrecept"},
-                {icon:"📊",title:"Detaljerad statistik",desc:"Se trender, grafer & full historik"},
-                {icon:"⚖️",title:"Viktlogg + grafer",desc:"Följ din resa visuellt"},
-                {icon:"🥗",title:"Specialkost-filter",desc:"Vegan, gluten-fri, keto m.m."},
-                {icon:"🔥",title:"Obegränsade recept",desc:"200+ recept utan limits"},
-                {icon:"🍳",title:"Obegränsade egna måltider",desc:"Spara hur många du vill"}
+                {iconName:"dumbbell",title:"Träningsbibliotek",desc:"30+ övningar med anatomiska bilder + veckoschema"},
+                {iconName:"shopping_cart",title:"Inköpslista",desc:"Skapa automatiskt från favoritrecept"},
+                {iconName:"bar_chart",title:"Detaljerad statistik",desc:"Se trender, grafer & full historik"},
+                {iconName:"scale",title:"Viktlogg + grafer",desc:"Följ din resa visuellt"},
+                {iconName:"apple",title:"Specialkost-filter",desc:"Vegan, gluten-fri, keto m.m."},
+                {iconName:"flame",title:"Obegränsade recept",desc:"200+ recept utan limits"},
+                {iconName:"chef_hat",title:"Obegränsade egna måltider",desc:"Spara hur många du vill"}
               ].map((f,i)=>(
                 <div key={i} style={{
                   display:"flex",alignItems:"center",gap:12,
@@ -7521,13 +7621,15 @@ function App() {
                     background:`linear-gradient(135deg,${T.accent}33,${T.yellow}11)`,
                     border:`1px solid ${T.accent}44`,
                     display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:18,flexShrink:0
-                  }}>{f.icon}</div>
+                    flexShrink:0
+                  }}>
+                    <Icon name={f.iconName} size={18} color={T.accent} strokeWidth={2}/>
+                  </div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:13,fontWeight:700,color:T.text}}>{f.title}</div>
                     <div style={{fontSize:11,color:T.textFaint,marginTop:2}}>{f.desc}</div>
                   </div>
-                  <div style={{color:T.green,fontSize:16}}>✓</div>
+                  <Icon name="check" size={16} color={T.green} strokeWidth={2.5}/>
                 </div>
               ))}
             </div>
