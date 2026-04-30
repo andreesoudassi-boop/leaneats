@@ -5497,13 +5497,16 @@ function App() {
             {(personalFocus || dietPrefs.length > 0 || targetWeight) && (
               <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                  <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>🎯 Mitt fokus</div>
-                  {!coachId && <button onClick={()=>setShowFocusEdit(true)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:11,fontFamily:"inherit"}}>✏️ Ändra</button>}
+                  <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700,display:"flex",alignItems:"center",gap:6}}>
+                    <Icon name="target" size={14} color={T.accent} strokeWidth={2.2}/>
+                    Mitt fokus
+                  </div>
+                  {!coachId && <button onClick={()=>setShowFocusEdit(true)} style={{background:"transparent",border:"none",color:T.textFaint,cursor:"pointer",fontSize:11,fontFamily:"inherit",display:"flex",alignItems:"center",gap:4}}><Icon name="edit" size={11} color={T.textFaint} strokeWidth={2}/>Ändra</button>}
                 </div>
                 
                 {targetWeight && (
                   <div style={{padding:"10px 12px",background:T.bg3,borderRadius:10,marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
-                    <span style={{fontSize:20}}>🎯</span>
+                    <Icon name="target" size={20} color={T.accent} strokeWidth={2}/>
                     <div style={{flex:1}}>
                       <div style={{fontSize:11,color:T.textFaint,marginBottom:2}}>Målvikt</div>
                       <div style={{fontSize:13,color:T.text,fontWeight:600}}>{targetWeight} kg <span style={{color:T.textFaint,fontSize:11,marginLeft:6}}>(nu: {profile.weight} kg)</span></div>
@@ -5577,7 +5580,7 @@ function App() {
             <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
                 <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Min Resa</div>
-                {!hasPremium && <div style={{fontSize:9,color:T.accent,fontWeight:700,padding:"3px 8px",background:T.accent+"22",border:`1px solid ${T.accent}44`,borderRadius:99,letterSpacing:"0.08em"}}>👑 PREMIUM</div>}
+                {!hasPremium && <div style={{fontSize:9,color:T.accent,fontWeight:700,padding:"3px 8px",background:T.accent+"22",border:`1px solid ${T.accent}44`,borderRadius:99,letterSpacing:"0.08em",display:"inline-flex",alignItems:"center",gap:4}}><Icon name="crown" size={10} color={T.accent} strokeWidth={2.5}/>PREMIUM</div>}
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
                 <button onClick={()=>{ if(checkPremium("weightlog","Viktlogg")) setShowWeightLog(true); }} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.blue}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",position:"relative",overflow:"hidden"}}>
@@ -6132,7 +6135,7 @@ function App() {
 
             {/* NOTIFIKATIONER */}
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>🔔 Notifikationer</div>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>Notifikationer</div>
               
               {!notificationsEnabled ? (
                 <button onClick={requestNotificationPermission} style={{
@@ -6142,19 +6145,19 @@ function App() {
                   display:"flex",alignItems:"center",justifyContent:"space-between",color:T.text
                 }}>
                   <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <span style={{fontSize:20}}>🔔</span>
+                    <Icon name="bell" size={22} color={T.accent} strokeWidth={2}/>
                     <div>
                       <div style={{fontSize:14,fontWeight:600,color:T.accent}}>Aktivera påminnelser</div>
                       <div style={{fontSize:11,color:T.textFaint}}>Måltider, vatten, streak</div>
                     </div>
                   </div>
-                  <span style={{color:T.accent}}>→</span>
+                  <Icon name="chevron_right" size={16} color={T.accent} strokeWidth={2}/>
                 </button>
               ) : (
                 <div style={{background:T.bg3,border:`1px solid ${T.green}44`,borderRadius:12,padding:"14px 16px"}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:18}}>✅</span>
+                      <Icon name="check" size={18} color={T.green} strokeWidth={2.5}/>
                       <div style={{fontSize:13,fontWeight:700,color:T.green}}>Påminnelser aktiva</div>
                     </div>
                     <button onClick={disableNotifications} style={{background:"transparent",border:"none",color:T.textFaint,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>Stäng av</button>
