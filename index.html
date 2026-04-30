@@ -5695,7 +5695,7 @@ function App() {
                   </div>
                   <div style={{display:"flex",gap:8,marginTop:4}}>
                     <button onClick={()=>setAddingCard(false)} style={{flex:1,padding:"10px",background:"transparent",border:"1px solid #333",color:"#666",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>Avbryt</button>
-                    <button onClick={saveCard} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>Spara ☁️</button>
+                    <button onClick={saveCard} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#e8c97a,#c4a852)",color:"#0d0d0d",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700}}>Spara</button>
                   </div>
                 </div>
               )}
@@ -7412,7 +7412,7 @@ function App() {
               color:"#0d0d0d",border:"none",borderRadius:99,padding:"16px",
               fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
               boxShadow:`0 6px 20px ${T.green}66`
-            }}>✅ Avsluta passet</button>
+            }}><Icon name="check" size={16} color="#0d0d0d" strokeWidth={2.5} style={{marginRight:6,verticalAlign:"-2px"}}/>Avsluta passet</button>
           </div>
         </div>
       )}
@@ -7553,7 +7553,7 @@ function App() {
                   color:"#0d0d0d",border:"none",borderRadius:99,padding:"14px",
                   fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
                   boxShadow:`0 4px 16px ${T.green}55`
-                }}>➕ Lägg till i passet</button>
+                }}><Icon name="plus" size={14} color="#0d0d0d" strokeWidth={2.5} style={{marginRight:5,verticalAlign:"-2px"}}/>Lägg till i passet</button>
               )}
             </div>
           </div>
@@ -7729,7 +7729,7 @@ function App() {
           <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
               <button onClick={()=>setShowTraining(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:17,fontWeight:700,color:T.accent,fontFamily:"'Fraunces', Georgia, serif"}}>💪 Träning</div>
+              <div style={{fontSize:17,fontWeight:700,color:T.accent,fontFamily:"'Fraunces', Georgia, serif"}}><Icon name="dumbbell" size={18} color={T.accent} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Träning</div>
               <div style={{width:36}}></div>
             </div>
             
@@ -7785,7 +7785,7 @@ function App() {
                         color:"#0d0d0d",border:"none",borderRadius:99,padding:"14px",
                         fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
                         boxShadow:`0 4px 16px ${T.accent}55`
-                      }}>▶️ Starta passet →</button>
+                      }}>Starta passet →</button>
                     </div>
                   ) : (
                     <div style={{background:T.bg2,border:`1px dashed ${T.border2}`,borderRadius:14,padding:"24px 16px",marginBottom:16,textAlign:"center"}}>
@@ -7948,7 +7948,7 @@ function App() {
                           color:"#0d0d0d",border:"none",borderRadius:99,
                           padding:"10px",fontSize:12,fontWeight:700,
                           cursor:"pointer",fontFamily:"inherit"
-                        }}>▶️ Starta</button>
+                        }}>Starta</button>
                         <button onClick={()=>editWorkout(w)} style={{
                           background:T.bg3,border:`1px solid ${T.border2}`,color:T.text,
                           borderRadius:99,padding:"10px 14px",fontSize:12,
@@ -8021,7 +8021,7 @@ function App() {
           <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
               <button onClick={()=>setShowShoppingList(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:17,fontWeight:700,color:T.accent}}>🛒 Inköpslista</div>
+              <div style={{fontSize:17,fontWeight:700,color:T.accent}}><Icon name="shopping_cart" size={18} color={T.accent} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Inköpslista</div>
               <div style={{width:36}}></div>
             </div>
             
@@ -8031,17 +8031,17 @@ function App() {
                 <button onClick={shareShoppingList} className="press-feedback" style={{
                   flex:1,background:`linear-gradient(135deg,${T.green},${T.green}cc)`,color:"#0d0d0d",border:"none",
                   borderRadius:99,padding:"10px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"
-                }}>📤 Dela</button>
+                }}><Icon name="share" size={14} color="#0d0d0d" strokeWidth={2.5} style={{marginRight:5,verticalAlign:"-2px"}}/>Dela</button>
                 <button onClick={clearShoppingList} style={{
                   background:"transparent",border:`1px solid ${T.red}44`,color:T.red,
                   borderRadius:99,padding:"10px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"
-                }}>🗑 Rensa</button>
+                }}><Icon name="trash" size={14} color={T.red} strokeWidth={2} style={{marginRight:5,verticalAlign:"-2px"}}/>Rensa</button>
               </div>
             )}
             
             {/* VÄLJ RECEPT */}
             <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>📋 Välj recept ({shoppingSelectedRecipes.length} valda)</div>
+              <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Välj recept ({shoppingSelectedRecipes.length} valda)</div>
               
               {favorites.length === 0 ? (
                 <div style={{padding:"20px 10px",textAlign:"center",color:T.textFaint,fontSize:12,lineHeight:1.5}}>
@@ -8086,7 +8086,7 @@ function App() {
                 <>
                   {unchecked.length > 0 && (
                     <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
-                      <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>🛍 Att handla ({unchecked.length})</div>
+                      <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Att handla ({unchecked.length})</div>
                       {unchecked.map((item, idx) => {
                         const realIdx = shoppingItems.indexOf(item);
                         return (
@@ -8114,7 +8114,7 @@ function App() {
                   
                   {checked.length > 0 && (
                     <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px"}}>
-                      <div style={{fontSize:11,color:T.green,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>✅ Klart ({checked.length})</div>
+                      <div style={{fontSize:11,color:T.green,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Klart ({checked.length})</div>
                       {checked.map((item, idx) => {
                         const realIdx = shoppingItems.indexOf(item);
                         return (
@@ -8208,7 +8208,7 @@ function App() {
             <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 120px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
                 <button onClick={()=>setShowFocusEdit(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-                <div style={{fontSize:17,fontWeight:700,color:T.accent}}>🎯 Mitt fokus</div>
+                <div style={{fontSize:17,fontWeight:700,color:T.accent}}><Icon name="target" size={18} color={T.accent} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Mitt fokus</div>
                 <div style={{width:36}}></div>
               </div>
               
@@ -8234,7 +8234,7 @@ function App() {
               
               {/* PERSONLIGT FOKUS */}
               <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
-                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:14,fontWeight:700}}>📊 Personligt fokus</div>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:14,fontWeight:700}}>Personligt fokus</div>
                 
                 {FOCUS_CATEGORIES.map(cat => (
                   <div key={cat.id} style={{marginBottom:14}}>
@@ -8269,7 +8269,7 @@ function App() {
               
               {/* SPECIALKOST */}
               <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:14}}>
-                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>🥗 Specialkost</div>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10,fontWeight:700}}>Specialkost</div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
                   {DIET_PREFERENCES.map(d => {
                     const selected = dietPrefs.includes(d.id);
@@ -8305,7 +8305,7 @@ function App() {
                 cursor:"pointer",
                 fontFamily:"inherit",
                 boxShadow:`0 4px 16px ${T.green}66`
-              }}>💾 Spara mitt fokus</button>
+              }}>Spara mitt fokus</button>
             </div>
           </div>
         );
@@ -8326,7 +8326,7 @@ function App() {
           <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <button onClick={()=>setShowMyMeals(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-              <div style={{fontSize:18,fontWeight:700,color:T.green}}>🍳 Mina rätter</div>
+              <div style={{fontSize:18,fontWeight:700,color:T.green}}><Icon name="chef_hat" size={18} color={T.green} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Mina rätter</div>
               <div style={{width:36}}></div>
             </div>
 
@@ -9232,7 +9232,7 @@ function App() {
                             cursor:"pointer",
                             fontFamily:"inherit",
                             fontWeight:700
-                          }}>💪 Träning</button>
+                          }}><Icon name="dumbbell" size={18} color={T.accent} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Träning</button>
                           <button onClick={()=>{
                             setEditingClient(c);
                             setClientEdits({
@@ -9409,7 +9409,7 @@ function App() {
             <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowWeightLog(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-                <div style={{fontSize:18,fontWeight:700,color:T.blue}}>⚖️ Viktlogg</div>
+                <div style={{fontSize:18,fontWeight:700,color:T.blue}}><Icon name="scale" size={18} color={T.blue} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Viktlogg</div>
                 <div style={{width:36}}></div>
               </div>
 
@@ -9523,7 +9523,7 @@ function App() {
             <div style={{maxWidth:540,margin:"0 auto",padding:"calc(44px + env(safe-area-inset-top)) 16px 40px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
                 <button onClick={()=>setShowHistory(false)} style={{background:T.bg2,border:"none",color:T.textDim,width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-                <div style={{fontSize:18,fontWeight:700,color:T.green}}>📊 Historik</div>
+                <div style={{fontSize:18,fontWeight:700,color:T.green}}><Icon name="bar_chart" size={18} color={T.green} strokeWidth={2} style={{marginRight:6,verticalAlign:"-3px"}}/>Historik</div>
                 <div style={{width:36}}></div>
               </div>
 
