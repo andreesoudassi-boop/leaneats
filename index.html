@@ -6,9 +6,28 @@
 <title>LeanEats – Smart kalori- & receptapp för svenska coacher</title>
 <meta name="description" content="Sveriges modernaste kalori-app. 200+ recept, streckkods-skanner, måltidsdagbok & coach-funktion. Bygg muskler, deffa eller behåll vikten — vi har planen."/>
 <meta name="keywords" content="kaloriräknare, kostschema, makros, deffa, bulka, träningsmat, coach-app, kostapp, sverige"/>
-<meta name="theme-color" content="#ff6b35"/>
+<meta name="theme-color" content="#0a0a08" media="(prefers-color-scheme: dark)"/>
+<meta name="theme-color" content="#fbf8f0" media="(prefers-color-scheme: light)"/>
 <meta name="author" content="LeanEats"/>
 <meta name="robots" content="index, follow"/>
+
+<!-- ═══ PWA - Installera som riktig app ═══ -->
+<!-- Apple/iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="LeanEats"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+
+<!-- iPhone-ikoner (visas på hemskärmen) - använder eld-gradient för LeanEats-look -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b35'/%3E%3Cstop offset='50%25' stop-color='%23ff3366'/%3E%3Cstop offset='100%25' stop-color='%23cc3344'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='40' fill='url(%23g)'/%3E%3Ctext x='50%25' y='62%25' font-family='Georgia,serif' font-size='90' font-weight='bold' fill='white' text-anchor='middle' letter-spacing='-3'%3ELE%3C/text%3E%3C/svg%3E"/>
+<link rel="apple-touch-icon" sizes="167x167" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 167 167'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b35'/%3E%3Cstop offset='50%25' stop-color='%23ff3366'/%3E%3Cstop offset='100%25' stop-color='%23cc3344'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='167' height='167' rx='37' fill='url(%23g)'/%3E%3Ctext x='50%25' y='62%25' font-family='Georgia,serif' font-size='84' font-weight='bold' fill='white' text-anchor='middle' letter-spacing='-3'%3ELE%3C/text%3E%3C/svg%3E"/>
+<link rel="apple-touch-icon" sizes="152x152" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 152 152'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b35'/%3E%3Cstop offset='50%25' stop-color='%23ff3366'/%3E%3Cstop offset='100%25' stop-color='%23cc3344'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='152' height='152' rx='34' fill='url(%23g)'/%3E%3Ctext x='50%25' y='62%25' font-family='Georgia,serif' font-size='76' font-weight='bold' fill='white' text-anchor='middle' letter-spacing='-3'%3ELE%3C/text%3E%3C/svg%3E"/>
+
+<!-- Splash screen för iPhone -->
+<link rel="apple-touch-startup-image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1170 2532'%3E%3Crect width='1170' height='2532' fill='%230a0a08'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b35'/%3E%3Cstop offset='50%25' stop-color='%23ff3366'/%3E%3Cstop offset='100%25' stop-color='%23cc3344'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='435' y='1100' width='300' height='300' rx='66' fill='url(%23g)'/%3E%3Ctext x='585' y='1290' font-family='Georgia,serif' font-size='150' font-weight='bold' fill='white' text-anchor='middle' letter-spacing='-5'%3ELE%3C/text%3E%3C/svg%3E"/>
+
+<!-- Web App Manifest (för PWA) -->
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22LeanEats%22%2C%22short_name%22%3A%22LeanEats%22%2C%22description%22%3A%22Sveriges%20modernaste%20kalori-app%22%2C%22start_url%22%3A%22%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a08%22%2C%22theme_color%22%3A%22%23ff6b35%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%2520192%2520192%2527%253E%253Cdefs%253E%253ClinearGradient%2520id%253D%2527g%2527%2520x1%253D%25270%2525%2527%2520y1%253D%25270%2525%2527%2520x2%253D%2527100%2525%2527%2520y2%253D%2527100%2525%2527%253E%253Cstop%2520offset%253D%25270%2525%2527%2520stop-color%253D%2527%2523ff6b35%2527%252F%253E%253Cstop%2520offset%253D%252750%2525%2527%2520stop-color%253D%2527%2523ff3366%2527%252F%253E%253Cstop%2520offset%253D%2527100%2525%2527%2520stop-color%253D%2527%2523cc3344%2527%252F%253E%253C%252FlinearGradient%253E%253C%252Fdefs%253E%253Crect%2520width%253D%2527192%2527%2520height%253D%2527192%2527%2520rx%253D%252742%2527%2520fill%253D%2527url%2528%2523g%2529%2527%252F%253E%253Ctext%2520x%253D%252750%2525%2527%2520y%253D%252762%2525%2527%2520font-family%253D%2527Georgia%252Cserif%2527%2520font-size%253D%252796%2527%2520font-weight%253D%2527bold%2527%2520fill%253D%2527white%2527%2520text-anchor%253D%2527middle%2527%2520letter-spacing%253D%2527-3%2527%253ELE%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%2520512%2520512%2527%253E%253Cdefs%253E%253ClinearGradient%2520id%253D%2527g%2527%2520x1%253D%25270%2525%2527%2520y1%253D%25270%2525%2527%2520x2%253D%2527100%2525%2527%2520y2%253D%2527100%2525%2527%253E%253Cstop%2520offset%253D%25270%2525%2527%2520stop-color%253D%2527%2523ff6b35%2527%252F%253E%253Cstop%2520offset%253D%252750%2525%2527%2520stop-color%253D%2527%2523ff3366%2527%252F%253E%253Cstop%2520offset%253D%2527100%2525%2527%2520stop-color%253D%2527%2523cc3344%2527%252F%253E%253C%252FlinearGradient%253E%253C%252Fdefs%253E%253Crect%2520width%253D%2527512%2527%2520height%253D%2527512%2527%2520rx%253D%2527112%2527%2520fill%253D%2527url%2528%2523g%2529%2527%252F%253E%253Ctext%2520x%253D%252750%2525%2527%2520y%253D%252762%2525%2527%2520font-family%253D%2527Georgia%252Cserif%2527%2520font-size%253D%2527256%2527%2520font-weight%253D%2527bold%2527%2520fill%253D%2527white%2527%2520text-anchor%253D%2527middle%2527%2520letter-spacing%253D%2527-8%2527%253ELE%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D"/>
 
 <!-- Google Fonts - Fraunces (för premium-typografi) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,11 +108,29 @@
 </script>
 
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#080808;font-family:Georgia,serif;color:#e8e8e0;min-height:100vh}
-  ::-webkit-scrollbar{width:4px}
-  ::-webkit-scrollbar-track{background:#111}
-  ::-webkit-scrollbar-thumb{background:#333;border-radius:99px}
+  /* Eliminera svart flash vid laddning + bättre app-känsla */
+  html{background:#0a0a08;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    background:linear-gradient(135deg,#0a0a08 0%,#1a1108 100%);
+    font-family:Georgia,serif;
+    color:#e8e8e0;
+    min-height:100vh;
+    overscroll-behavior-y:none; /* Förhindra "studs"-effekt på iOS */
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+  
+  @media (prefers-color-scheme: light) {
+    html{background:#fbf8f0}
+    body{background:linear-gradient(135deg,#fbf8f0 0%,#f5efe0 100%);color:#1a1a14}
+  }
+  
+  /* Snyggare scrollbars (osynliga på mobil, syns på desktop) */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(232,201,122,0.3);border-radius:99px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(232,201,122,0.5)}
   input,select{outline:none;font-family:Georgia,serif}
   input::placeholder{color:#333}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
@@ -174,23 +211,50 @@
 </head>
 <body>
 <div id="root">
-  <!-- Pre-render loading screen (visas innan React/Babel laddar) -->
-  <div id="initial-loader" style="min-height:100vh;background:linear-gradient(135deg,#0a0a08 0%,#1a1108 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:Georgia,serif;">
-    <div style="font-size:64px;animation:initialPulse 1.8s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(255,107,53,0.4));">🔥</div>
-    <div style="font-size:24px;font-weight:700;background:linear-gradient(135deg,#ff6b35,#ff3366,#e8c97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.02em;">LeanEats</div>
-    <div style="font-size:12px;color:#666;letter-spacing:0.1em;text-transform:uppercase;">Startar...</div>
+  <!-- INITIAL LOADER - syns DIREKT innan React/Babel laddar -->
+  <div id="initial-loader" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#0a0a08 0%,#1a1108 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;font-family:Georgia,serif;z-index:99999;">
+    
+    <!-- LE-logo med eld-gradient -->
+    <div style="width:96px;height:96px;border-radius:24px;background:linear-gradient(135deg,#ff6b35,#ff3366,#cc3344);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(255,107,53,0.3),0 0 60px rgba(255,107,53,0.2);animation:initialBounce 2s ease-in-out infinite;">
+      <span style="font-size:48px;font-weight:700;color:white;letter-spacing:-2px;line-height:1;font-family:Georgia,serif;">LE</span>
+    </div>
+    
+    <!-- "LeanEats"-text -->
+    <div style="font-size:32px;font-weight:700;background:linear-gradient(135deg,#ff6b35,#ff3366,#e8c97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.02em;font-family:Georgia,serif;">LeanEats</div>
+    
+    <!-- Loading-prick -->
+    <div style="display:flex;gap:6px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#ff6b35;animation:loadingDot 1.4s ease-in-out 0s infinite;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#ff3366;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#e8c97a;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></div>
+    </div>
   </div>
+  
   <style>
-    @keyframes initialPulse {
-      0%,100% { transform:scale(1); opacity:1; }
-      50% { transform:scale(1.1); opacity:0.8; }
+    @keyframes initialBounce {
+      0%,100% { transform:scale(1) translateY(0); }
+      50% { transform:scale(1.05) translateY(-4px); }
+    }
+    @keyframes loadingDot {
+      0%,80%,100% { transform:scale(0.6); opacity:0.4; }
+      40% { transform:scale(1); opacity:1; }
+    }
+    @keyframes loaderFadeOut {
+      from { opacity:1; }
+      to { opacity:0; visibility:hidden; }
+    }
+    .loader-fade-out {
+      animation:loaderFadeOut 0.4s ease-out forwards;
+    }
+    
+    @media (prefers-color-scheme: light) {
+      #initial-loader { background:linear-gradient(135deg,#fbf8f0 0%,#f5efe0 100%) !important; }
     }
   </style>
 </div>
 
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
-
 // ─── RECIPE DATA ──────────────────────────────────────────────────────────
 
 const CATEGORIES = [
@@ -462,142 +526,174 @@ const TRAINING_CATEGORIES = [
 const EXERCISES = [
   // === BRÖST ===
   { id:"bench_press", name:"Bänkpress", category:"chest", mainMuscles:["Bröst","Triceps","Axlar"], equipment:"Skivstång + Bänk", difficulty:"medium",
+    wgerId:73, // Bench Press
     instructions:"Ligg på bänken med fötterna stadigt i golvet. Greppa stången axelbrett. Sänk stången kontrollerat till bröstet, pressa upp.",
     tips:"Andas in på vägen ner, ut på vägen upp. Håll skulderbladen sammanpressade.",
     animationFrames:["chest_down","chest_up"] },
   { id:"dumbbell_press", name:"Hantelpress", category:"chest", mainMuscles:["Bröst","Triceps"], equipment:"Hantlar + Bänk", difficulty:"easy",
+    wgerId:88, // Dumbbell Bench Press
     instructions:"Ligg på bänk med en hantel i varje hand. Pressa upp tills armarna är raka, sänk kontrollerat.",
     tips:"Bättre rörelseomfång än skivstång. Håll handlederna raka.",
     animationFrames:["press_down","press_up"] },
   { id:"push_up", name:"Armhävning", category:"chest", mainMuscles:["Bröst","Triceps","Mage"], equipment:"Ingen", difficulty:"easy",
+    wgerId:195, // Push-Up
     instructions:"Plankposition, händer axelbrett. Sänk dig kontrollerat tills bröstet nästan rör golvet, pressa upp.",
     tips:"Håll kroppen rak som en planka. Spänn magen hela tiden.",
     animationFrames:["pushup_down","pushup_up"] },
   { id:"chest_fly", name:"Flyes", category:"chest", mainMuscles:["Bröst"], equipment:"Hantlar", difficulty:"medium",
+    wgerId:148, // Dumbbell Fly
     instructions:"Ligg på bänk, hantlar rakt över bröstet med lätt böjda armar. Sänk hantlarna ut åt sidorna i en bågrörelse.",
     tips:"Känn sträckningen i bröstet. Tryck inte stången med trickeps.",
     animationFrames:["fly_open","fly_close"] },
   { id:"dips", name:"Dips", category:"chest", mainMuscles:["Bröst","Triceps"], equipment:"Dippställning", difficulty:"hard",
+    wgerId:83, // Dips
     instructions:"Häng i parallella stänger. Sänk dig genom att böja armbågarna, pressa upp till utgångsläge.",
     tips:"Luta överkroppen lätt framåt för bröstfokus, rakt upp för triceps.",
     animationFrames:["dip_down","dip_up"] },
   
   // === RYGG ===
   { id:"deadlift", name:"Marklyft", category:"back", mainMuscles:["Rygg","Bakbra","Sätesmuskel"], equipment:"Skivstång", difficulty:"hard",
+    wgerId:184, // Deadlift
     instructions:"Ställ dig framför stången, fötter höftbrett. Böj i höft & knän, greppa stången. Lyft genom att räta ut benen och sträcka i höften.",
     tips:"Håll ryggen rak hela tiden. Stången ska gå längs benen.",
     animationFrames:["dl_down","dl_up"] },
   { id:"barbell_row", name:"Skivstångsrodd", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Skivstång", difficulty:"medium",
+    wgerId:128, // Barbell Row
     instructions:"Stå böjd över stången, ryggen rak. Dra stången mot magen, sänk kontrollerat.",
     tips:"Klämm ihop skulderbladen i toppen. Använd ryggen, inte armarna.",
     animationFrames:["row_down","row_up"] },
   { id:"pull_up", name:"Pull-up", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Räck", difficulty:"hard",
+    wgerId:202, // Pull-Up
     instructions:"Häng från räcket med övergrepp. Dra dig upp tills hakan är över räcket, sänk kontrollerat.",
     tips:"Spänn magen för att inte gunga. Fokus på rygg, inte armar.",
     animationFrames:["pullup_down","pullup_up"] },
   { id:"lat_pulldown", name:"Latsdrag", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Kabelmaskin", difficulty:"easy",
+    wgerId:281, // Lat Pulldown
     instructions:"Sitt vid maskinen, greppa stången. Dra ner mot bröstet, kontrollerat tillbaka.",
     tips:"Dra med armbågarna, inte händerna. Klämm ihop skulderbladen.",
     animationFrames:["lat_up","lat_down"] },
   { id:"seated_row", name:"Sittande Rodd", category:"back", mainMuscles:["Rygg","Biceps"], equipment:"Kabelmaskin", difficulty:"easy",
+    wgerId:143, // Seated Cable Row
     instructions:"Sitt vid maskinen, greppa handtaget. Dra mot magen, släpp kontrollerat.",
     tips:"Håll ryggen rak. Klämm ihop skulderbladen i slutet.",
     animationFrames:["row_back","row_forward"] },
   
   // === BEN ===
   { id:"squat", name:"Knäböj", category:"legs", mainMuscles:["Lår","Sätesmuskel","Mage"], equipment:"Skivstång", difficulty:"hard",
+    wgerId:111, // Squat
     instructions:"Stång på axlarna, fötter axelbrett. Böj i höft & knän som om du sätter dig på stol. Pressa upp.",
     tips:"Knän åt samma håll som tårna. Håll bröstet uppe.",
     animationFrames:["squat_up","squat_down"] },
   { id:"front_squat", name:"Frontknäböj", category:"legs", mainMuscles:["Lår","Mage"], equipment:"Skivstång", difficulty:"hard",
+    wgerId:300, // Front Squat
     instructions:"Stång på framsidan av axlar. Knäböj rakt ner, pressa upp.",
     tips:"Mer fokus på framsida lår. Håll armbågarna höga.",
     animationFrames:["fsq_up","fsq_down"] },
   { id:"lunges", name:"Utfall", category:"legs", mainMuscles:["Lår","Sätesmuskel"], equipment:"Hantlar", difficulty:"medium",
+    wgerId:101, // Lunges
     instructions:"Stå rak, ta ett stort kliv framåt och böj båda knäna till 90°. Pressa tillbaka.",
     tips:"Knäet ska inte gå förbi tårna. Växla ben.",
     animationFrames:["lunge_up","lunge_down"] },
   { id:"leg_press", name:"Benpress", category:"legs", mainMuscles:["Lår","Sätesmuskel"], equipment:"Maskin", difficulty:"easy",
+    wgerId:151, // Leg Press
     instructions:"Sitt i maskinen, fötterna axelbrett på plattan. Pressa upp, sänk kontrollerat.",
     tips:"Lås inte knäna i toppen. Sänk så långt du klarar.",
     animationFrames:["lp_up","lp_down"] },
   { id:"romanian_dl", name:"Rumänsk Marklyft", category:"legs", mainMuscles:["Bakbra","Sätesmuskel"], equipment:"Skivstång", difficulty:"medium",
+    wgerId:170, // Romanian Deadlift
     instructions:"Stå med stången framför kroppen. Skjut höften bakåt med bara lätt böj i knäna. Sänk stången till knänivå, kom upp.",
     tips:"Känn sträckningen i bakbra. Stången nära kroppen.",
     animationFrames:["rdl_up","rdl_down"] },
   { id:"calf_raise", name:"Vadlyft", category:"legs", mainMuscles:["Vader"], equipment:"Maskin/Hantlar", difficulty:"easy",
+    wgerId:113, // Calf Raise
     instructions:"Stå på fotbollen, lyft hälarna så högt du kan, sänk kontrollerat.",
     tips:"Pausa 1 sekund i toppen. Gör 15-20 reps.",
     animationFrames:["calf_up","calf_down"] },
   
   // === AXLAR ===
   { id:"shoulder_press", name:"Axelpress", category:"shoulders", mainMuscles:["Axlar","Triceps"], equipment:"Hantlar/Skivstång", difficulty:"medium",
+    wgerId:119, // Shoulder Press
     instructions:"Sitt eller stå med hantlar i axelhöjd. Pressa upp tills armarna är raka, sänk kontrollerat.",
     tips:"Spänn magen, lås inte armbågarna.",
     animationFrames:["sp_down","sp_up"] },
   { id:"lateral_raise", name:"Sidolyft", category:"shoulders", mainMuscles:["Sidodelta"], equipment:"Hantlar", difficulty:"easy",
+    wgerId:131, // Lateral Raise
     instructions:"Stå med hantlar längs sidorna, lätt böjda armar. Lyft hantlarna ut åt sidorna till axelhöjd, sänk kontrollerat.",
     tips:"Led med armbågarna. Inga gungrörelser.",
     animationFrames:["lr_down","lr_up"] },
   { id:"front_raise", name:"Framlyft", category:"shoulders", mainMuscles:["Främre Delta"], equipment:"Hantlar", difficulty:"easy",
+    wgerId:90, // Front Raise
     instructions:"Stå med hantlar framför låren. Lyft rakt fram till axelhöjd, sänk kontrollerat.",
     tips:"Använd inte ryggen. Kontrollerade rörelser.",
     animationFrames:["fr_down","fr_up"] },
   { id:"face_pull", name:"Face Pull", category:"shoulders", mainMuscles:["Bakre Delta","Övre Rygg"], equipment:"Kabelmaskin", difficulty:"easy",
+    wgerId:289, // Face Pull
     instructions:"Greppa repet i ansiktshöjd, dra mot ansiktet och sprid armarna utåt.",
     tips:"Bra för axelhälsa. Klämm ihop skulderbladen.",
     animationFrames:["fp_back","fp_forward"] },
   
   // === ARMAR ===
   { id:"bicep_curl", name:"Bicepscurl", category:"arms", mainMuscles:["Biceps"], equipment:"Hantlar/Skivstång", difficulty:"easy",
+    wgerId:81, // Biceps Curl
     instructions:"Stå med hantlar längs sidorna, handflatorna framåt. Böj armarna upp till axlarna, sänk kontrollerat.",
     tips:"Inga gungrörelser. Spänn biceps i toppen.",
     animationFrames:["bc_down","bc_up"] },
   { id:"hammer_curl", name:"Hammerkurl", category:"arms", mainMuscles:["Biceps","Underarm"], equipment:"Hantlar", difficulty:"easy",
+    wgerId:74, // Hammer Curl
     instructions:"Hantlar längs sidorna, handflatorna mot kroppen. Böj armarna upp.",
     tips:"Bra för underarm. Spänn i toppen.",
     animationFrames:["hc_down","hc_up"] },
   { id:"tricep_extension", name:"Tricepspress", category:"arms", mainMuscles:["Triceps"], equipment:"Hantel", difficulty:"medium",
+    wgerId:84, // Triceps Extension
     instructions:"Håll hantel rakt över huvudet. Sänk bakom huvudet genom att böja armbågarna, pressa upp.",
     tips:"Håll armbågarna nära öronen. Spänn triceps.",
     animationFrames:["te_down","te_up"] },
   { id:"tricep_pushdown", name:"Tricepspress Kabel", category:"arms", mainMuscles:["Triceps"], equipment:"Kabelmaskin", difficulty:"easy",
+    wgerId:96, // Triceps Pushdown
     instructions:"Stå framför kabelmaskinen, greppa repet i bröstnivå. Pressa ner tills armarna är raka.",
     tips:"Håll armbågarna nära kroppen. Spänn triceps.",
     animationFrames:["tp_up","tp_down"] },
   
   // === MAGE ===
   { id:"plank", name:"Planka", category:"core", mainMuscles:["Mage","Skuldror"], equipment:"Ingen", difficulty:"easy",
+    wgerId:122, // Plank
     instructions:"Lägg dig på underarmar och tår. Håll kroppen rak som en planka. Spänn magen.",
     tips:"Andas normalt. Sikta på 30-60 sek.",
     animationFrames:["plank_hold"] },
   { id:"sit_up", name:"Sit-up", category:"core", mainMuscles:["Mage"], equipment:"Ingen", difficulty:"easy",
+    wgerId:91, // Sit-Up
     instructions:"Ligg på rygg med böjda knän. Lyft överkroppen upp till knäna, sänk kontrollerat.",
     tips:"Använd inte armarna att dra dig upp.",
     animationFrames:["su_down","su_up"] },
   { id:"leg_raise", name:"Knävyft", category:"core", mainMuscles:["Nedre Mage"], equipment:"Ingen", difficulty:"medium",
+    wgerId:125, // Leg Raise
     instructions:"Ligg på rygg med raka ben. Lyft benen rakt upp tills 90°, sänk kontrollerat.",
     tips:"Pressa nedre ryggen mot golvet. Långsam rörelse.",
     animationFrames:["lr_down","lr_up"] },
   { id:"russian_twist", name:"Ryska Vridningar", category:"core", mainMuscles:["Sneda Mage"], equipment:"Vikt (valfri)", difficulty:"medium",
+    wgerId:288, // Russian Twist
     instructions:"Sitt med böjda knän, luta dig bakåt. Vrid överkroppen från sida till sida.",
     tips:"Lyft fötterna för svårare. Håll magen spänd.",
     animationFrames:["rt_left","rt_right"] },
   
   // === KONDITION ===
   { id:"running", name:"Löpning", category:"cardio", mainMuscles:["Hela kroppen"], equipment:"Ingen", difficulty:"easy",
+    wgerId:182, // Running
     instructions:"Spring i jämnt tempo. Justera farten efter vad du klarar.",
     tips:"Andas regelbundet. Värm upp först.",
     animationFrames:["run1","run2"] },
   { id:"cycling", name:"Cykling", category:"cardio", mainMuscles:["Ben","Mage"], equipment:"Cykel", difficulty:"easy",
+    wgerId:188, // Cycling
     instructions:"Cykla i jämnt tempo eller intervaller.",
     tips:"Justera sadelhöjd. Drick vatten.",
     animationFrames:["cycle1","cycle2"] },
   { id:"jump_rope", name:"Hopprep", category:"cardio", mainMuscles:["Vader","Axlar"], equipment:"Hopprep", difficulty:"medium",
+    wgerId:190, // Jump Rope
     instructions:"Hoppa över repet i jämnt tempo. Små hopp.",
     tips:"Mjuka knäböjer. Andas regelbundet.",
     animationFrames:["jump1","jump2"] },
   { id:"burpees", name:"Burpees", category:"cardio", mainMuscles:["Hela kroppen"], equipment:"Ingen", difficulty:"hard",
+    wgerId:97, // Burpees
     instructions:"Kombination: Squat → planka → push-up → squat → hopp.",
     tips:"Tufft! Bra HIIT-övning.",
     animationFrames:["burpee1","burpee2","burpee3"] },
@@ -2060,20 +2156,105 @@ function AddIngredientModal({ T, searchFoods, onClose, onAdd, recentFoods, favor
 }
 
 // ─── Food Item Row (för matsökning, senaste, favoriter) ─────────────────
-// ─── Exercise Animation Component ───────────────────────────────────────
-// Animerade SVG-figurer som visar övningsrörelser
-function ExerciseAnimation({ category, size = 60, color = "#e8c97a", T }) {
+// ─── Exercise Image Component ───────────────────────────────────────
+// Hämtar bilder från Wger API (gratis, open source) och cachar dem
+// Fallback till animerad emoji om bild inte finns
+const wgerImageCache = {}; // global cache så vi inte hämtar samma bild flera gånger
+
+function ExerciseAnimation({ category, exerciseId, wgerId, size = 60, color = "#e8c97a", T }) {
+  const [imageUrl, setImageUrl] = React.useState(
+    wgerId && wgerImageCache[wgerId] ? wgerImageCache[wgerId] : null
+  );
+  const [loading, setLoading] = React.useState(false);
+  const [failed, setFailed] = React.useState(
+    wgerId && wgerImageCache[wgerId] === "failed"
+  );
+  
+  React.useEffect(() => {
+    if (!wgerId || imageUrl || failed) return;
+    
+    // Kolla cache först
+    if (wgerImageCache[wgerId]) {
+      if (wgerImageCache[wgerId] === "failed") {
+        setFailed(true);
+      } else {
+        setImageUrl(wgerImageCache[wgerId]);
+      }
+      return;
+    }
+    
+    setLoading(true);
+    
+    // Hämta bild från Wger API (gratis, ingen nyckel behövs)
+    const fetchImage = async () => {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 5000);
+        
+        const res = await fetch(`https://wger.de/api/v2/exerciseimage/?exercise_base=${wgerId}&is_main=true`, {
+          signal: ctrl.signal
+        });
+        clearTimeout(timer);
+        
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        
+        if (data.results && data.results.length > 0) {
+          const url = data.results[0].image;
+          wgerImageCache[wgerId] = url;
+          setImageUrl(url);
+        } else {
+          // Försök hämta NÅGON bild för denna övning (även om inte main)
+          const res2 = await fetch(`https://wger.de/api/v2/exerciseimage/?exercise_base=${wgerId}`);
+          const data2 = await res2.json();
+          if (data2.results && data2.results.length > 0) {
+            const url = data2.results[0].image;
+            wgerImageCache[wgerId] = url;
+            setImageUrl(url);
+          } else {
+            wgerImageCache[wgerId] = "failed";
+            setFailed(true);
+          }
+        }
+      } catch (e) {
+        wgerImageCache[wgerId] = "failed";
+        setFailed(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchImage();
+  }, [wgerId]);
+  
   const cat = category || "chest";
   const emojis = {
-    chest: "💪",
-    back: "🔙",
-    legs: "🦵",
-    shoulders: "🤲",
-    arms: "💪",
-    core: "🎯",
-    cardio: "🏃"
+    chest: "💪", back: "🔙", legs: "🦵", shoulders: "🤲",
+    arms: "💪", core: "🎯", cardio: "🏃"
   };
   
+  // Visa bild om vi har en
+  if (imageUrl && !failed) {
+    return (
+      <div style={{
+        width:size,height:size,
+        borderRadius:12,
+        background:`linear-gradient(135deg, ${color}11 0%, #ffffff 100%)`,
+        border:`1px solid ${color}33`,
+        display:"flex",alignItems:"center",justifyContent:"center",
+        flexShrink:0,
+        position:"relative",
+        overflow:"hidden"
+      }}>
+        <img src={imageUrl} alt="" style={{
+          width:"100%",height:"100%",objectFit:"contain",
+          padding:size > 80 ? 8 : 4
+        }} onError={() => setFailed(true)}/>
+      </div>
+    );
+  }
+  
+  // Fallback: emoji-ikon
   return (
     <div style={{
       width:size,height:size,
@@ -2087,8 +2268,8 @@ function ExerciseAnimation({ category, size = 60, color = "#e8c97a", T }) {
     }}>
       <div style={{
         fontSize:size * 0.5,
-        animation:"exerciseBounce 2s ease-in-out infinite"
-      }}>{emojis[cat] || "💪"}</div>
+        animation: loading ? "pulse 1s ease-in-out infinite" : "exerciseBounce 2s ease-in-out infinite"
+      }}>{loading ? "⏳" : (emojis[cat] || "💪")}</div>
     </div>
   );
 }
@@ -3734,6 +3915,48 @@ function App() {
   const getExerciseById = (id) => EXERCISES.find(e => e.id === id);
   
   // Starta nytt workout-bygge
+  // ── PREMIUM-PAYWALL HJÄLPARE ──
+  
+  // True om användaren har full premium-åtkomst
+  const hasPremium = isPremium || userTier === "premium" || userTier === "vip" || userTier === "trial" || userTier === "coach_client" || isAdmin;
+  
+  // True om coach-klient (ska visa "Premium via din coach")
+  const isCoachClient = userTier === "coach_client" || !!coachId;
+  
+  // Visa premium-modal
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [premiumModalReason, setPremiumModalReason] = useState(""); // "training" | "shopping" | "weightlog" | etc.
+  
+  // Hjälp-funktion: kolla om feature är låst
+  const checkPremium = (featureName, featureLabel) => {
+    if (hasPremium) return true; // Har access
+    setPremiumModalReason(featureLabel || featureName);
+    setShowPremiumModal(true);
+    return false; // Blockerad
+  };
+  
+  // Hjälp-funktion: visa låsta-styling
+  const lockedStyle = (locked) => locked ? {
+    filter:"blur(4px) saturate(0.5)",
+    pointerEvents:"none",
+    userSelect:"none",
+    opacity:0.7
+  } : {};
+  
+  // Räkna gratis-recept använda denna månad
+  const monthKey = new Date().toISOString().slice(0,7); // "2026-04"
+  const recipesThisMonth = (favorites || []).filter(f => {
+    const fDate = f.savedAt || "";
+    return fDate.startsWith(monthKey);
+  }).length;
+  const FREE_RECIPE_LIMIT = 30;
+  const freeRecipesLeft = Math.max(0, FREE_RECIPE_LIMIT - recipesThisMonth);
+  
+  // Räkna gratis-måltider
+  const FREE_MEALS_LIMIT = 3;
+  const myMealsCount = (myMeals || []).length;
+  const freeMealsLeft = Math.max(0, FREE_MEALS_LIMIT - myMealsCount);
+
   const startWorkoutBuilder = () => {
     setWorkoutBuilder({
       id: "workout_" + Date.now(),
@@ -4008,6 +4231,12 @@ function App() {
   };
 
   const startMealBuilder = () => {
+    // Premium-check: gratis-användare får max 3 egna måltider
+    if (!hasPremium && myMealsCount >= FREE_MEALS_LIMIT) {
+      setPremiumModalReason("Obegränsade egna måltider");
+      setShowPremiumModal(true);
+      return;
+    }
     setMealBuilder({
       id: "meal_" + Date.now(),
       name: "",
@@ -5129,6 +5358,53 @@ function App() {
               )}
             </div>
 
+            {/* PREMIUM-STATUS BANNER */}
+            {hasPremium && (
+              <div style={{
+                background:isCoachClient 
+                  ? `linear-gradient(135deg,${T.green}22,${T.green}11)`
+                  : `linear-gradient(135deg,${T.accent}22,${T.yellow}11)`,
+                border:isCoachClient ? `1px solid ${T.green}66` : `1px solid ${T.accent}66`,
+                borderRadius:14,padding:"12px 14px",marginBottom:14,
+                display:"flex",alignItems:"center",gap:12
+              }}>
+                <span style={{fontSize:24}}>{isCoachClient ? "💎" : "👑"}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:700,color:isCoachClient ? T.green : T.accent}}>
+                    {isCoachClient ? "Premium via din coach" : userTier === "vip" ? "VIP-medlem" : userTier === "trial" ? "Premium Trial aktiv" : "Premium aktiv"}
+                  </div>
+                  <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>
+                    {isCoachClient ? "Alla funktioner upplåsta" : "Alla funktioner upplåsta · Tack! 💪"}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!hasPremium && (
+              <button onClick={()=>setShowPremiumModal(true)} className="press-feedback" style={{
+                width:"100%",
+                background:`linear-gradient(135deg,${T.accent}33,${T.yellow}11)`,
+                border:`1px solid ${T.accent}66`,
+                borderRadius:14,padding:"14px",marginBottom:14,
+                cursor:"pointer",fontFamily:"inherit",textAlign:"left",
+                display:"flex",alignItems:"center",gap:12,
+                position:"relative",
+                overflow:"hidden"
+              }}>
+                <div style={{
+                  position:"absolute",top:-30,right:-30,width:120,height:120,
+                  background:`radial-gradient(circle, ${T.accent}33 0%, transparent 70%)`,
+                  pointerEvents:"none"
+                }}></div>
+                <span style={{fontSize:32,position:"relative"}}>👑</span>
+                <div style={{flex:1,position:"relative"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:T.accent}}>Lås upp Premium</div>
+                  <div style={{fontSize:11,color:T.textDim,marginTop:2}}>7 dagar gratis · Träning, statistik, inköpslista m.m.</div>
+                </div>
+                <span style={{fontSize:14,color:T.accent,position:"relative"}}>→</span>
+              </button>
+            )}
+
             {/* MITT FOKUS - Personligt mål */}
             {(personalFocus || dietPrefs.length > 0 || targetWeight) && (
               <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
@@ -5211,21 +5487,34 @@ function App() {
 
             {/* MIN RESA - Vikt + Historik + Inköpslista */}
             <div style={{background:T.bg2,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:11,color:T.accent,marginBottom:14,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Min Resa</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>Min Resa</div>
+                {!hasPremium && <div style={{fontSize:9,color:T.accent,fontWeight:700,padding:"3px 8px",background:T.accent+"22",border:`1px solid ${T.accent}44`,borderRadius:99,letterSpacing:"0.08em"}}>👑 PREMIUM</div>}
+              </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-                <button onClick={()=>setShowWeightLog(true)} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.blue}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
-                  <div style={{fontSize:24,marginBottom:6}}>⚖️</div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.blue}}>Viktlogg</div>
-                  <div style={{fontSize:11,color:T.textDim,marginTop:3,fontWeight:500}}>{weightLog.length} loggningar</div>
+                <button onClick={()=>{ if(checkPremium("weightlog","Viktlogg")) setShowWeightLog(true); }} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.blue}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",position:"relative",overflow:"hidden"}}>
+                  {!hasPremium && (
+                    <div style={{position:"absolute",top:8,right:8,fontSize:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}>👑</div>
+                  )}
+                  <div style={{...lockedStyle(!hasPremium)}}>
+                    <div style={{fontSize:24,marginBottom:6}}>⚖️</div>
+                    <div style={{fontSize:14,fontWeight:700,color:T.blue}}>Viktlogg</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:3,fontWeight:500}}>{hasPremium ? `${weightLog.length} loggningar` : "Lås upp"}</div>
+                  </div>
                 </button>
-                <button onClick={()=>setShowHistory(true)} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.green}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
-                  <div style={{fontSize:24,marginBottom:6}}>📊</div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.green}}>Historik</div>
-                  <div style={{fontSize:11,color:T.textDim,marginTop:3,fontWeight:500}}>{mealHistory.length} dagar</div>
+                <button onClick={()=>{ if(checkPremium("history","Historik")) setShowHistory(true); }} className="press-feedback" style={{background:T.bg3,border:`1px solid ${T.green}33`,borderRadius:12,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",position:"relative",overflow:"hidden"}}>
+                  {!hasPremium && (
+                    <div style={{position:"absolute",top:8,right:8,fontSize:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}>👑</div>
+                  )}
+                  <div style={{...lockedStyle(!hasPremium)}}>
+                    <div style={{fontSize:24,marginBottom:6}}>📊</div>
+                    <div style={{fontSize:14,fontWeight:700,color:T.green}}>Historik</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:3,fontWeight:500}}>{hasPremium ? `${mealHistory.length} dagar` : "Lås upp"}</div>
+                  </div>
                 </button>
               </div>
               {/* Inköpslista - bredare knapp */}
-              <button onClick={()=>setShowShoppingList(true)} className="press-feedback" style={{
+              <button onClick={()=>{ if(checkPremium("shopping","Inköpslista")) setShowShoppingList(true); }} className="press-feedback" style={{
                 width:"100%",
                 background:`linear-gradient(135deg,${T.accent}22,${T.yellow}11)`,
                 border:`1px solid ${T.accent}44`,
@@ -5236,18 +5525,25 @@ function App() {
                 textAlign:"left",
                 display:"flex",
                 alignItems:"center",
-                gap:12
+                gap:12,
+                position:"relative",
+                overflow:"hidden"
               }}>
-                <span style={{fontSize:24}}>🛒</span>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:700,color:T.accent}}>Inköpslista</div>
-                  <div style={{fontSize:11,color:T.textDim,marginTop:2,fontWeight:500}}>
-                    {shoppingItems.length > 0 
-                      ? `${shoppingItems.filter(i=>!i.checked).length} varor kvar att handla`
-                      : "Skapa lista från favoritrecept"}
+                {!hasPremium && (
+                  <div style={{position:"absolute",top:8,right:14,fontSize:14,filter:"drop-shadow(0 1px 3px rgba(0,0,0,0.3))"}}>👑</div>
+                )}
+                <div style={{display:"flex",alignItems:"center",gap:12,flex:1,...lockedStyle(!hasPremium)}}>
+                  <span style={{fontSize:24}}>🛒</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14,fontWeight:700,color:T.accent}}>Inköpslista</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:2,fontWeight:500}}>
+                      {!hasPremium ? "Lås upp i Premium" : (shoppingItems.length > 0 
+                        ? `${shoppingItems.filter(i=>!i.checked).length} varor kvar att handla`
+                        : "Skapa lista från favoritrecept")}
+                    </div>
                   </div>
+                  <span style={{fontSize:14,color:T.textDim}}>→</span>
                 </div>
-                <span style={{fontSize:14,color:T.textDim}}>→</span>
               </button>
             </div>
 
@@ -5329,14 +5625,21 @@ function App() {
           {navBtn("home","🏠","Hem")}
           
           {/* Träning */}
-          <button onClick={()=>setShowTraining(true)} style={{
+          <button onClick={()=>{ if(checkPremium("training","Träning")) setShowTraining(true); }} style={{
             flex:1,padding:"10px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
             fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
             borderTop:"2px solid transparent",
-            display:"flex",flexDirection:"column",alignItems:"center",gap:4
+            display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+            position:"relative"
           }}>
-            <span style={{fontSize:18}}>💪</span>Träning
+            <span style={{fontSize:18,position:"relative"}}>
+              💪
+              {!hasPremium && (
+                <span style={{position:"absolute",top:-4,right:-10,fontSize:11,filter:"drop-shadow(0 0 2px rgba(0,0,0,0.5))"}}>👑</span>
+              )}
+            </span>
+            Träning
           </button>
           
           {/* MITTEN: Stor swipe-knapp som sticker upp */}
@@ -5706,6 +6009,36 @@ function App() {
                 </div>
                 <span style={{color:T.textFaint}}>→</span>
               </button>
+            </div>
+
+            {/* INSTALLERA APP - PWA */}
+            <div style={{marginBottom:28}}>
+              <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,paddingLeft:4}}>📱 Installera som app</div>
+              
+              <div style={{
+                background:`linear-gradient(135deg,${T.accent}22,${T.yellow}11)`,
+                border:`1px solid ${T.accent}66`,
+                borderRadius:14,padding:"14px 16px"
+              }}>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+                  <span style={{fontSize:24}}>📲</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:700,color:T.accent}}>Lägg till på hemskärmen</div>
+                    <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>Snabbare start · Funkar offline</div>
+                  </div>
+                </div>
+                
+                <div style={{fontSize:11,color:T.textDim,lineHeight:1.6,padding:"10px 12px",background:T.bg3,borderRadius:8}}>
+                  <strong>iPhone (Safari):</strong><br/>
+                  1. Tryck <strong>Dela-knappen</strong> 📤 längst ner<br/>
+                  2. Scrolla ner & välj <strong>"Lägg till på hemskärmen"</strong><br/>
+                  3. Tryck <strong>"Lägg till"</strong><br/>
+                  <br/>
+                  <strong>Android (Chrome):</strong><br/>
+                  1. Tryck <strong>menyn</strong> ⋮ uppe till höger<br/>
+                  2. Välj <strong>"Lägg till på startskärmen"</strong>
+                </div>
+              </div>
             </div>
 
             {/* NOTIFIKATIONER */}
@@ -6846,7 +7179,7 @@ function App() {
                       padding:"10px 0",borderTop:i > 0 ? `1px solid ${T.border}` : "none"
                     }}>
                       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                        <ExerciseAnimation category={exercise.category} size={36} color={cat?.color || T.accent} T={T}/>
+                        <ExerciseAnimation category={exercise.category} wgerId={exercise.wgerId} size={36} color={cat?.color || T.accent} T={T}/>
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontSize:13,fontWeight:600,color:T.text}}>{exercise.name}</div>
                         </div>
@@ -6935,7 +7268,7 @@ function App() {
                   boxShadow:allDone ? `0 0 12px ${T.green}33` : "none"
                 }}>
                   <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                    <ExerciseAnimation category={exercise.category} size={44} color={cat?.color || T.accent} T={T}/>
+                    <ExerciseAnimation category={exercise.category} wgerId={exercise.wgerId} size={44} color={cat?.color || T.accent} T={T}/>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:14,fontWeight:700,color:T.text}}>{exercise.name}</div>
                       <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>{completedCount}/{ex.sets} sets klara</div>
@@ -7079,7 +7412,7 @@ function App() {
               
               {/* Stor animation */}
               <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
-                <ExerciseAnimation category={selectedExercise.category} size={140} color={cat?.color || T.accent} T={T}/>
+                <ExerciseAnimation category={selectedExercise.category} wgerId={selectedExercise.wgerId} size={140} color={cat?.color || T.accent} T={T}/>
               </div>
               
               {/* Titel */}
@@ -7134,6 +7467,159 @@ function App() {
           </div>
         );
       })()}
+
+      {/* PREMIUM-MODAL (Lifesum-stil med fördelar + pris) */}
+      {showPremiumModal && (
+        <div style={{
+          position:"fixed",
+          top:0,left:0,right:0,bottom:0,
+          zIndex:9000,
+          background:"rgba(0,0,0,0.7)",
+          backdropFilter:"blur(8px)",
+          WebkitBackdropFilter:"blur(8px)",
+          display:"flex",alignItems:"flex-end",justifyContent:"center",
+          animation:"fadeIn 0.3s ease-out"
+        }} onClick={()=>setShowPremiumModal(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            background:`linear-gradient(180deg, ${T.bg2} 0%, ${T.bg} 100%)`,
+            borderTopLeftRadius:24,
+            borderTopRightRadius:24,
+            width:"100%",
+            maxWidth:540,
+            padding:"32px 20px calc(32px + env(safe-area-inset-bottom))",
+            boxShadow:"0 -10px 40px rgba(0,0,0,0.5)",
+            animation:"slideInBottom 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            position:"relative",
+            maxHeight:"90vh",
+            overflowY:"auto"
+          }}>
+            {/* Stäng-knapp */}
+            <button onClick={()=>setShowPremiumModal(false)} style={{
+              position:"absolute",top:16,right:16,
+              background:T.bg3,border:"none",color:T.textDim,
+              width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14
+            }}>✕</button>
+            
+            {/* HEADER */}
+            <div style={{textAlign:"center",marginBottom:24}}>
+              <div style={{
+                width:80,height:80,borderRadius:20,
+                background:"linear-gradient(135deg,#ff6b35,#ff3366,#cc3344)",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                margin:"0 auto 16px",
+                boxShadow:"0 8px 32px rgba(255,107,53,0.4)"
+              }}>
+                <span style={{fontSize:40}}>👑</span>
+              </div>
+              <div style={{fontSize:11,color:T.accent,textTransform:"uppercase",letterSpacing:"0.15em",fontWeight:700,marginBottom:8}}>LeanEats Premium</div>
+              <h2 style={{fontSize:24,fontWeight:700,color:T.text,fontFamily:"'Fraunces', Georgia, serif",lineHeight:1.2}}>
+                {premiumModalReason ? `Lås upp ${premiumModalReason}` : "Lås upp full kraft"}
+              </h2>
+              <p style={{fontSize:13,color:T.textDim,marginTop:8,lineHeight:1.5}}>Få tillgång till alla funktioner och nå dina mål snabbare 🔥</p>
+            </div>
+            
+            {/* PREMIUM-FÖRDELAR */}
+            <div style={{marginBottom:24}}>
+              {[
+                {icon:"💪",title:"Träningsbibliotek",desc:"30+ övningar med anatomiska bilder + veckoschema"},
+                {icon:"🛒",title:"Inköpslista",desc:"Skapa automatiskt från favoritrecept"},
+                {icon:"📊",title:"Detaljerad statistik",desc:"Se trender, grafer & full historik"},
+                {icon:"⚖️",title:"Viktlogg + grafer",desc:"Följ din resa visuellt"},
+                {icon:"🥗",title:"Specialkost-filter",desc:"Vegan, gluten-fri, keto m.m."},
+                {icon:"🔥",title:"Obegränsade recept",desc:"200+ recept utan limits"},
+                {icon:"🍳",title:"Obegränsade egna måltider",desc:"Spara hur många du vill"}
+              ].map((f,i)=>(
+                <div key={i} style={{
+                  display:"flex",alignItems:"center",gap:12,
+                  padding:"10px 0",
+                  borderBottom:i < 6 ? `1px solid ${T.border}` : "none"
+                }}>
+                  <div style={{
+                    width:36,height:36,borderRadius:10,
+                    background:`linear-gradient(135deg,${T.accent}33,${T.yellow}11)`,
+                    border:`1px solid ${T.accent}44`,
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontSize:18,flexShrink:0
+                  }}>{f.icon}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:700,color:T.text}}>{f.title}</div>
+                    <div style={{fontSize:11,color:T.textFaint,marginTop:2}}>{f.desc}</div>
+                  </div>
+                  <div style={{color:T.green,fontSize:16}}>✓</div>
+                </div>
+              ))}
+            </div>
+            
+            {/* PRIS-OPTIONS */}
+            <div style={{marginBottom:16}}>
+              {/* Årlig - HIGHLIGHTED */}
+              <div style={{
+                background:`linear-gradient(135deg,${T.accent}22,${T.yellow}11)`,
+                border:`2px solid ${T.accent}`,
+                borderRadius:14,padding:"14px 16px",
+                marginBottom:8,
+                position:"relative"
+              }}>
+                <div style={{
+                  position:"absolute",top:-10,right:14,
+                  background:`linear-gradient(135deg,${T.green},#4aaa4a)`,
+                  color:"#0d0d0d",fontSize:9,fontWeight:700,
+                  padding:"3px 10px",borderRadius:99,
+                  textTransform:"uppercase",letterSpacing:"0.08em"
+                }}>SPARA 32%</div>
+                
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:T.text}}>Årligen</div>
+                    <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>Bara 67 kr/mån</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:18,fontWeight:700,color:T.accent,fontFamily:"'Fraunces', Georgia, serif"}}>799 kr</div>
+                    <div style={{fontSize:9,color:T.textFaint,textDecoration:"line-through"}}>1188 kr</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Månatligt */}
+              <div style={{
+                background:T.bg3,
+                border:`1px solid ${T.border}`,
+                borderRadius:14,padding:"14px 16px"
+              }}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:T.text}}>Månadsvis</div>
+                    <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>Avsluta när du vill</div>
+                  </div>
+                  <div style={{fontSize:18,fontWeight:700,color:T.text,fontFamily:"'Fraunces', Georgia, serif"}}>99 kr</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* CTA */}
+            <button onClick={()=>{
+              setShowPremiumModal(false);
+              setPricingOpen(true);
+            }} className="press-feedback" style={{
+              width:"100%",
+              background:`linear-gradient(135deg,${T.accent},${T.yellow})`,
+              color:"#0d0d0d",
+              border:"none",
+              borderRadius:99,
+              padding:"16px",
+              fontSize:15,fontWeight:700,
+              cursor:"pointer",fontFamily:"inherit",
+              boxShadow:`0 6px 20px ${T.accent}66`,
+              marginBottom:10
+            }}>🔥 Starta 7 dagar gratis</button>
+            
+            <div style={{fontSize:10,color:T.textFaint,textAlign:"center",lineHeight:1.5}}>
+              7 dagar gratis · Avsluta när du vill<br/>
+              Inga avgifter förrän efter testperioden
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TRÄNING - HUVUDMODAL */}
       {showTraining && (
@@ -7304,7 +7790,7 @@ function App() {
                       cursor:"pointer",fontFamily:"inherit",textAlign:"left",
                       animationDelay:`${Math.min(i,10)*0.03}s`
                     }}>
-                      <ExerciseAnimation category={ex.category} size={56} color={cat?.color || T.accent} T={T}/>
+                      <ExerciseAnimation category={ex.category} wgerId={ex.wgerId} size={56} color={cat?.color || T.accent} T={T}/>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:3}}>{ex.name}</div>
                         <div style={{display:"flex",gap:6,alignItems:"center",fontSize:10,color:T.textFaint,flexWrap:"wrap"}}>
@@ -9898,7 +10384,101 @@ function Root() {
   return <App/>;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
+// Smooth fade-out av initial loader när React laddat klart
+const __loaderRoot = document.createElement("div");
+__loaderRoot.id = "react-mount";
+document.getElementById("root").appendChild(__loaderRoot);
+
+ReactDOM.createRoot(__loaderRoot).render(<Root/>);
+
+// Ta bort initial loader med smooth fade
+setTimeout(() => {
+  const loader = document.getElementById("initial-loader");
+  if (loader) {
+    loader.classList.add("loader-fade-out");
+    setTimeout(() => {
+      loader.remove();
+    }, 400);
+  }
+}, 300);
 </script>
+<!-- Service Worker - PWA offline + snabb återbesök -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Skapa inline service worker som cachar appen
+    const swCode = `
+      const CACHE_NAME = 'leaneats-v1';
+      const APP_SHELL = ['/', '/index.html'];
+      
+      self.addEventListener('install', e => {
+        e.waitUntil(
+          caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL).catch(() => {}))
+        );
+        self.skipWaiting();
+      });
+      
+      self.addEventListener('activate', e => {
+        e.waitUntil(
+          caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+          )
+        );
+        self.clients.claim();
+      });
+      
+      self.addEventListener('fetch', e => {
+        // Bara cache GET-requests
+        if (e.request.method !== 'GET') return;
+        
+        // Skip Firebase + dynamic API:s (alltid live)
+        const url = e.request.url;
+        if (url.includes('firestore.googleapis.com') || 
+            url.includes('firebase') ||
+            url.includes('identitytoolkit') ||
+            url.includes('openfoodfacts') ||
+            url.includes('wger.de/api')) {
+          return;
+        }
+        
+        // Network-first för HTML, cache-first för resten
+        if (e.request.mode === 'navigate' || url.endsWith('.html')) {
+          e.respondWith(
+            fetch(e.request).catch(() => caches.match(e.request).then(r => r || caches.match('/')))
+          );
+        } else {
+          e.respondWith(
+            caches.match(e.request).then(cached => {
+              if (cached) return cached;
+              return fetch(e.request).then(response => {
+                if (!response || response.status !== 200) return response;
+                const clone = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+                return response;
+              }).catch(() => caches.match('/'));
+            })
+          );
+        }
+      });
+    `;
+    
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    
+    navigator.serviceWorker.register(swUrl, { scope: '/' })
+      .then(reg => console.log('✅ LeanEats SW registered'))
+      .catch(err => console.log('SW failed:', err));
+  });
+}
+
+// Visa "Lägg till på hemskärmen"-prompt för kompatibla webbläsare
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  window.__pwaInstallable = true;
+});
+</script>
+
 </body>
 </html>
