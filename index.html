@@ -4880,7 +4880,12 @@ function App() {
                   {/* Header */}
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,position:"relative"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:22}}>{fitnessGoal==="deffa"?"🔥":fitnessGoal==="bulka"?"💪":"⚖️"}</span>
+                      <Icon 
+                        name={fitnessGoal==="deffa" ? "trending_down" : fitnessGoal==="bulka" ? "trending_up" : "scale"} 
+                        size={24} 
+                        color={fitnessGoal==="deffa"?T.green:T.accent} 
+                        strokeWidth={2.2}
+                      />
                       <div>
                         <div style={{fontSize:14,fontWeight:700,color:fitnessGoal==="deffa"?T.green:T.accent,letterSpacing:"0.02em"}}>
                           {fitnessGoal==="deffa"?"Deffa":fitnessGoal==="bulka"?"Bulka":"Underhåll"}
@@ -4949,10 +4954,10 @@ function App() {
                   {/* Macros - 3 kort */}
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
                     {[
-                      ["Protein", todayProtein, proteinTarget, T.green, "💪"],
-                      ["Kolhydrater", todayCarbs, carbsTarget, T.blue, "🍞"],
-                      ["Fett", todayFat, fatTarget, T.yellow, "🥑"],
-                    ].map(([l,v,t,c,emoji])=>{
+                      ["Protein", todayProtein, proteinTarget, T.green, "P"],
+                      ["Kolhydrater", todayCarbs, carbsTarget, T.blue, "K"],
+                      ["Fett", todayFat, fatTarget, T.yellow, "F"],
+                    ].map(([l,v,t,c,letter])=>{
                       const pct = Math.min(100, (v/t)*100);
                       return (
                         <div key={l} style={{
@@ -4964,7 +4969,16 @@ function App() {
                           position:"relative",
                           overflow:"hidden"
                         }}>
-                          <div style={{fontSize:14,marginBottom:4,opacity:0.8}}>{emoji}</div>
+                          <div style={{
+                            width:24,height:24,
+                            borderRadius:6,
+                            background:`${c}22`,
+                            border:`1px solid ${c}44`,
+                            margin:"0 auto 4px",
+                            display:"flex",alignItems:"center",justifyContent:"center",
+                            fontSize:11,fontWeight:700,color:c,
+                            fontFamily:"'Fraunces', Georgia, serif"
+                          }}>{letter}</div>
                           <div style={{fontSize:14,fontWeight:700,color:c,lineHeight:1,fontFamily:"'Fraunces', Georgia, serif"}}>
                             {Math.round(v)}<span style={{fontSize:9,color:T.textFaint,fontWeight:400,marginLeft:1}}>/{t}g</span>
                           </div>
@@ -5103,7 +5117,9 @@ function App() {
                   boxShadow:`0 2px 12px ${T.accent}22`
                 }}>
                   <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,background:`radial-gradient(circle, ${T.accent}25 0%, transparent 70%)`,pointerEvents:"none"}}></div>
-                  <div className="fire-dance" style={{fontSize:32,marginBottom:4,display:"inline-block",position:"relative",filter:`drop-shadow(0 0 8px ${T.accent}55)`}}>🔥</div>
+                  <div className="fire-dance" style={{marginBottom:4,display:"inline-flex",position:"relative",filter:`drop-shadow(0 0 8px ${T.accent}55)`}}>
+                    <Icon name="flame" size={36} color={T.accent} strokeWidth={2}/>
+                  </div>
                   <div style={{fontSize:24,fontWeight:700,color:T.accent,lineHeight:1,fontFamily:"'Fraunces', Georgia, serif",position:"relative"}}>{streakCount}</div>
                   <div style={{fontSize:9,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:3,position:"relative",fontWeight:600}}>
                     {streakCount === 1 ? "dag" : "dagar i rad"}
@@ -5121,16 +5137,19 @@ function App() {
             {/* MYFITNESSPAL-STIL MÅLTIDER */}
             {(() => {
               const MEAL_TYPES = [
-                {id:"frukost", label:"FRUKOST", emoji:"🌅", color:T.yellow},
-                {id:"lunch", label:"LUNCH", emoji:"☀️", color:T.blue},
-                {id:"middag", label:"MIDDAG", emoji:"🍽", color:T.accent},
-                {id:"mellanmal", label:"MELLANMÅL", emoji:"🥜", color:T.green}
+                {id:"frukost", label:"FRUKOST", iconName:"sunrise", color:T.yellow},
+                {id:"lunch", label:"LUNCH", iconName:"sun", color:T.blue},
+                {id:"middag", label:"MIDDAG", iconName:"moon", color:T.accent},
+                {id:"mellanmal", label:"MELLANMÅL", iconName:"cookie", color:T.green}
               ];
               
               return (
                 <div style={{marginBottom:20}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                    <h3 style={{fontSize:13,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>📔 Dagens dagbok</h3>
+                    <h3 style={{fontSize:13,color:T.accent,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700,display:"flex",alignItems:"center",gap:6}}>
+                      <Icon name="list" size={14} color={T.accent} strokeWidth={2}/>
+                      Dagens dagbok
+                    </h3>
                     <span style={{fontSize:11,color:T.textFaint}}>
                       {new Date().toLocaleDateString("sv-SE", {weekday:"long", day:"numeric", month:"short"})}
                     </span>
@@ -5177,9 +5196,10 @@ function App() {
                               width:36,height:36,borderRadius:10,
                               background:isEmpty ? T.bg3 : `${mt.color}22`,
                               display:"flex",alignItems:"center",justifyContent:"center",
-                              fontSize:20,
                               border:`1px solid ${isEmpty ? T.border : mt.color+"44"}`
-                            }}>{mt.emoji}</div>
+                            }}>
+                              <Icon name={mt.iconName} size={20} color={isEmpty ? T.textDim : mt.color} strokeWidth={2}/>
+                            </div>
                             <div>
                               <div style={{fontSize:13,fontWeight:700,color:mt.color,letterSpacing:"0.06em"}}>{mt.label}</div>
                               <div style={{fontSize:10,color:T.textFaint,marginTop:2}}>
