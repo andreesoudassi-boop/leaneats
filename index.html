@@ -4651,13 +4651,13 @@ function App() {
       }
       setScreen(id);
     }} style={{
-      flex:1,padding:"10px 0",background:"transparent",border:"none",
+      flex:1,padding:"6px 0",background:"transparent",border:"none",
       color:screen===id?T.accent:T.textFaint,cursor:"pointer",fontFamily:"inherit",
-      fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
-      borderTop:`2px solid ${screen===id?T.accent:"transparent"}`,
-      transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:4
+      fontSize:9,textTransform:"uppercase",letterSpacing:"0.06em",fontWeight:600,
+      transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+      borderRadius:99
     }}>
-      <Icon name={iconName} size={22} strokeWidth={2}/>
+      <Icon name={iconName} size={20} strokeWidth={2}/>
       {label}
     </button>
   );
@@ -4818,7 +4818,7 @@ function App() {
 
         {/* HOME */}
         {screen==="home" && (
-          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"calc(28px + env(safe-area-inset-top)) 16px 20px"}}>
+          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"calc(28px + env(safe-area-inset-top)) 16px 110px"}}>
             {/* Goal Setup Modal */}
             {showGoalSetup && <GoalSetup onSave={saveGoal} T={T} isDark={isDark}/>}
 
@@ -5360,7 +5360,7 @@ function App() {
 
         {/* PROFILE */}
         {screen==="profile" && (
-          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"calc(22px + env(safe-area-inset-top)) 16px 22px"}}>
+          <div className="screen-enter" style={{maxWidth:540,margin:"0 auto",padding:"calc(22px + env(safe-area-inset-top)) 16px 110px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
               <h2 style={{fontSize:20,color:T.accent,fontWeight:700}}>Min Profil</h2>
               {!editMode
@@ -5729,54 +5729,66 @@ function App() {
         {showGoalSetup && screen==="profile" && <GoalSetup onSave={saveGoal} initialGoal={fitnessGoal} initialKcal={dailyKcal} T={T} isDark={isDark}/>}
       </div>
 
-      {/* BOTTOM NAV - 4 tabs + stor swipe-knapp i mitten */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(30px) saturate(180%)",WebkitBackdropFilter:"blur(30px) saturate(180%)",paddingBottom:"env(safe-area-inset-bottom)"}}>
-        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",position:"relative",height:64}}>
+      {/* BOTTOM NAV - FLYTANDE PILL (Lifesum/iOS 26-stil) */}
+      <div style={{
+        position:"fixed",
+        bottom:`calc(16px + env(safe-area-inset-bottom))`,
+        left:"50%",
+        transform:"translateX(-50%)",
+        zIndex:100,
+        background:isDark ? "rgba(20, 18, 14, 0.55)" : "rgba(255, 255, 255, 0.55)",
+        backdropFilter:"blur(40px) saturate(200%)",
+        WebkitBackdropFilter:"blur(40px) saturate(200%)",
+        borderRadius:"100px",
+        border:isDark ? "0.5px solid rgba(255, 255, 255, 0.1)" : "0.5px solid rgba(0, 0, 0, 0.06)",
+        boxShadow: isDark 
+          ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.08) inset"
+          : "0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 0 rgba(255, 255, 255, 0.6) inset",
+        padding:"6px",
+        width:"calc(100% - 24px)",
+        maxWidth:"500px"
+      }}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative",height:54}}>
           {/* Hem */}
           {navBtn("home","home","Hem")}
           
           {/* Träning */}
           <button onClick={()=>{ if(checkPremium("training","Träning")) setShowTraining(true); }} style={{
-            flex:1,padding:"10px 0",background:"transparent",border:"none",
+            flex:1,padding:"6px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
-            fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
-            borderTop:"2px solid transparent",
-            display:"flex",flexDirection:"column",alignItems:"center",gap:4,
-            position:"relative"
+            fontSize:9,textTransform:"uppercase",letterSpacing:"0.06em",fontWeight:600,
+            display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+            position:"relative",borderRadius:99
           }}>
             <div style={{position:"relative"}}>
-              <Icon name="dumbbell" size={22} strokeWidth={2}/>
+              <Icon name="dumbbell" size={20} strokeWidth={2}/>
               {!hasPremium && (
-                <Icon name="crown" size={11} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:-4,right:-8,filter:"drop-shadow(0 0 3px rgba(0,0,0,0.5))"}}/>
+                <Icon name="crown" size={10} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:-3,right:-7,filter:"drop-shadow(0 0 3px rgba(0,0,0,0.5))"}}/>
               )}
             </div>
             Träning
           </button>
           
-          {/* MITTEN: Stor swipe-knapp som sticker upp */}
-          <div style={{flex:1,display:"flex",justifyContent:"center",position:"relative"}}>
+          {/* MITTEN: Liten central swipe-knapp som passar i pillen */}
+          <div style={{flex:1,display:"flex",justifyContent:"center",alignItems:"center"}}>
             <button onClick={()=>{
               setShowCategoryPicker(true);
               setScreen("home");
-              // Scrolla upp så användaren ser kategori-väljaren
               setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}), 100);
             }} className="press-feedback" style={{
-              position:"absolute",
-              top:-72,
-              width:64,
-              height:64,
+              width:48,
+              height:48,
               borderRadius:"50%",
               background:"linear-gradient(135deg,#ff6b35 0%,#ff3366 60%,#c4402b 100%)",
-              border:`5px solid ${T.bg}`,
-              boxShadow:"0 8px 24px rgba(255,51,102,0.55), 0 0 32px rgba(255,107,53,0.4)",
+              border:"none",
+              boxShadow:"0 4px 16px rgba(255,51,102,0.55), 0 0 20px rgba(255,107,53,0.3)",
               cursor:"pointer",
               fontFamily:"inherit",
               display:"flex",
               alignItems:"center",
               justifyContent:"center",
-              fontSize:30,
-              animation:"pulse 2.5s ease-in-out infinite",
-              zIndex:5
+              fontSize:22,
+              animation:"pulse 2.5s ease-in-out infinite"
             }}>🔥</button>
           </div>
           
@@ -5785,13 +5797,13 @@ function App() {
             setShowRecipeSearch(true);
             setRecipeSearchQuery("");
           }} style={{
-            flex:1,padding:"10px 0",background:"transparent",border:"none",
+            flex:1,padding:"6px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
-            fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",
-            borderTop:"2px solid transparent",
-            display:"flex",flexDirection:"column",alignItems:"center",gap:4
+            fontSize:9,textTransform:"uppercase",letterSpacing:"0.06em",fontWeight:600,
+            display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+            borderRadius:99
           }}>
-            <Icon name="fork" size={22} strokeWidth={2}/>
+            <Icon name="fork" size={20} strokeWidth={2}/>
             Recept
           </button>
           
