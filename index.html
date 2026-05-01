@@ -1884,7 +1884,7 @@ function getThemeColors(isDark) {
       text: "#e8e8e0", textDim: "#888", textFaint: "#555", textVeryFaint: "#333",
       accent: "#e8c97a",
       green: "#6dcc6d", blue: "#7aa0cc", yellow: "#c4a852", red: "#cc7a7a",
-      cardBg: "#141410", navBg: "rgba(8,8,8,0.97)",
+      cardBg: "#141410", navBg: "rgba(10, 10, 8, 0.65)",
       gradStart: "#1a1a08"
     };
   } else {
@@ -1894,7 +1894,7 @@ function getThemeColors(isDark) {
       text: "#1a1a14", textDim: "#666", textFaint: "#888", textVeryFaint: "#bbb",
       accent: "#b8942a",
       green: "#4aaa4a", blue: "#5a80a0", yellow: "#a48038", red: "#b06060",
-      cardBg: "#f4f4ef", navBg: "rgba(255,255,255,0.97)",
+      cardBg: "#f4f4ef", navBg: "rgba(255, 255, 255, 0.65)",
       gradStart: "#f0e8c8"
     };
   }
@@ -4779,7 +4779,7 @@ function App() {
         paddingTop:"max(13px, env(safe-area-inset-top))",
         paddingLeft:"max(18px, env(safe-area-inset-left))",
         paddingRight:"max(18px, env(safe-area-inset-right))",
-        borderBottom:`1px solid ${T.border}`,background:T.navBg,backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)"}}>
+        borderBottom:`1px solid ${T.border}`,background:T.navBg,backdropFilter:"blur(30px) saturate(180%)",WebkitBackdropFilter:"blur(30px) saturate(180%)"}}>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
           {/* LE-ikon */}
           <div style={{
@@ -5730,7 +5730,7 @@ function App() {
       </div>
 
       {/* BOTTOM NAV - 4 tabs + stor swipe-knapp i mitten */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(16px)",paddingBottom:"env(safe-area-inset-bottom)"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:T.navBg,borderTop:`1px solid ${T.border}`,backdropFilter:"blur(30px) saturate(180%)",WebkitBackdropFilter:"blur(30px) saturate(180%)",paddingBottom:"env(safe-area-inset-bottom)"}}>
         <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",position:"relative",height:64}}>
           {/* Hem */}
           {navBtn("home","home","Hem")}
@@ -7586,9 +7586,9 @@ function App() {
           position:"fixed",
           top:0,left:0,right:0,bottom:0,
           zIndex:9000,
-          background:"rgba(0,0,0,0.7)",
-          backdropFilter:"blur(8px)",
-          WebkitBackdropFilter:"blur(8px)",
+          background:"rgba(0,0,0,0.5)",
+          backdropFilter:"blur(20px) saturate(180%)",
+          WebkitBackdropFilter:"blur(20px) saturate(180%)",
           display:"flex",alignItems:"flex-end",justifyContent:"center",
           animation:"fadeIn 0.3s ease-out"
         }} onClick={()=>setShowPremiumModal(false)}>
