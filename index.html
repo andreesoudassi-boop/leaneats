@@ -4651,13 +4651,13 @@ function App() {
       }
       setScreen(id);
     }} style={{
-      flex:1,padding:"6px 0",background:"transparent",border:"none",
+      flex:1,padding:"4px 0",background:"transparent",border:"none",
       color:screen===id?T.accent:T.textFaint,cursor:"pointer",fontFamily:"inherit",
-      fontSize:9,textTransform:"uppercase",letterSpacing:"0.06em",fontWeight:600,
-      transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-      borderRadius:99
+      fontSize:9,textTransform:"uppercase",letterSpacing:"0.05em",fontWeight:600,
+      transition:"all 0.2s",display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+      borderRadius:14
     }}>
-      <Icon name={iconName} size={20} strokeWidth={2}/>
+      <Icon name={iconName} size={19} strokeWidth={2}/>
       {label}
     </button>
   );
@@ -5729,39 +5729,39 @@ function App() {
         {showGoalSetup && screen==="profile" && <GoalSetup onSave={saveGoal} initialGoal={fitnessGoal} initialKcal={dailyKcal} T={T} isDark={isDark}/>}
       </div>
 
-      {/* BOTTOM NAV - FLYTANDE PILL (Lifesum/iOS 26-stil) */}
+      {/* BOTTOM NAV - FLYTANDE NAVBAR med glas-effekt (LeanEats-stil) */}
       <div style={{
         position:"fixed",
-        bottom:`calc(16px + env(safe-area-inset-bottom))`,
+        bottom:`calc(14px + env(safe-area-inset-bottom))`,
         left:"50%",
         transform:"translateX(-50%)",
         zIndex:100,
-        background:isDark ? "rgba(20, 18, 14, 0.55)" : "rgba(255, 255, 255, 0.55)",
-        backdropFilter:"blur(40px) saturate(200%)",
-        WebkitBackdropFilter:"blur(40px) saturate(200%)",
-        borderRadius:"100px",
-        border:isDark ? "0.5px solid rgba(255, 255, 255, 0.1)" : "0.5px solid rgba(0, 0, 0, 0.06)",
+        background:isDark ? "rgba(20, 20, 18, 0.35)" : "rgba(255, 255, 255, 0.4)",
+        backdropFilter:"blur(50px) saturate(180%)",
+        WebkitBackdropFilter:"blur(50px) saturate(180%)",
+        borderRadius:"24px",
+        border:isDark ? "0.5px solid rgba(255, 255, 255, 0.12)" : "0.5px solid rgba(0, 0, 0, 0.08)",
         boxShadow: isDark 
-          ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.08) inset"
-          : "0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 0 rgba(255, 255, 255, 0.6) inset",
-        padding:"6px",
-        width:"calc(100% - 24px)",
-        maxWidth:"500px"
+          ? "0 12px 40px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
+          : "0 12px 40px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.7) inset",
+        padding:"4px 8px",
+        width:"calc(100% - 28px)",
+        maxWidth:"480px"
       }}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative",height:54}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative",height:46}}>
           {/* Hem */}
           {navBtn("home","home","Hem")}
           
           {/* Träning */}
           <button onClick={()=>{ if(checkPremium("training","Träning")) setShowTraining(true); }} style={{
-            flex:1,padding:"6px 0",background:"transparent",border:"none",
+            flex:1,padding:"4px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
-            fontSize:9,textTransform:"uppercase",letterSpacing:"0.06em",fontWeight:600,
-            display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-            position:"relative",borderRadius:99
+            fontSize:9,textTransform:"uppercase",letterSpacing:"0.05em",fontWeight:600,
+            display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+            position:"relative",borderRadius:14
           }}>
             <div style={{position:"relative"}}>
-              <Icon name="dumbbell" size={20} strokeWidth={2}/>
+              <Icon name="dumbbell" size={19} strokeWidth={2}/>
               {!hasPremium && (
                 <Icon name="crown" size={10} color={T.accent} strokeWidth={2.5} style={{position:"absolute",top:-3,right:-7,filter:"drop-shadow(0 0 3px rgba(0,0,0,0.5))"}}/>
               )}
@@ -5776,18 +5776,18 @@ function App() {
               setScreen("home");
               setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}), 100);
             }} className="press-feedback" style={{
-              width:48,
-              height:48,
-              borderRadius:"50%",
+              width:42,
+              height:42,
+              borderRadius:14,
               background:"linear-gradient(135deg,#ff6b35 0%,#ff3366 60%,#c4402b 100%)",
               border:"none",
-              boxShadow:"0 4px 16px rgba(255,51,102,0.55), 0 0 20px rgba(255,107,53,0.3)",
+              boxShadow:"0 4px 14px rgba(255,51,102,0.5), 0 0 16px rgba(255,107,53,0.25)",
               cursor:"pointer",
               fontFamily:"inherit",
               display:"flex",
               alignItems:"center",
               justifyContent:"center",
-              fontSize:22,
+              fontSize:20,
               animation:"pulse 2.5s ease-in-out infinite"
             }}>🔥</button>
           </div>
@@ -5797,13 +5797,13 @@ function App() {
             setShowRecipeSearch(true);
             setRecipeSearchQuery("");
           }} style={{
-            flex:1,padding:"6px 0",background:"transparent",border:"none",
+            flex:1,padding:"4px 0",background:"transparent",border:"none",
             color:T.textFaint,cursor:"pointer",fontFamily:"inherit",
-            fontSize:9,textTransform:"uppercase",letterSpacing:"0.06em",fontWeight:600,
-            display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-            borderRadius:99
+            fontSize:9,textTransform:"uppercase",letterSpacing:"0.05em",fontWeight:600,
+            display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+            borderRadius:14
           }}>
-            <Icon name="fork" size={20} strokeWidth={2}/>
+            <Icon name="fork" size={19} strokeWidth={2}/>
             Recept
           </button>
           
